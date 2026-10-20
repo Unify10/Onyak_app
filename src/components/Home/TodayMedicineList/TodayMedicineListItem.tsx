@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderColor: '#E5E7EB',
     borderWidth: 1,
-    // backgroundColor: '#E5E7EB',
+    backgroundColor: '#ffffff',
   },
   todayMedicineListItemTitle: {
     fontSize: 20,
