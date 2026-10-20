@@ -2,14 +2,14 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import BottomTabBar from '../components/BottomTabBar/BottomTabBar';
-import MedicinePhoto from '../components/Home/MedicinePhoto/MedicinePhoto';
+import Home from './home/Home';
 
 export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView edges={['bottom']} style={styles.container}>
         <View style={styles.content}>
-          <MedicinePhoto/>
+          <Home/>
         </View>
         <StatusBar style="auto" />
         <BottomTabBar />
