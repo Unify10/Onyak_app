@@ -18,10 +18,12 @@ export default function MedicinePhoto() {
 const styles = StyleSheet.create({
   medicinePhotoButton: {
     flexDirection: 'row',
-    justifyContent: "space-between",
-    backgroundColor: "#000000",
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    // alignSelf: 'stretch',
+    backgroundColor: '#000000',
     borderRadius: 15,
-    width: "80%",
+    width: '95%',
     padding: 20,
   },
 
