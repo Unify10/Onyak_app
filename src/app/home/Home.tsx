@@ -1,25 +1,37 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ScrollView } from 'react-native';
 import MedicinePhoto from '../../components/Home/MedicinePhoto/MedicinePhoto';
 import MedicineList from '../../components/Home/TodayMedicineList/TodayMedicineList';
+import ActiveMedicineListItem from '../../components/Home/ActiveMedicineList/ActiveMedicineListItem';
+import ActiveMedicineList from '../../components/Home/ActiveMedicineList/ActiveMedicineList';
 
 export default function Home() {
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.homeContainer} contentContainerStyle={styles.contentContainer}>
       <MedicinePhoto/>
       <MedicineList/>
-    </View>
+      <ActiveMedicineList/>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+  homeContainer: {
+    // display: 'flex',
+    // flexDirection: 'column',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    // width: '100%',
+    // paddingHorizontal: 20,
+    // paddingTop: 24,
+    // gap: 20,
     width: '100%',
+
+  },
+  contentContainer: {
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 24,
-    gap: 20,
+    paddingTop: 60, // 원래 24
+    paddingBottom: 40,        
+    gap: 20,                    
   },
 });
