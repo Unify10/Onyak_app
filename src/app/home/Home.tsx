@@ -6,7 +6,12 @@ import ActiveMedicineList from '../../components/Home/ActiveMedicineList/ActiveM
 
 export default function Home() {
   return (
-    <ScrollView style={styles.homeContainer} contentContainerStyle={styles.contentContainer}>
+    <ScrollView 
+      style={styles.homeContainer}
+      contentContainerStyle={styles.contentContainer}
+      bounces={false}
+      overScrollMode="never"
+    >
       <MedicinePhoto/>
       <MedicineList/>
       <ActiveMedicineList/>
