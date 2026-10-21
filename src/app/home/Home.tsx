@@ -1,8 +1,9 @@
 import { StyleSheet, View, ScrollView } from 'react-native';
 import MedicinePhoto from '../../components/Home/MedicinePhoto/MedicinePhoto';
 import MedicineList from '../../components/Home/TodayMedicineList/TodayMedicineList';
-import ActiveMedicineListItem from '../../components/Home/ActiveMedicineList/ActiveMedicineListItem';
 import ActiveMedicineList from '../../components/Home/ActiveMedicineList/ActiveMedicineList';
+import HomeFamilyAccountItem from '../../components/Home/HomeFamilyAccount/HomeFamilyAccountItem';
+import HomeFamilyAccountList from '../../components/Home/HomeFamilyAccount/HomeFamilyAccountList';
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
       <MedicinePhoto/>
       <MedicineList/>
       <ActiveMedicineList/>
+      <HomeFamilyAccountList/>
     </ScrollView>
   );
 }
