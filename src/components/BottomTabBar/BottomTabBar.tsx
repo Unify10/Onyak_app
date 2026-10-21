@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     height: 60,
-    marginBottom: 50,
+    marginBottom: 0,
     width: '100%',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#E5E7EB',
