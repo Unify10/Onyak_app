@@ -1,19 +1,20 @@
-import { Pressable, StyleSheet, Text, View, Image } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 
 interface activeMedicineData {
-  activeMedicineTitle : string;
-  activeMedicineInfo : string;
-  activeMedicineImage? : string;
+  activeMedicineTitle: string;
+  activeMedicineInfo: string;
+  activeMedicineImage?: string;
 }
 
-export default function ActiveMedicineListItem({ activeMedicineTitle, activeMedicineInfo, activeMedicineImage }: activeMedicineData,  ) {
+export default function ActiveMedicineItem({ activeMedicineTitle, activeMedicineInfo, activeMedicineImage }: activeMedicineData) {
   return (
     <View style={styles.activeMedicineCard}>
       <View>
         {activeMedicineImage ? (
-          <Image source={{ uri : activeMedicineImage}}
-          style={styles.activeMedicineImage}
-          resizeMode="cover"
+          <Image
+            source={{ uri: activeMedicineImage }}
+            style={styles.activeMedicineImage}
+            resizeMode="cover"
           />
         ) : (
           <View style={[styles.activeMedicineImage, styles.activeMedicinePlaceholder]}>
@@ -23,10 +24,10 @@ export default function ActiveMedicineListItem({ activeMedicineTitle, activeMedi
       </View>
       <View>
         <Text style={styles.activeMedicineTitle}>{activeMedicineTitle}</Text>
-        <Text style={styles.activeMedicineInfo} >{activeMedicineInfo}</Text>
+        <Text style={styles.activeMedicineInfo}>{activeMedicineInfo}</Text>
       </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -45,8 +46,8 @@ const styles = StyleSheet.create({
   },
   activeMedicinePlaceholder: {
     backgroundColor: '#E5E7EB',
-    justifyContent: 'center',   
-    alignItems: 'center',       
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   activeMedicinePlaceholderText: {
     fontSize: 14,
@@ -57,9 +58,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginTop: 10,
   },
-  activeMedicineInfo:{
+  activeMedicineInfo: {
     fontSize: 16,
     color: '#6B7280',
     marginTop: 2,
   },
-}); 
+});

@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import TodayMedicineListItem from './TodayMedicineListItem';
+import TodayMedicineItem from './TodayMedicineItem';
 
 export default function TodayMedicineList() {
   return(
@@ -9,9 +9,9 @@ export default function TodayMedicineList() {
         <Text style={styles.todayMedicineListHeaderStatus}>0/0 완료</Text>
       </View>
       <View style={styles.todayMedicineList}>
-        <TodayMedicineListItem title="123" timeOfDay='아침' time='00:00'/>
-        <TodayMedicineListItem title="234" timeOfDay='점심' time='12:00'/>
-        <TodayMedicineListItem title="345" timeOfDay='저녁' time='24:00'/>
+        <TodayMedicineItem title="123" timeOfDay='아침' time='00:00'/>
+        <TodayMedicineItem title="234" timeOfDay='점심' time='12:00'/>
+        <TodayMedicineItem title="345" timeOfDay='저녁' time='24:00'/>
       </View>
     </View>
   );

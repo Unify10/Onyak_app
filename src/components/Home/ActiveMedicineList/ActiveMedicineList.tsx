@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import ActiveMedicineListItem from './ActiveMedicineListItem';
+import ActiveMedicineItem from './ActiveMedicineItem';
 
 
 export default function ActiveMedicineList() {
@@ -10,8 +10,8 @@ export default function ActiveMedicineList() {
         <Text style={styles.activeMedicineListHeaderStatus}>0/0 완료</Text>
       </View>
       <View style={styles.activeMedicineList}>
-        <ActiveMedicineListItem activeMedicineTitle='1' activeMedicineInfo='1'/>
-        <ActiveMedicineListItem activeMedicineTitle='1' activeMedicineInfo='1'/>
+        <ActiveMedicineItem activeMedicineTitle='1' activeMedicineInfo='1'/>
+        <ActiveMedicineItem activeMedicineTitle='1' activeMedicineInfo='1'/>
       </View>
     </View>
   );
