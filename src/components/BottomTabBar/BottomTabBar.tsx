@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import HomeIcon from '../../../assets/home.svg';
-import SearchIcon from '../../../assets/search.svg';
-import MedicationListIcon from '../../../assets/medication-list.svg';
-import FamilyIcon from '../../../assets/family.svg';
-import ProfileIcon from '../../../assets/profile.svg';
+import HomeIcon from '../../../assets/tabs/home.svg';
+import SearchIcon from '../../../assets/tabs/search.svg';
+import MedicationListIcon from '../../../assets/tabs/medication-list.svg';
+import FamilyIcon from '../../../assets/tabs/family.svg';
+import ProfileIcon from '../../../assets/tabs/profile.svg';
 
 const tabs = [
   { label: '홈', Icon: HomeIcon },
