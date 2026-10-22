@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import TodayMedicineCheckbox from './TodayMedicineCheckbox';
 
 interface MedicineData {
   title: string;
@@ -10,7 +11,7 @@ export default function TodayMedicineItem({ title, timeOfDay, time }: MedicineDa
   return (
     <View style={styles.cardContainer}>
       <View>
-        <Text>체크박스</Text>
+        <TodayMedicineCheckbox/>
       </View>
       <View>
         <Text style={styles.todayMedicineItemTitle}>{title}</Text>
@@ -26,6 +27,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
     width: '100%',
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -33,6 +35,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     borderWidth: 1,
     backgroundColor: '#ffffff',
+    gap: 15,
   },
   todayMedicineItemTitle: {
     fontSize: 20,
