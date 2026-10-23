@@ -4,7 +4,7 @@ import MedicinePhotoIcon from '../../../../assets/home/medicine-photo.svg';
 export default function MedicinePhoto() {
   return (
     <Pressable style={styles.medicinePhotoButton}>
-      <View>
+      <View style={styles.medicinePhotoTextContainer}>
         <Text style={styles.title}>약 성분 촬영/검색</Text>
         <Text style={styles.info}>AI가 즉시 안정성을 확인해요</Text>
       </View>
@@ -25,6 +25,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     width: '95%',
     padding: 20,
+  },
+  medicinePhotoTextContainer: {
+    flex: 1,
+    gap: 4,
   },
 
   title : {
