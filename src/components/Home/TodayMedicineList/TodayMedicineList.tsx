@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import TodayMedicineItem from './TodayMedicineItem';
 
 export default function TodayMedicineList() {
