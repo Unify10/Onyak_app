@@ -4,6 +4,7 @@ import MedicineList from '../../components/Home/TodayMedicineList/TodayMedicineL
 import ActiveMedicineList from '../../components/Home/ActiveMedicineList/ActiveMedicineList';
 import HomeFamilyAccountItem from '../../components/Home/HomeFamilyAccount/HomeFamilyAccountItem';
 import HomeFamilyAccountList from '../../components/Home/HomeFamilyAccount/HomeFamilyAccountList';
+import Notification from '../../components/Home/Notification/Notification';
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <MedicinePhoto/>
       <MedicineList/>
       <ActiveMedicineList/>
+      <Notification notificationCount={1} notificationMedications={['타이레놀', '감기약']} />
       <HomeFamilyAccountList/>
     </ScrollView>
   );
