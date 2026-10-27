@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import HomeIcon from '../../../assets/home.svg';
-import SearchIcon from '../../../assets/search.svg';
-import MedicationListIcon from '../../../assets/medication-list.svg';
-import FamilyIcon from '../../../assets/family.svg';
-import ProfileIcon from '../../../assets/profile.svg';
+import HomeIcon from '../../../assets/tabs/home.svg';
+import SearchIcon from '../../../assets/tabs/search.svg';
+import MedicationListIcon from '../../../assets/tabs/medication-list.svg';
+import FamilyIcon from '../../../assets/tabs/family.svg';
+import ProfileIcon from '../../../assets/tabs/profile.svg';
 
 type tabLabel = '홈' | '검색' | '복용 목록' | '가족' | '내 정보';
 
