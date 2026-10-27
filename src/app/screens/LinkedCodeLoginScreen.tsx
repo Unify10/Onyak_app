@@ -1,15 +1,16 @@
 import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Keyboard,
   Pressable,
   SafeAreaView,
   StyleSheet,
-  Text,
   TextInput,
   View,
-  Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import AppText from '../MainScreens/AppText';
 
 type Props = {
   onPressBack?: () => void;
@@ -26,7 +27,8 @@ export default function LinkedCodeLoginScreen({
   onComplete,
   onSubmitCode,
 }: Props) {
-  const inputRef = useRef<TextInput>(null);
+  // TextInput ref에서 focus()만 사용합니다.
+  const inputRef = useRef<{ focus: () => void } | null>(null);
 
   const [code, setCode] = useState('');
   const [status, setStatus] = useState<'input' | 'success' | 'error'>('input');
@@ -34,7 +36,6 @@ export default function LinkedCodeLoginScreen({
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // 숫자만 입력받고, 6자리를 채우면 키보드를 닫습니다.
   function handleCodeChange(value: string) {
     const numbersOnly = value.replace(/\D/g, '').slice(0, CODE_LENGTH);
 
@@ -52,7 +53,6 @@ export default function LinkedCodeLoginScreen({
 
     Keyboard.dismiss();
 
-    // 서버 인증 함수가 연결되지 않은 경우 안내 문구를 표시합니다.
     if (!onSubmitCode) {
       setErrorMessage('올바르지 않은 연동 코드입니다.');
       setStatus('error');
@@ -84,14 +84,12 @@ export default function LinkedCodeLoginScreen({
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        {/* 화면 빈 곳을 누르면 키보드를 닫습니다. */}
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={Keyboard.dismiss}
           accessible={false}
         />
 
-        {/* 로그인 화면으로 돌아가기 */}
         <Pressable
           style={styles.backButton}
           onPress={() => {
@@ -101,50 +99,48 @@ export default function LinkedCodeLoginScreen({
           accessibilityRole="button"
           accessibilityLabel="로그인 화면으로 돌아가기"
         >
-          <Text style={styles.backButtonText}>‹</Text>
+          <AppText style={styles.backButtonText}>‹</AppText>
         </Pressable>
 
-        {/* 서비스 로고와 설명 */}
         <View style={styles.brand}>
           <Image
             source={require('../../../assets/onyak-logo.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
-          <Text style={styles.subtitle}>약물 상호작용 확인 서비스</Text>
+          <AppText style={styles.subtitle}>
+            약물 상호작용 확인 서비스
+          </AppText>
         </View>
 
-        {/* 연동 상태를 아이콘으로 표시합니다. */}
         <View style={styles.illustration}>
           <View style={styles.phone}>
-            <Text style={styles.lockIcon}>🔒</Text>
+            <Ionicons name="lock-closed" size={28} color="#4B5060" />
 
             {status === 'success' && (
               <View style={[styles.resultBadge, styles.successBadge]}>
-                <Text style={styles.resultBadgeText}>✓</Text>
+                <AppText style={styles.resultBadgeText}>✓</AppText>
               </View>
             )}
 
             {status === 'error' && (
               <View style={[styles.resultBadge, styles.errorBadge]}>
-                <Text style={styles.resultBadgeText}>×</Text>
+                <AppText style={styles.resultBadgeText}>×</AppText>
               </View>
             )}
           </View>
         </View>
 
-        {/* 인증 결과에 따라 안내 문구를 표시합니다. */}
-        <Text style={styles.title}>
+        <AppText style={styles.title}>
           {status === 'success'
             ? `${userName}님의 가족이\n되신 걸 축하합니다!`
             : '보호자 계정에서 연동 코드를 확인해주세요.'}
-        </Text>
+        </AppText>
 
         {status !== 'success' && (
           <View style={styles.codeSection}>
-            <Text style={styles.label}>연동 코드 입력</Text>
+            <AppText style={styles.label}>연동 코드 입력</AppText>
 
-            {/* 칸을 누르면 숨겨진 입력창에 포커스됩니다. */}
             <Pressable
               style={styles.codeBoxes}
               onPress={() => inputRef.current?.focus()}
@@ -159,12 +155,16 @@ export default function LinkedCodeLoginScreen({
                     index === code.length && styles.codeBoxFocused,
                   ]}
                 >
-                  <Text style={styles.codeDigit}>{code[index] ?? ''}</Text>
+                  <AppText style={styles.codeDigit}>
+                    {code[index] ?? ''}
+                  </AppText>
                 </View>
               ))}
 
               <TextInput
-                ref={inputRef}
+                ref={instance => {
+                  inputRef.current = instance;
+                }}
                 value={code}
                 onChangeText={handleCodeChange}
                 keyboardType="number-pad"
@@ -176,7 +176,7 @@ export default function LinkedCodeLoginScreen({
             </Pressable>
 
             {status === 'error' && (
-              <Text style={styles.message}>{errorMessage}</Text>
+              <AppText style={styles.message}>{errorMessage}</AppText>
             )}
           </View>
         )}
@@ -191,11 +191,14 @@ export default function LinkedCodeLoginScreen({
             ]}
             onPress={status === 'success' ? onComplete : handleLogin}
             disabled={!isButtonEnabled || isLoading}
+            accessibilityRole="button"
           >
             {isLoading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.loginButtonText}>연동 로그인</Text>
+              <AppText style={styles.loginButtonText}>
+                연동 로그인
+              </AppText>
             )}
           </Pressable>
         </View>
@@ -204,7 +207,6 @@ export default function LinkedCodeLoginScreen({
   );
 }
 
-// ───────────── 화면 스타일 ─────────────
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
@@ -215,39 +217,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 17,
   },
   backButton: {
-    width: 32,
-    height: 32,
+    width: 42,
+    height: 42,
     marginTop: 8,
     borderWidth: 1,
     borderColor: '#E5E5E5',
-    borderRadius: 16,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backButtonText: {
-    marginTop: -3,
+    marginTop: -4,
     color: '#333333',
-    fontSize: 25,
-    lineHeight: 28,
+    fontSize: 30,
+    lineHeight: 34,
   },
   brand: {
     alignItems: 'center',
     marginTop: 14,
   },
-  logoMark: {
-    color: '#6686A5',
-    fontSize: 27,
-    fontWeight: '700',
-  },
-  logoName: {
-    marginTop: -5,
-    color: '#6686A5',
-    fontSize: 11,
+  logoImage: {
+    width: 64,
+    height: 64,
   },
   subtitle: {
     marginTop: 14,
     color: '#8893A0',
-    fontSize: 11,
+    fontSize: 15,
   },
   illustration: {
     height: 118,
@@ -256,26 +252,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   phone: {
-    width: 48,
-    height: 78,
+    width: 58,
+    height: 82,
     borderWidth: 3,
     borderColor: '#4B5060',
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: '#B8E8F4',
     alignItems: 'center',
     justifyContent: 'center',
     transform: [{ rotate: '8deg' }],
   },
-  lockIcon: {
-    fontSize: 27,
-  },
   resultBadge: {
     position: 'absolute',
     right: -7,
     bottom: -5,
-    width: 27,
-    height: 27,
-    borderRadius: 14,
+    width: 29,
+    height: 29,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -289,13 +282,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 22,
     fontWeight: '700',
-    lineHeight: 25,
+    lineHeight: 26,
   },
   title: {
     minHeight: 60,
     marginTop: 26,
     color: '#444444',
-    fontFamily: 'Pretendard',
     fontSize: 22,
     fontWeight: '700',
     lineHeight: 30,
@@ -308,8 +300,7 @@ const styles = StyleSheet.create({
   label: {
     marginBottom: 10,
     color: '#111111',
-    fontFamily: 'Pretendard',
-    fontSize: 18,
+    fontSize: 20,
   },
   codeBoxes: {
     width: '100%',
@@ -318,7 +309,6 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   codeBox: {
-    width: 0,
     height: 58,
     flex: 1,
     borderWidth: 1.5,
@@ -332,7 +322,6 @@ const styles = StyleSheet.create({
   },
   codeDigit: {
     color: '#222222',
-    fontFamily: 'Pretendard',
     fontSize: 20,
     fontWeight: '600',
   },
@@ -345,7 +334,6 @@ const styles = StyleSheet.create({
   message: {
     marginTop: 10,
     color: '#F04444',
-    fontFamily: 'Pretendard',
     fontSize: 16,
   },
   bottomArea: {
@@ -366,13 +354,7 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: '#FFFFFF',
-    fontFamily: 'Pretendard',
     fontSize: 20,
     fontWeight: '600',
-  },
-
-    logoImage: {
-    width: 64,
-    height: 64,
   },
 });
