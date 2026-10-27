@@ -12,6 +12,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AppText from '../MainScreens/AppText';
 
+// -----------------------------------------------------------------------------
+// 화면 입력과 로그인 콜백 타입
+// -----------------------------------------------------------------------------
+
 type Props = {
   onPressBack?: () => void;
   onComplete?: () => void;
@@ -20,7 +24,12 @@ type Props = {
   ) => Promise<{ success: boolean; userName?: string }>;
 };
 
+// 연동 코드는 여섯 자리 숫자입니다.
 const CODE_LENGTH = 6;
+
+// -----------------------------------------------------------------------------
+// 연동 코드 로그인 화면
+// -----------------------------------------------------------------------------
 
 export default function LinkedCodeLoginScreen({
   onPressBack,
@@ -36,6 +45,7 @@ export default function LinkedCodeLoginScreen({
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // 숫자만 입력받고 코드 길이를 제한합니다.
   function handleCodeChange(value: string) {
     const numbersOnly = value.replace(/\D/g, '').slice(0, CODE_LENGTH);
 
@@ -48,6 +58,7 @@ export default function LinkedCodeLoginScreen({
     }
   }
 
+  // 서버 콜백으로 연동 코드 인증을 요청합니다.
   async function handleLogin() {
     if (code.length !== CODE_LENGTH || isLoading) return;
 
@@ -81,6 +92,7 @@ export default function LinkedCodeLoginScreen({
   const isButtonEnabled =
     status === 'success' || code.length === CODE_LENGTH;
 
+  // 화면 렌더링
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
@@ -207,6 +219,7 @@ export default function LinkedCodeLoginScreen({
   );
 }
 
+// 연동 코드 로그인 스타일
 const styles = StyleSheet.create({
   safe: {
     flex: 1,

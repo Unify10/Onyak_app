@@ -15,12 +15,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-// ───────────── 타입 / 공통 함수 ─────────────
+// -----------------------------------------------------------------------------
+// 로그인 화면 입력 콜백 타입
+// -----------------------------------------------------------------------------
 type Props = {
   onPressSignup?: () => void;
   onPressLinkedCode?: () => void;
   onPressQRLogin?: () => void;
   onPressFindPassword?: () => void;
+  onLoginSuccess?: () => void;
 };
 
 // 아직 연결되지 않은 기능 버튼에서 공통으로 쓰는 안내 알림
@@ -28,12 +31,15 @@ function comingSoon(title: string) {
   Alert.alert(title, '현재는 화면 연습 단계입니다. 아직 연결되지 않았어요.');
 }
 
-// ───────────── 로그인 화면 ─────────────
+// -----------------------------------------------------------------------------
+// 로그인 화면
+// -----------------------------------------------------------------------------
 export default function LoginScreen({
   onPressSignup,
   onPressLinkedCode,
   onPressQRLogin,
   onPressFindPassword,
+  onLoginSuccess,
 }: Props) {
   // 입력값과 화면 상태
   const [email, setEmail] = useState('');
@@ -55,10 +61,12 @@ export default function LoginScreen({
 
     if (!emailOk || !passwordOk) return;
 
-    // TODO: 로그인 API를 연결할 때 keepLogin 값도 함께 전달합니다.
-    comingSoon('로그인');
+    // 데모 동작: 입력 형식만 확인한 뒤 메인 화면으로 이동합니다.
+    // 실제 사용 전에는 서버 인증 성공 시점에 이 콜백을 호출해야 합니다.
+    onLoginSuccess?.();
   }
 
+  // 화면 렌더링: 로고, 입력란, 계정 메뉴 순서
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -228,6 +236,7 @@ export default function LoginScreen({
 }
 
 // ───────────── 스타일 ─────────────
+// 로그인 화면 스타일
 const styles = StyleSheet.create({
   safe: {
     flex: 1,

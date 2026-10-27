@@ -13,9 +13,6 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
 
 type Props = {
   onPressBack?: () => void;
@@ -29,13 +26,6 @@ const LAST_INPUT_STEP = 3;
 const CODE_LENGTH = 6;
 const HEIGHT_OPTIONS = Array.from({ length: 131 }, (_, index) => index + 100);
 const WEIGHT_OPTIONS = Array.from({ length: 151 }, (_, index) => index + 30);
-
-function formatDate(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 export default function SignupScreen({ onPressBack, onComplete }: Props) {
   const [step, setStep] = useState(1);
@@ -62,9 +52,10 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
 
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  // 신체 정보는 모두 선택 입력이며, 비워 둔 채 다음 단계로 넘어갈 수 있습니다.
+  const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
+  const [pregnancyStatus, setPregnancyStatus] = useState('');
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
   const [activePicker, setActivePicker] = useState<PickerType>(null);
@@ -101,12 +92,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
         hasPasswordMatch
       : step === 2
         ? name.trim().length > 0 && phone.replace(/\D/g, '').length >= 10
-        : step === 3
-          ? birthDate !== null &&
-            gender.length > 0 &&
-            height.length > 0 &&
-            weight.length > 0
-          : true;
+      : true;
 
   function goToNextStep() {
     if (!canGoNext) return;
@@ -123,11 +109,6 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
   function goToPreviousStep() {
     if (activePicker) {
       setActivePicker(null);
-      return;
-    }
-
-    if (showDatePicker) {
-      setShowDatePicker(false);
       return;
     }
 
@@ -180,16 +161,6 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
       return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
     }
     return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7)}`;
-  }
-
-  function handleDateChange(event: DateTimePickerEvent, selectedDate?: Date) {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-
-    if (event.type === 'set' && selectedDate) {
-      setBirthDate(selectedDate);
-    }
   }
 
   function renderField({
@@ -470,41 +441,23 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
     if (step === 3) {
       return (
         <>
-          <Text style={styles.sectionTitle}>신체 정보</Text>
+          <Text style={styles.sectionTitle}>신체 정보 (선택)</Text>
+          <Text style={styles.optionalDescription}>
+            복용 주의사항 안내에 활용돼요. 입력하지 않아도 가입할 수 있습니다.
+          </Text>
 
           <View style={styles.field}>
-            <Text style={styles.label}>생년월일</Text>
-            <Pressable
+            <Text style={styles.label}>나이</Text>
+            <TextInput
               style={styles.input}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Text style={[styles.inputText, !birthDate && styles.placeholder]}>
-                {birthDate ? formatDate(birthDate) : '예시) 2010-01-11'}
-              </Text>
-            </Pressable>
+              value={age}
+              onChangeText={(value) => setAge(value.replace(/\D/g, '').slice(0, 3))}
+              placeholder="나이를 입력해주세요."
+              placeholderTextColor="#A8A8A8"
+              keyboardType="number-pad"
+              maxLength={3}
+            />
           </View>
-
-          {showDatePicker && (
-            <View style={styles.datePickerContainer}>
-              <DateTimePicker
-                value={birthDate ?? new Date(2000, 0, 1)}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                maximumDate={new Date()}
-                onChange={handleDateChange}
-                locale="ko-KR"
-              />
-
-              {Platform.OS === 'ios' && (
-                <Pressable
-                  style={styles.pickerDoneButton}
-                  onPress={() => setShowDatePicker(false)}
-                >
-                  <Text style={styles.pickerDoneText}>선택 완료</Text>
-                </Pressable>
-              )}
-            </View>
-          )}
 
           <View style={styles.field}>
             <Text style={styles.label}>성별</Text>
@@ -520,6 +473,35 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
                       selected && styles.genderButtonSelected,
                     ]}
                     onPress={() => setGender(item)}
+                  >
+                    <Text
+                      style={[
+                        styles.genderText,
+                        selected && styles.genderTextSelected,
+                      ]}
+                    >
+                      {item}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>임신 여부</Text>
+            <View style={styles.genderRow}>
+              {['임신 중', '해당 없음', '응답 안 함'].map((item) => {
+                const selected = pregnancyStatus === item;
+
+                return (
+                  <Pressable
+                    key={item}
+                    style={[
+                      styles.pregnancyButton,
+                      selected && styles.genderButtonSelected,
+                    ]}
+                    onPress={() => setPregnancyStatus(item)}
                   >
                     <Text
                       style={[
@@ -649,7 +631,11 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
             disabled={!canGoNext}
           >
             <Text style={styles.nextButtonText}>
-              {isCompleteStep ? '로그인으로 돌아가기' : '다음'}
+              {isCompleteStep
+                ? '로그인으로 돌아가기'
+                : step === 3 && !age && !gender && !pregnancyStatus && !height && !weight
+                  ? '건너뛰기'
+                  : '다음'}
             </Text>
           </Pressable>
 
@@ -726,6 +712,14 @@ const styles = StyleSheet.create({
     color: '#657080',
     fontFamily: 'Pretendard',
     fontSize: 18,
+  },
+  optionalDescription: {
+    marginTop: -18,
+    marginBottom: 22,
+    color: '#858D98',
+    fontFamily: 'Pretendard',
+    fontSize: 15,
+    lineHeight: 22,
   },
   field: { marginBottom: 12 },
   label: {
@@ -805,6 +799,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  pregnancyButton: {
+    flex: 1,
+    minHeight: 48,
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#DDE1E6',
+    borderRadius: 13,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   genderButtonSelected: {
     backgroundColor: '#000000',
     borderColor: '#000000',
@@ -815,14 +820,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   genderTextSelected: { color: '#FFFFFF' },
-  datePickerContainer: {
-    marginTop: 6,
-    marginBottom: 12,
-    padding: 6,
-    borderWidth: 1,
-    borderColor: '#E2E2E2',
-    borderRadius: 12,
-  },
   numberPicker: {
     marginTop: 6,
     padding: 8,
@@ -845,17 +842,6 @@ const styles = StyleSheet.create({
     color: '#555555',
     fontFamily: 'Pretendard',
     fontSize: 18,
-  },
-  pickerDoneButton: {
-    minHeight: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pickerDoneText: {
-    color: '#111111',
-    fontFamily: 'Pretendard',
-    fontSize: 16,
-    fontWeight: '600',
   },
   completeContent: {
     flexGrow: 1,

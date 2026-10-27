@@ -8,19 +8,24 @@ import SignupScreen from './screens/SignupScreen';
 import LinkedCodeLoginScreen from './screens/LinkedCodeLoginScreen';
 import QRLoginScreen from './screens/QRLoginScreen';
 import FindAccountScreen from './screens/FindAccountScreen';
+import MainScreens from './MainScreens';
 
-type Screen = 'login' | 'signup' | 'linkedCode' | 'qr' | 'findAccount';
-type FindMode = 'id' | 'password';
+type Screen =
+  | 'login'
+  | 'signup'
+  | 'linkedCode'
+  | 'qr'
+  | 'findAccount'
+  | 'main';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
-  const [findMode, setFindMode] = useState<FindMode>('id');
 
   const [fontsLoaded] = useFonts({
-  Pretendard: require(
-    '../../assets/fonts/Pretendard-Regular.otf/public/static/Pretendard-Regular.otf'
-  ),
-});
+    Pretendard: require(
+      '../../assets/fonts/Pretendard-Regular.otf/public/static/Pretendard-Regular.otf',
+    ),
+  });
 
   if (!fontsLoaded) {
     return null;
@@ -38,6 +43,7 @@ export default function App() {
           onPressFindPassword={() => {
             setCurrentScreen('findAccount');
           }}
+          onLoginSuccess={() => setCurrentScreen('main')}
         />
       )}
 
@@ -51,14 +57,14 @@ export default function App() {
       {currentScreen === 'linkedCode' && (
         <LinkedCodeLoginScreen
           onPressBack={() => setCurrentScreen('login')}
-          onComplete={() => setCurrentScreen('login')}
+          onComplete={() => setCurrentScreen('main')}
         />
       )}
 
       {currentScreen === 'qr' && (
         <QRLoginScreen
           onPressBack={() => setCurrentScreen('login')}
-          onComplete={() => setCurrentScreen('login')}
+          onComplete={() => setCurrentScreen('main')}
         />
       )}
 
@@ -67,6 +73,8 @@ export default function App() {
           onPressBack={() => setCurrentScreen('login')}
         />
       )}
+
+      {currentScreen === 'main' && <MainScreens />}
     </SafeAreaProvider>
   );
 }

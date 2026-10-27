@@ -13,16 +13,26 @@ import {
   View,
 } from 'react-native';
 
+// -----------------------------------------------------------------------------
+// 화면 외부에서 받는 뒤로 가기 동작
+// -----------------------------------------------------------------------------
+
 type Props = {
   onPressBack?: () => void;
 };
 
+// -----------------------------------------------------------------------------
+// 계정 찾기 / 비밀번호 재설정 안내 화면
+// -----------------------------------------------------------------------------
+
 export default function FindAccountScreen({ onPressBack }: Props) {
+  // 이메일 입력값과 형식 검사
   const [email, setEmail] = useState('');
 
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const canSubmit = isEmailValid;
 
+  // 서버 연결 전에는 재설정 안내만 표시합니다.
   function handleSubmit() {
     if (!canSubmit) return;
 
@@ -35,6 +45,7 @@ export default function FindAccountScreen({ onPressBack }: Props) {
     );
   }
 
+  // 화면 렌더링
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -106,6 +117,7 @@ export default function FindAccountScreen({ onPressBack }: Props) {
   );
 }
 
+// 화면 스타일
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
