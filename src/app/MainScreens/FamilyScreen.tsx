@@ -10,6 +10,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from './AppText';
 
+// -----------------------------------------------------------------------------
+// 가족 구성원 데이터 형식
+// -----------------------------------------------------------------------------
+
 type FamilyMember = {
   id: string;
   name: string;
@@ -19,11 +23,16 @@ type FamilyMember = {
   initials: string;
 };
 
+// -----------------------------------------------------------------------------
+// 화면 색상과 가족 화면
+// -----------------------------------------------------------------------------
+
 const GREEN = '#39A887';
 const INK = '#20242B';
 const MUTED = '#8B929D';
 
 export default function FamilyScreen() {
+  // 화면 예시용 가족 구성원 목록
   const [members, setMembers] = useState<FamilyMember[]>([
     {
       id: 'mom',
@@ -43,6 +52,7 @@ export default function FamilyScreen() {
     },
   ]);
 
+  // 데모 가족 구성원 추가
   function createFamilyAccount() {
     Alert.alert(
       '가족 계정 만들기',
@@ -69,6 +79,7 @@ export default function FamilyScreen() {
     );
   }
 
+  // 화면 렌더링
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
@@ -177,6 +188,10 @@ export default function FamilyScreen() {
     </SafeAreaView>
   );
 }
+
+// -----------------------------------------------------------------------------
+// 가족 화면 스타일
+// -----------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   safe: {

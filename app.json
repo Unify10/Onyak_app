@@ -20,6 +20,32 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+<<<<<<< Updated upstream
     }
+=======
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker",
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "약 라벨 촬영과 바코드 스캔을 위해 카메라 접근을 허용해 주세요.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "처방전이나 약품 사진을 선택하기 위해 사진 보관함 접근을 허용해 주세요.",
+          "cameraPermission": "약 라벨 촬영을 위해 카메라 접근을 허용해 주세요.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-status-bar"
+    ]
+>>>>>>> Stashed changes
   }
 }

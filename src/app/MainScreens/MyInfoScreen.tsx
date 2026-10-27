@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from './AppText';
 
+// 화면에서 공통으로 쓰는 색상과 설정 항목
 const GREEN = '#39A887';
 const INK = '#20242B';
 const MUTED = '#8B929D';
@@ -21,7 +22,9 @@ const menuItems = [
   { label: '개인정보 처리방침', icon: 'document-text-outline' as const },
 ];
 
+// 내 정보 화면
 export default function MyInfoScreen() {
+  // 서버 연동 전에는 메뉴 선택 내용을 안내창으로 표시합니다.
   function handleMenu(label: string) {
     if (label === '로그아웃') {
       Alert.alert(
@@ -44,6 +47,7 @@ export default function MyInfoScreen() {
     Alert.alert(label, `${label} 기능은 아직 연결되지 않았습니다.`);
   }
 
+  // 화면 렌더링
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
@@ -113,6 +117,7 @@ export default function MyInfoScreen() {
   );
 }
 
+// 설정 메뉴에서 반복해서 쓰는 행
 function MenuRow({
   label,
   icon,
@@ -152,6 +157,7 @@ function MenuRow({
   );
 }
 
+// 내 정보 화면 스타일
 const styles = StyleSheet.create({
   safe: {
     flex: 1,

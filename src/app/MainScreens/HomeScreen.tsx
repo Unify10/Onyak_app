@@ -3,11 +3,17 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from './AppText';
+import type { CaptureAction } from './SearchScreen';
+
+// -----------------------------------------------------------------------------
+// 홈 화면 예시 데이터와 색상
+// -----------------------------------------------------------------------------
 
 const GREEN = '#39A887';
 const INK = '#20242B';
@@ -35,9 +41,21 @@ const schedule = [
   },
 ];
 
-export default function HomeScreen() {
-  const [completed, setCompleted] = useState<string[]>(['morning']);
+// -----------------------------------------------------------------------------
+// 홈 화면
+// -----------------------------------------------------------------------------
 
+type Props = {
+  onPressCaptureAction: (action: CaptureAction) => void;
+  onPressSearch: (query: string) => void;
+};
+
+export default function HomeScreen({ onPressCaptureAction, onPressSearch }: Props) {
+  // 복용 일정 완료 여부를 화면 안에서만 관리합니다.
+  const [completed, setCompleted] = useState<string[]>(['morning']);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // 일정 항목을 눌러 복용 완료 상태를 전환합니다.
   function toggleSchedule(id: string) {
     setCompleted(current =>
       current.includes(id)
@@ -46,6 +64,7 @@ export default function HomeScreen() {
     );
   }
 
+  // 화면 렌더링
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
@@ -71,22 +90,77 @@ export default function HomeScreen() {
           오늘도 건강한 하루 보내세요.
         </AppText>
 
-        <Pressable style={styles.captureBanner} onPress={() => {}}>
-          <View style={styles.captureIcon}>
-            <Ionicons name="camera-outline" size={25} color={GREEN} />
-          </View>
-
-          <View style={styles.captureText}>
+        {/* 약 등록 바로가기: 검색 화면의 촬영 옵션과 같은 세 가지 진입점 */}
+        <View style={styles.captureBanner}>
+          <View style={styles.captureHeader}>
             <AppText style={styles.captureTitle}>
               약을 간편하게 등록해요
             </AppText>
             <AppText style={styles.captureSubtitle}>
-              사진을 찍거나 이름으로 검색해 보세요
+              원하는 방법으로 약 정보를 찾아보세요
             </AppText>
           </View>
 
-          <Ionicons name="chevron-forward" size={22} color={GREEN} />
-        </Pressable>
+          <View style={styles.captureSearchRow}>
+            <Ionicons name="search-outline" size={20} color={MUTED} />
+            <TextInput
+              style={styles.captureSearchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={() => onPressSearch(searchQuery.trim())}
+              placeholder="약 이름이나 성분명 검색"
+              placeholderTextColor="#9AA1AA"
+              returnKeyType="search"
+              accessibilityLabel="약 이름이나 성분명 검색"
+            />
+            <Pressable
+              onPress={() => onPressSearch(searchQuery.trim())}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="검색"
+            >
+              <Ionicons name="arrow-forward-circle" size={23} color={GREEN} />
+            </Pressable>
+          </View>
+
+          <View style={styles.captureOptions}>
+            <Pressable
+              style={styles.captureOption}
+              onPress={() => onPressCaptureAction('barcode')}
+              accessibilityRole="button"
+              accessibilityLabel="바코드 스캔으로 약 검색"
+            >
+              <View style={styles.captureOptionIcon}>
+                <Ionicons name="barcode-outline" size={23} color={GREEN} />
+              </View>
+              <AppText style={styles.captureOptionText}>바코드 스캔</AppText>
+            </Pressable>
+
+            <Pressable
+              style={styles.captureOption}
+              onPress={() => onPressCaptureAction('label')}
+              accessibilityRole="button"
+              accessibilityLabel="라벨 촬영으로 약 검색"
+            >
+              <View style={styles.captureOptionIcon}>
+                <Ionicons name="camera-outline" size={23} color={GREEN} />
+              </View>
+              <AppText style={styles.captureOptionText}>라벨 촬영</AppText>
+            </Pressable>
+
+            <Pressable
+              style={styles.captureOption}
+              onPress={() => onPressCaptureAction('gallery')}
+              accessibilityRole="button"
+              accessibilityLabel="사진에서 약 선택"
+            >
+              <View style={styles.captureOptionIcon}>
+                <Ionicons name="images-outline" size={23} color={GREEN} />
+              </View>
+              <AppText style={styles.captureOptionText}>사진 선택</AppText>
+            </Pressable>
+          </View>
+        </View>
 
         <View style={styles.sectionHeading}>
           <AppText style={styles.sectionTitle}>오늘의 복용 일정</AppText>
@@ -197,6 +271,10 @@ export default function HomeScreen() {
   );
 }
 
+// -----------------------------------------------------------------------------
+// 홈 화면 스타일
+// -----------------------------------------------------------------------------
+
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
@@ -247,30 +325,66 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F6F1',
     borderRadius: 18,
     padding: 17,
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 27,
   },
-  captureIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 15,
+  captureHeader: {
+    marginBottom: 15,
+  },
+  captureOptions: {
+    flexDirection: 'row',
+    gap: 9,
+  },
+  captureSearchRow: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: '#DDE3E8',
+    backgroundColor: '#FFFFFF',
+  },
+  captureSearchInput: {
+    flex: 1,
+    minHeight: 46,
+    paddingVertical: 0,
+    color: INK,
+    fontFamily: 'Pretendard',
+    fontSize: 16,
+  },
+  captureOption: {
+    flex: 1,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 13,
+    borderRadius: 14,
+    minHeight: 88,
+    paddingVertical: 10,
   },
-  captureText: {
-    flex: 1,
+  captureOptionIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#E8F6F1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  captureOptionText: {
+    color: INK,
+    fontSize: 14,
+    fontWeight: '600',
   },
   captureTitle: {
     color: INK,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
   },
   captureSubtitle: {
     color: MUTED,
-    fontSize: 14,
+    fontSize: 15,
     lineHeight: 20,
     marginTop: 5,
   },

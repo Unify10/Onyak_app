@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from './AppText';
 
+// 복용 약 카드에 표시할 데이터 구조
 type Medicine = {
   id: string;
   name: string;
@@ -22,7 +23,9 @@ const GREEN = '#39A887';
 const INK = '#20242B';
 const MUTED = '#8B929D';
 
+// 복용 목록 화면
 export default function MedicationListScreen() {
+  // 현재 탭과 예시용 복용 약 목록
   const [activeTab, setActiveTab] = useState<'복용 중' | '복용 기록'>('복용 중');
 
   const [medicines, setMedicines] = useState<Medicine[]>([
@@ -56,6 +59,7 @@ export default function MedicationListScreen() {
     },
   ]);
 
+  // 실제 약 검색 API 대신 데모 약을 추가합니다.
   function addMedicine() {
     Alert.alert(
       '약 추가',
@@ -89,6 +93,7 @@ export default function MedicationListScreen() {
 
   const visibleMedicines = activeTab === '복용 중' ? medicines : history;
 
+  // 화면 렌더링
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
@@ -246,6 +251,7 @@ export default function MedicationListScreen() {
   );
 }
 
+// 상단 복용 현황 요약 카드
 function SummaryCard({
   count,
   label,
@@ -263,6 +269,7 @@ function SummaryCard({
   );
 }
 
+// 복용 목록 화면 스타일
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
