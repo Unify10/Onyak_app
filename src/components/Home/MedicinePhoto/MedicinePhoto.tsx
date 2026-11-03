@@ -1,10 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import MedicinePhotoIcon from '../../../../assets/medicine-photo.svg';
+import MedicinePhotoIcon from '../../../../assets/home/medicine-photo.svg';
 
 export default function MedicinePhoto() {
   return (
     <Pressable style={styles.medicinePhotoButton}>
-      <View>
+      <View style={styles.medicinePhotoTextContainer}>
         <Text style={styles.title}>약 성분 촬영/검색</Text>
         <Text style={styles.info}>AI가 즉시 안정성을 확인해요</Text>
       </View>
@@ -18,11 +18,17 @@ export default function MedicinePhoto() {
 const styles = StyleSheet.create({
   medicinePhotoButton: {
     flexDirection: 'row',
-    justifyContent: "space-between",
-    backgroundColor: "#000000",
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    // alignSelf: 'stretch',
+    backgroundColor: '#000000',
     borderRadius: 15,
-    width: "80%",
+    width: '95%',
     padding: 20,
+  },
+  medicinePhotoTextContainer: {
+    flex: 1,
+    gap: 4,
   },
 
   title : {

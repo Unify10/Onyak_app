@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import HomeIcon from '../../../assets/home.svg';
 import SearchIcon from '../../../assets/search.svg';
@@ -6,7 +5,12 @@ import MedicationListIcon from '../../../assets/medication-list.svg';
 import FamilyIcon from '../../../assets/family.svg';
 import ProfileIcon from '../../../assets/profile.svg';
 
-type tabLabel = '홈' | '검색' | '복용 목록' | '가족' | '내 정보';
+export type TabLabel = '홈' | '검색' | '복용 목록' | '가족' | '내 정보';
+
+type Props = {
+  activeTab: TabLabel;
+  onTabPress: (tab: TabLabel) => void;
+};
 
 const tabs = [
   { label: '홈', Icon: HomeIcon },
@@ -16,9 +20,7 @@ const tabs = [
   { label: '내 정보', Icon: ProfileIcon },
 ] as const;
 
-export default function BottomTabBar() {
-  const [activeTab, setActiveTab] = useState<tabLabel>('홈');
-
+export default function BottomTabBar({ activeTab, onTabPress }: Props) {
   return (
     <View style={styles.tabBar}>
       {tabs.map(({ label, Icon }) => {
@@ -27,8 +29,9 @@ export default function BottomTabBar() {
           <Pressable
             key={label}
             accessibilityRole="button"
-            onPress={()=> setActiveTab(label)}
+            onPress={() => onTabPress(label)}
             style={styles.tab}
+            accessibilityState={{ selected: isActive }}
           >
             <Icon
               width={20}
@@ -40,7 +43,7 @@ export default function BottomTabBar() {
             </Text>
           </Pressable>
         );
-}     )}
+      })}
     </View>
   );
 }
