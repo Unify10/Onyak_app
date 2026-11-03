@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import CreateFamilyIcon from '../../../../assets/family/createFamilyIcon.svg'
+import CreateFamilyIcon from '../../../../assets/family.svg';
 
 export default function CreateFamily() {
   return (
