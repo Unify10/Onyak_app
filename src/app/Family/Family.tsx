@@ -1,6 +1,6 @@
 import CreateFamily from '../../components/Family/CreateFamily/CreateFamily';
 import { StyleSheet, View } from 'react-native';
-import FamilyList from '../../components/Family/CreateFamily/FamilyList/FamilyList';
+import FamilyList from '../../components/Family/FamilyList/FamilyList';
 
 
 export default function Family() {
