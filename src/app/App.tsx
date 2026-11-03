@@ -3,13 +3,14 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import BottomTabBar from '../components/BottomTabBar/BottomTabBar';
 import Family from './Family/Family';
+import MedicationList from './MedicationList/MedicationList';
 
 export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView edges={['bottom']} style={styles.container}>
         <View style={styles.content}>
-          <Family />
+          <MedicationList/>
         </View>
         <StatusBar style="auto" />
         <BottomTabBar />
