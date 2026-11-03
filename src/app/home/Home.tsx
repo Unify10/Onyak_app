@@ -5,6 +5,7 @@ import ActiveMedicineList from '../../components/Home/ActiveMedicineList/ActiveM
 import HomeFamilyAccountItem from '../../components/Home/HomeFamilyAccount/HomeFamilyAccountItem';
 import HomeFamilyAccountList from '../../components/Home/HomeFamilyAccount/HomeFamilyAccountList';
 import Notification from '../../components/Home/Notification/Notification';
+import PageTitle from '../../components/Home/PageTitle/PageTitle';
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       bounces={false}
       overScrollMode="never"
     >
+      <PageTitle />
       <MedicinePhoto/>
       <MedicineList/>
       <ActiveMedicineList/>
@@ -39,7 +41,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60, // 원래 24
+    paddingTop: 24,
     paddingBottom: 40,        
     gap: 20,                    
   },
