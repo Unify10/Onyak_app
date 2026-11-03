@@ -29,7 +29,7 @@ export default function FamilyItem({ familyItemName, familyItemEmail, familyItem
 
 const styles = StyleSheet.create({
   familyItemContainer: {
-    width: '95%',
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     // justifyContent: 'center'
