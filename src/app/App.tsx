@@ -8,14 +8,36 @@ import Home from './home/Home';
 import MedicationList from './MedicationList/MedicationList';
 import MyInfo from './MyInfo/MyInfo';
 import Search from './Search/Search';
+import type { SearchHistoryEntry } from './Search/SearchScreen';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabLabel>('홈');
+  const [recentSearches, setRecentSearches] = useState<SearchHistoryEntry[]>([]);
+
+  function saveSearch(entry: SearchHistoryEntry) {
+    setRecentSearches(current => [
+      entry,
+      ...current.filter(
+        item => item.query.toLocaleLowerCase() !== entry.query.toLocaleLowerCase(),
+      ),
+    ].slice(0, 12));
+  }
+
+  function deleteSearch(query: string) {
+    setRecentSearches(current => current.filter(item => item.query !== query));
+  }
 
   function renderActiveScreen() {
     switch (activeTab) {
       case '검색':
-        return <Search />;
+        return (
+          <Search
+            recentSearches={recentSearches}
+            onSaveSearch={saveSearch}
+            onDeleteSearch={deleteSearch}
+            onClearSearches={() => setRecentSearches([])}
+          />
+        );
       case '복용 목록':
         return <MedicationList />;
       case '가족':
