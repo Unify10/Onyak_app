@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import MedicinePhotoIcon from '../../../../assets/medicine-photo.svg';
+import MedicinePhotoIcon from '../../../../assets/home/medicine-photo.svg';
 
 export default function MedicinePhoto() {
   return (
