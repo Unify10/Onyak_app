@@ -1,5 +1,5 @@
 import { Image, Pressable, StyleSheet, View } from 'react-native';
-import AppText from './AppText';
+import AppText from '../AppText/AppText';
 
 type Props = { uri: string; onRemove: () => void };
 

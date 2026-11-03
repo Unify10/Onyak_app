@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { CameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
-import AppText from './AppText';
+import AppText from '../AppText/AppText';
 
 type Props = { visible: boolean; onClose: () => void; onPickImage: () => void; onImageCaptured: (uri: string) => void };
 

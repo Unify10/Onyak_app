@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import AppText from './AppText';
+import AppText from '../AppText/AppText';
 
 type Props = { focused: boolean; onBack: () => void };
 

@@ -1,7 +1,7 @@
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import AppText from './AppText';
-import type { SearchHistoryProps } from './types';
+import AppText from '../AppText/AppText';
+import type { SearchHistoryProps } from '../types';
 
 export default function SearchHistoryList({ recentSearches, onSelect, onDelete, onClear }: SearchHistoryProps) {
   function confirmClear() {

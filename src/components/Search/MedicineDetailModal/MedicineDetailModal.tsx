@@ -1,7 +1,7 @@
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import AppText from './AppText';
-import type { Medicine } from './types';
+import AppText from '../AppText/AppText';
+import type { Medicine } from '../types';
 
 type Props = { medicine: Medicine | null; onClose: () => void };
 
