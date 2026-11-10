@@ -1,5 +1,7 @@
+import Text from '../Typography/Text';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { Link, usePathname, type Href } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeIcon from '../../../assets/tabs/home.svg';
 import SearchIcon from '../../../assets/tabs/search.svg';
@@ -18,6 +20,7 @@ const tabs = [
 ] as const;
 
 export default function BottomTabBar() {
+  const styles = useResponsiveStyles(baseStyles);
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
 
@@ -25,7 +28,7 @@ export default function BottomTabBar() {
     <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       {tabs.map(({ label, href, Icon }) => {
         const isActive = label === '홈'
-          ? pathname === '/' || pathname === '/index'
+          ? pathname === '/' || pathname === '/index' || pathname === '/notifications'
           : (label === '내 정보' && ['/edit-profile', '/change-password', '/delete-account'].includes(pathname)) || (label === '검색' && pathname.startsWith('/medicine/')) || pathname.endsWith(href.toString().split('/').at(-1) ?? '');
         return (
           <Link key={label} href={href} asChild>
@@ -45,12 +48,14 @@ export default function BottomTabBar() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     minHeight: 64,
+    paddingHorizontal: 16,
+    paddingTop: 8,
     width: '100%',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#E5E7EB',
@@ -59,6 +64,7 @@ const styles = StyleSheet.create({
   tab: {
     color: '#9CA3AF',
     flex: 1,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
