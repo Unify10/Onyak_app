@@ -38,7 +38,7 @@ export default function BottomTabBar() {
               accessibilityState={{ selected: isActive }}
               style={styles.tab}
             >
-              <Icon width={20} height={20} fill={isActive ? '#000000' : '#9CA3AF'} />
+              <Icon width={20} height={20} color={isActive ? '#000000' : '#9CA3AF'} />
               <Text style={[styles.label, isActive && styles.activeLabel]}>{label}</Text>
             </Pressable>
           </Link>
@@ -62,7 +62,6 @@ const baseStyles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   tab: {
-    color: '#9CA3AF',
     flex: 1,
     minHeight: 44,
     alignItems: 'center',
@@ -70,12 +69,12 @@ const baseStyles = StyleSheet.create({
     gap: 4,
   },
   label: {
-    color: '#667085',
+    color: '#9CA3AF',
     fontSize: 12,
     lineHeight: 16,
   },
   activeLabel: {
-    color: '#1D2939',
+    color: '#000000',
     fontWeight: '600',
   },
 });
