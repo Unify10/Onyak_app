@@ -1,35 +1,42 @@
 import Text from '../../Typography/Text';
 import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useMedications } from '../../../providers/MedicationProvider';
+import { medicines } from '../../Search/medicineData';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import TodayMedicineItem from './TodayMedicineItem';
-
-const schedule = [
-  { id: 'morning', title: '123', timeOfDay: '아침', time: '00:00' },
-  { id: 'lunch', title: '234', timeOfDay: '점심', time: '12:00' },
-  { id: 'dinner', title: '345', timeOfDay: '저녁', time: '24:00' },
-] as const;
 
 export default function TodayMedicineList() {
   const styles = useResponsiveStyles(baseStyles);
-  const [completedIds, setCompletedIds] = useState<string[]>([]);
-  function toggle(id: string) {
-    setCompletedIds(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
-  }
+  const { todayDoses, toggleDose } = useMedications();
+  const doses = todayDoses.flatMap(dose => {
+    const medicine = medicines.find(item => item.id === dose.medicineId);
+    return medicine ? [{ ...dose, title: medicine.name }] : [];
+  });
+  const completedCount = doses.filter(dose => dose.completed).length;
   return(
     <View style={styles.todayMedicineListContainer}>
       <View style={styles.todayMedicineListHeader}>
         <Text style={styles.todayMedicineListHeaderTitle}>오늘의 복용</Text>
-        <Text style={styles.todayMedicineListHeaderStatus}>{completedIds.length}/{schedule.length} 완료</Text>
+        <Text style={styles.todayMedicineListHeaderStatus}>{completedCount}/{doses.length} 완료</Text>
       </View>
-      <View style={styles.todayMedicineList}>
-        {schedule.map(item => <TodayMedicineItem key={item.id} {...item} completed={completedIds.includes(item.id)} onToggle={() => toggle(item.id)} />)}
-      </View>
+      {doses.some(dose => dose.isExample) && <Text style={styles.exampleNotice}>테스트용 복용 일정입니다.</Text>}
+      <ScrollView
+        style={styles.todayMedicineList}
+        contentContainerStyle={styles.todayMedicineListContent}
+        nestedScrollEnabled
+        directionalLockEnabled
+        showsVerticalScrollIndicator
+      >
+        {doses.map(dose => <TodayMedicineItem key={dose.doseId} title={dose.title} timeOfDay={dose.timeOfDay} time={dose.time} completed={dose.completed} onToggle={() => toggleDose(dose.doseId)} />)}
+        {!doses.length && <Text style={styles.emptyText}>오늘 예정된 복용이 없습니다.</Text>}
+      </ScrollView>
     </View>
   );
 }
 
 const baseStyles = StyleSheet.create({
+  exampleNotice: { color: '#9CA3AF', fontSize: 12, lineHeight: 18 },
+  emptyText: { color: '#6B7280', fontSize: 14, textAlign: 'center', paddingVertical: 20 },
   todayMedicineListContainer: {
     justifyContent: 'space-between',
     gap: 10,
@@ -53,7 +60,10 @@ const baseStyles = StyleSheet.create({
 
   todayMedicineList: {
     width: '100%',
+    maxHeight: 260,
+    flexGrow: 0,
+  },
+  todayMedicineListContent: {
     gap: 5,
-
   },
 });

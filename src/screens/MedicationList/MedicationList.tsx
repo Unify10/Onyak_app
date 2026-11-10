@@ -2,6 +2,7 @@ import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { medicines } from '../../components/Search/medicineData';
 import { useMedications } from '../../providers/MedicationProvider';
+import { getMedicationScheduleLabel } from '../../utils/medicationSchedule';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import MedicationListHeader from '../../components/MedicationList/MedicationListHeader/MedicationListHeader';
@@ -17,8 +18,8 @@ const pastMedications: Medication[] = [
 
 export default function MedicationList() {
   const styles = useResponsiveStyles(baseStyles);
-  const { medicineIds } = useMedications();
-  const currentMedications: Medication[] = medicines.filter(item => medicineIds.includes(item.id)).map(item => ({ id: item.id, name: item.name, schedule: '복용 일정 미설정', startDate: '복용 목록에 등록됨' }));
+  const { medicineIds, schedules } = useMedications();
+  const currentMedications: Medication[] = medicines.filter(item => medicineIds.includes(item.id)).map(item => ({ id: item.id, name: item.name, schedule: getMedicationScheduleLabel(schedules, item.id), startDate: '복용 목록에 등록됨' }));
   const [selectedTab, setSelectedTab] = useState<MedicationTab>('current');
   const medications = selectedTab === 'current' ? currentMedications : pastMedications;
 
