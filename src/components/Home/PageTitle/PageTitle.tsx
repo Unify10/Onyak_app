@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { typography } from '../../../theme/tokens';
 
 export default function PageTitle() {
   return (
@@ -20,10 +21,10 @@ export default function PageTitle() {
 }
 
 const styles = StyleSheet.create({
-  container: { width: '100%', paddingHorizontal: 4, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  container: { width: '100%', height: 72, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   greeting: { gap: 2 },
-  greetingText: { color: '#7B8494', fontSize: 22 },
-  name: { color: '#111111', fontSize: 30, fontWeight: '600' },
+  greetingText: { color: '#7B8494', fontSize: 16, lineHeight: 22 },
+  name: { ...typography.pageTitle },
   notificationButton: { width: 72, height: 72, borderRadius: 36, borderWidth: 1.5, borderColor: '#D5D9E0', alignItems: 'center', justifyContent: 'center' },
   notificationDot: { position: 'absolute', width: 17, height: 17, top: 11, right: 11, borderRadius: 9, backgroundColor: '#FF3434' },
 });

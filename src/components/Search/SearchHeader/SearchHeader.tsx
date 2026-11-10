@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from '../AppText/AppText';
+import { typography } from '../../../theme/tokens';
 
 type Props = { focused: boolean; onBack: () => void };
 
@@ -18,8 +19,8 @@ export default function SearchHeader({ focused, onBack }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { height: 62, paddingHorizontal: 20, justifyContent: 'center' },
-  title: { color: '#171C26', fontSize: 26, fontWeight: '700' },
+  container: { height: 72, paddingHorizontal: 24, justifyContent: 'center' },
+  title: { ...typography.pageTitle },
   back: { alignSelf: 'flex-start', minHeight: 48, flexDirection: 'row', alignItems: 'center', marginLeft: -8 },
   backText: { color: '#171C26', fontSize: 18, marginLeft: 2 },
 });

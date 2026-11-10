@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Keyboard, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import CaptureActionPanel from '../../components/Search/CaptureActionPanel/CaptureActionPanel';
@@ -39,7 +38,7 @@ export default function SearchScreen({
   onDeleteSearch,
   onClearSearches,
 }: Props) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery ?? '');
   const [searchFocused, setSearchFocused] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -59,15 +58,6 @@ export default function SearchScreen({
   const pageCount = Math.max(1, Math.ceil(filteredMedicines.length / 3));
   const visibleMedicines = filteredMedicines.slice((resultPage - 1) * 3, resultPage * 3);
 
-  useEffect(() => setResultPage(1), [query]);
-
-  useEffect(() => {
-    if (initialQuery == null) return;
-    setQuery(initialQuery);
-    setSearchFocused(false);
-    onInitialQueryHandled?.();
-  }, [initialQuery, onInitialQueryHandled]);
-
   useEffect(() => {
     if (!pendingCaptureAction) return;
     onCaptureActionHandled();
@@ -83,9 +73,15 @@ export default function SearchScreen({
 
   function selectRecentSearch(entry: SearchHistoryEntry) {
     setQuery(entry.query);
+    setResultPage(1);
     saveSearch(entry.query, entry.category);
     setSearchFocused(false);
     Keyboard.dismiss();
+  }
+
+  function updateQuery(value: string) {
+    setQuery(value);
+    setResultPage(1);
   }
 
   function selectMedicine(medicine: Medicine) {
@@ -147,7 +143,7 @@ export default function SearchScreen({
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <View style={styles.safe}>
       <SearchHeader focused={searchFocused} onBack={closeSearchInput} />
       <ScrollView
         contentContainerStyle={styles.content}
@@ -156,10 +152,10 @@ export default function SearchScreen({
       >
         <SearchInput
           value={query}
-          onChange={setQuery}
+          onChange={updateQuery}
           onFocus={() => setSearchFocused(true)}
           onSubmit={submitSearch}
-          onClear={() => setQuery('')}
+          onClear={() => updateQuery('')}
         />
         {searchFocused ? (
           <SearchHistoryList
@@ -190,7 +186,7 @@ export default function SearchScreen({
         onImageCaptured={setCapturedImage}
       />
       <MedicineDetailModal medicine={selectedMedicine} onClose={() => setSelectedMedicine(null)} />
-    </SafeAreaView>
+    </View>
   );
 }
 

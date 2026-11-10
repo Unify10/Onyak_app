@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { typography } from '../../../theme/tokens';
 
 export default function PageTitle() {
   return (
@@ -9,6 +10,6 @@ export default function PageTitle() {
 }
 
 const styles = StyleSheet.create({
-  container: { width: '95%', paddingHorizontal: 4, paddingVertical: 12 },
-  title: { color: '#111111', fontSize: 22, fontWeight: '600' },
+  container: { width: '100%', height: 72, paddingHorizontal: 4, justifyContent: 'center' },
+  title: { ...typography.pageTitle },
 });

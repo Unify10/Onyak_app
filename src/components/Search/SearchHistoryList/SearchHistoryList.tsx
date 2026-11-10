@@ -21,7 +21,7 @@ export default function SearchHistoryList({ recentSearches, onSelect, onDelete, 
           <Pressable style={styles.select} onPress={() => onSelect(entry)} accessibilityRole="button">
             <Ionicons name="time-outline" size={20} color="#7E8795" />
             <AppText style={styles.query}>{entry.query}</AppText>
-            <AppText style={styles.date}>{new Date(entry.searchedAt ?? Date.now()).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}</AppText>
+            <AppText style={styles.date}>{entry.searchedAt == null ? '' : new Date(entry.searchedAt).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}</AppText>
           </Pressable>
           <Pressable onPress={() => onDelete(entry.query)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`${entry.query} 기록 삭제`}>
             <Ionicons name="close" size={19} color="#AAB1BB" />

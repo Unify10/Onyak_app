@@ -1,0 +1,33 @@
+import { Stack } from 'expo-router';
+import { useFonts } from 'expo-font';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider } from '../providers/AuthProvider';
+import { SearchHistoryProvider } from '../providers/SearchHistoryProvider';
+
+export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Pretendard: require('../../assets/fonts/Pretendard-Regular.otf'),
+  });
+
+  if (!fontsLoaded) return null;
+
+  return (
+    <SafeAreaProvider>
+      <AuthProvider>
+        <SearchHistoryProvider>
+          <StatusBar style="dark" />
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="login" />
+            <Stack.Screen name="signup" />
+            <Stack.Screen name="linked-code-login" />
+            <Stack.Screen name="qr-login" />
+            <Stack.Screen name="find-account" />
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </SearchHistoryProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
+  );
+}
