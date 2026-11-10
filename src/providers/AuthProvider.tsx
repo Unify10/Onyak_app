@@ -6,6 +6,7 @@ type AuthContextValue = {
   email: string;
   signIn: (displayName?: string, email?: string) => void;
   signOut: () => void;
+  updateDisplayName: (name: string) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -25,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(true);
     },
     signOut: () => setIsAuthenticated(false),
+    updateDisplayName: setDisplayName,
   }), [displayName, email, isAuthenticated]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

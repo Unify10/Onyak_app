@@ -1,53 +1,21 @@
 import { StyleSheet, Text, View } from 'react-native';
 import FamilyItem from './FamilyItem';
+import { useFamilies } from '../../../providers/FamilyProvider';
 
 export default function FamilyList() {
-  return(
-    <View style={styles.familyListContainer}>
-      <View style={styles.familyListHeader}>
-        <Text style={styles.familyListHeaderTitle}>가족</Text>
-        <Text style={styles.familyListHeaderStatus}>인원수</Text>
-      </View>
-      <View style={styles.familyList}>
-        <FamilyItem familyItemName='성이름' familyItemEmail='test@gmail.com'/>
-        <FamilyItem familyItemName='성이름' familyItemEmail='test@gmail.com'/>
-        <FamilyItem familyItemName='성이름' familyItemEmail='test@gmail.com'/>
+  const { families } = useFamilies();
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}><Text style={styles.title}>가족</Text><Text style={styles.count}>{families.length}명</Text></View>
+      <View style={styles.list}>
+        {families.length === 0 ? <View style={styles.empty}><Text style={styles.emptyTitle}>등록된 가족이 없습니다.</Text><Text style={styles.emptyDescription}>가족 계정 생성으로 피보호자 정보를 입력해주세요.</Text></View> : families.map(family => <FamilyItem key={family.id} familyItemName={family.details.name} familyItemEmail="테스트 계정 · 연동 대기" />)}
       </View>
     </View>
-  )
+  );
 }
-
 const styles = StyleSheet.create({
-  familyListContainer: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    // flexDirection: 'row',
-    // flexWrap: 'wrap',
-    gap: 10,
-    width: '95%',
-
-  },
-  familyListHeader: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    fontSize: 16,
-  },
-  familyListHeaderTitle: {
-    fontSize: 20,
-
-  },
-  familyListHeaderStatus: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  familyList: {
-    display: 'flex',
-    flexDirection: 'column',
-    width: '100%',
-    gap: 10,
-  }
-
-
-
+  container: { width: '95%', gap: 12 }, header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { fontSize: 20, color: '#111111' }, count: { fontSize: 14, color: '#6B7280' }, list: { gap: 10 },
+  empty: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 15, padding: 24, alignItems: 'center', gap: 8 },
+  emptyTitle: { color: '#111111', fontSize: 16 }, emptyDescription: { color: '#6B7280', fontSize: 13, lineHeight: 20, textAlign: 'center' },
 });

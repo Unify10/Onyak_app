@@ -1,3 +1,6 @@
+import { MedicationProvider } from '../providers/MedicationProvider';
+import { ProfileProvider } from '../providers/ProfileProvider';
+import { FamilyProvider } from '../providers/FamilyProvider';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
@@ -16,6 +19,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AuthProvider>
         <SearchHistoryProvider>
+          <MedicationProvider>
+          <ProfileProvider>
+          <FamilyProvider>
           <StatusBar style="dark" />
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}>
             <Stack.Screen name="index" />
@@ -26,6 +32,9 @@ export default function RootLayout() {
             <Stack.Screen name="find-account" />
             <Stack.Screen name="(tabs)" />
           </Stack>
+        </FamilyProvider>
+          </ProfileProvider>
+          </MedicationProvider>
         </SearchHistoryProvider>
       </AuthProvider>
     </SafeAreaProvider>

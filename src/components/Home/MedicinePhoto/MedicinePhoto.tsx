@@ -1,9 +1,10 @@
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MedicinePhotoIcon from '../../../../assets/home/medicine-photo.svg';
 
 export default function MedicinePhoto() {
   return (
-    <Pressable style={styles.medicinePhotoButton}>
+    <Pressable style={styles.medicinePhotoButton} accessibilityRole="button" accessibilityLabel="약 성분 라벨 촬영" onPress={() => router.navigate({ pathname: '/search', params: { capture: 'label', requestId: String(Date.now()) } })}>
       <View style={styles.medicinePhotoTextContainer}>
         <Text style={styles.title}>약 성분 촬영/검색</Text>
         <Text style={styles.info}>AI가 즉시 안정성을 확인해요</Text>

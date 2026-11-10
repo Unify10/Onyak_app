@@ -1,11 +1,12 @@
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { typography } from '../../../theme/tokens';
 
 export default function MedicationListHeader() {
   return (
     <View style={styles.header}>
       <Text style={styles.title}>복용목록</Text>
-      <Pressable accessibilityRole="button" accessibilityLabel="약 추가" onPress={() => Alert.alert('약 추가', '약 추가 화면은 준비 중입니다.')} style={styles.addButton}>
+      <Pressable accessibilityRole="button" accessibilityLabel="약 추가" onPress={() => router.push('/search')} style={styles.addButton}>
         <Text style={styles.addButtonText}>＋</Text>
       </Pressable>
     </View>

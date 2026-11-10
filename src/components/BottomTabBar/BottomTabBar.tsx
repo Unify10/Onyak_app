@@ -26,7 +26,7 @@ export default function BottomTabBar() {
       {tabs.map(({ label, href, Icon }) => {
         const isActive = label === '홈'
           ? pathname === '/' || pathname === '/index'
-          : pathname.endsWith(href.toString().split('/').at(-1) ?? '');
+          : (label === '내 정보' && ['/edit-profile', '/change-password', '/delete-account'].includes(pathname)) || (label === '검색' && pathname.startsWith('/medicine/')) || pathname.endsWith(href.toString().split('/').at(-1) ?? '');
         return (
           <Link key={label} href={href} asChild>
             <Pressable

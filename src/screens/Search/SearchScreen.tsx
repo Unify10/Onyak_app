@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Keyboard, ScrollView, StyleSheet, View } from 'react-native';
 import { useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import CaptureActionPanel from '../../components/Search/CaptureActionPanel/CaptureActionPanel';
 import LabelCameraModal from '../../components/Search/LabelCameraModal/LabelCameraModal';
-import MedicineDetailModal from '../../components/Search/MedicineDetailModal/MedicineDetailModal';
 import SearchHeader from '../../components/Search/SearchHeader/SearchHeader';
 import SearchHistoryList from '../../components/Search/SearchHistoryList/SearchHistoryList';
 import SearchInput from '../../components/Search/SearchInput/SearchInput';
@@ -17,6 +17,7 @@ export type { CaptureAction, SearchHistoryEntry } from '../../components/Search/
 
 type Props = {
   pendingCaptureAction: CaptureAction | null;
+  captureRequestId?: string;
   onCaptureActionHandled: () => void;
   onCaptureClosed: () => void;
   initialQuery?: string | null;
@@ -30,6 +31,7 @@ type Props = {
 export default function SearchScreen({
   recentSearches,
   pendingCaptureAction,
+  captureRequestId,
   onCaptureActionHandled,
   onCaptureClosed,
   initialQuery,
@@ -38,11 +40,11 @@ export default function SearchScreen({
   onDeleteSearch,
   onClearSearches,
 }: Props) {
+  const handledCaptureRequest = useRef<string | null>(null);
   const [query, setQuery] = useState(initialQuery ?? '');
   const [searchFocused, setSearchFocused] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
   const [resultPage, setResultPage] = useState(1);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
@@ -57,13 +59,6 @@ export default function SearchScreen({
   }, [query]);
   const pageCount = Math.max(1, Math.ceil(filteredMedicines.length / 3));
   const visibleMedicines = filteredMedicines.slice((resultPage - 1) * 3, resultPage * 3);
-
-  useEffect(() => {
-    if (!pendingCaptureAction) return;
-    onCaptureActionHandled();
-    if (pendingCaptureAction === 'gallery') void pickImage();
-    else void openCamera();
-  }, [pendingCaptureAction]);
 
   function saveSearch(term = query, category: SearchHistoryEntry['category'] = '일반의약품') {
     const value = term.trim();
@@ -87,23 +82,28 @@ export default function SearchScreen({
   function selectMedicine(medicine: Medicine) {
     setQuery(current => current.trim() || medicine.name);
     saveSearch(query.trim() || medicine.name, medicine.category);
-    setSelectedMedicine(medicine);
+    router.push({ pathname: '/medicine/[id]', params: { id: medicine.id } });
   }
 
-  async function openCamera() {
+  const openCamera = useCallback(async () => {
     Keyboard.dismiss();
-    const permission = cameraPermission?.granted
-      ? cameraPermission
-      : await requestCameraPermission();
-    if (!permission.granted) {
+    try {
+      const permission = await (cameraPermission?.granted
+        ? Promise.resolve(cameraPermission)
+        : requestCameraPermission());
+      if (!permission.granted) {
+        onCaptureClosed();
+        Alert.alert('카메라 권한 필요', '라벨 촬영을 위해 카메라 권한을 허용해 주세요.');
+        return;
+      }
+      setCameraVisible(true);
+    } catch {
       onCaptureClosed();
-      Alert.alert('카메라 권한 필요', '라벨 촬영을 위해 카메라 권한을 허용해 주세요.');
-      return;
+      Alert.alert('카메라를 열지 못했어요', '기기의 카메라 권한과 사용 상태를 확인해주세요.');
     }
-    setCameraVisible(true);
-  }
+  }, [cameraPermission, requestCameraPermission, onCaptureClosed]);
 
-  async function pickImage() {
+  const pickImage = useCallback(async () => {
     Keyboard.dismiss();
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -118,7 +118,14 @@ export default function SearchScreen({
       setCameraVisible(false);
       onCaptureClosed();
     }
-  }
+  }, [onCaptureClosed]);
+
+  useEffect(() => {
+    if (!pendingCaptureAction || !captureRequestId || handledCaptureRequest.current === captureRequestId) return;
+    handledCaptureRequest.current = captureRequestId;
+    onCaptureActionHandled();
+    void Promise.resolve().then(() => pendingCaptureAction === 'gallery' ? pickImage() : openCamera());
+  }, [pendingCaptureAction, captureRequestId, onCaptureActionHandled, pickImage, openCamera]);
 
   function submitSearch() {
     saveSearch();
@@ -185,7 +192,6 @@ export default function SearchScreen({
         onPickImage={() => void pickImage()}
         onImageCaptured={setCapturedImage}
       />
-      <MedicineDetailModal medicine={selectedMedicine} onClose={() => setSelectedMedicine(null)} />
     </View>
   );
 }

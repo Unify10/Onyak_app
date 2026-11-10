@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export type Medication = {
@@ -10,7 +11,7 @@ export type Medication = {
 
 export default function MedicationItem({ medication }: { medication: Medication }) {
   return (
-    <Pressable accessibilityRole="button" style={styles.card}>
+    <Pressable accessibilityRole="button" style={styles.card} onPress={() => router.push({ pathname: '/medicine/[id]', params: { id: medication.id } })}>
       <View style={styles.medicineImage}><Text style={styles.imagePlaceholder}>약 이미지</Text></View>
       <View style={styles.details}>
         <View style={styles.nameRow}>

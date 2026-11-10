@@ -1,13 +1,15 @@
+import { useAuth } from '../../../providers/AuthProvider';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { typography } from '../../../theme/tokens';
 
 export default function PageTitle() {
+  const { displayName } = useAuth();
   return (
     <View style={styles.container}>
       <View style={styles.greeting}>
         <Text style={styles.greetingText}>안녕하세요</Text>
-        <Text style={styles.name}>김민지 님</Text>
+        <Text style={styles.name}>{displayName} 님</Text>
       </View>
       <View accessibilityRole="image" accessibilityLabel="알림" style={styles.notificationButton}>
         <Svg width={30} height={30} viewBox="0 0 24 24" fill="none">

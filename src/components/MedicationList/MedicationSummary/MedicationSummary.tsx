@@ -6,12 +6,12 @@ const summaries = [
   { count: '2개', label: '복용 기록' },
 ];
 
-export default function MedicationSummary() {
+export default function MedicationSummary({ currentCount = 3 }: { currentCount?: number }) {
   return (
     <View style={styles.summary}>
       {summaries.map(({ count, label, highlighted }) => (
         <View key={label} style={[styles.card, highlighted && styles.highlightedCard]}>
-          <Text style={styles.count}>{count}</Text>
+          <Text style={styles.count}>{label === '복용 중' ? `${currentCount}개` : count}</Text>
           <Text style={styles.label}>{label}</Text>
         </View>
       ))}

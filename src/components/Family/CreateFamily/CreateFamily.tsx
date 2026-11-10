@@ -1,9 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import CreateFamilyIcon from '../../../../assets/family/createFamilyIcon.svg'
 
 export default function CreateFamily() {
   return (
-    <Pressable style={styles.createFamilyContainer}>
+    <Pressable style={styles.createFamilyContainer} onPress={() => router.push('/create-family')} accessibilityRole="button" accessibilityLabel="가족 계정 생성">
       <CreateFamilyIcon/>
       <Text style={styles.createFamilyText}>가족 계정 생성</Text>
     </Pressable>
