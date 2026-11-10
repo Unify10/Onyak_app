@@ -1,9 +1,13 @@
+import Text from '../../components/Typography/Text';
+import TextInput from '../../components/Typography/TextInput';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ChangePasswordScreen() {
+  const styles = useResponsiveStyles(baseStyles);
   const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
@@ -33,14 +37,15 @@ export default function ChangePasswordScreen() {
   );
 }
 function PasswordField({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
+  const styles = useResponsiveStyles(baseStyles);
   const [visible, setVisible] = useState(false);
   return <View style={styles.field}><Text style={styles.label}>{label}</Text><View style={styles.inputRow}><TextInput accessibilityLabel={label} value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor="#9CA3AF" secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} style={styles.input} /><Pressable accessibilityRole="button" accessibilityLabel={`${label} ${visible ? '숨기기' : '보기'}`} onPress={() => setVisible(current => !current)} style={styles.eye}><Ionicons name={visible ? 'eye-outline' : 'eye-off-outline'} size={22} color="#9CA3AF" /></Pressable></View></View>;
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { minHeight: 72, flexDirection: 'row', gap: 6, alignItems: 'center', paddingHorizontal: 20 },
   headerTitle: { color: '#111111', fontSize: 16 },
-  content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 24 },
+  content: { width: '100%', alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 24 },
   notice: { backgroundColor: '#F5F5F7', borderRadius: 12, padding: 16, flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 26 },
   noticeText: { flex: 1, color: '#4B5563', fontSize: 14, lineHeight: 22 },
   field: { marginTop: 18, gap: 8 }, label: { color: '#111111', fontSize: 16 },
@@ -49,7 +54,7 @@ const styles = StyleSheet.create({
   eye: { minWidth: 44, minHeight: 48, justifyContent: 'center', alignItems: 'center' },
   error: { fontSize: 12, lineHeight: 18, color: '#D92D20', marginTop: 6 },
   message: { color: '#4B5563', fontSize: 14, lineHeight: 22, marginTop: 24 },
-  footer: { width: '100%', maxWidth: 640, alignSelf: 'center', padding: 20 },
+  footer: { width: '100%', alignSelf: 'center', padding: 20 },
   button: { backgroundColor: '#000000', borderRadius: 12, minHeight: 50, justifyContent: 'center', alignItems: 'center' },
   disabled: { backgroundColor: '#9B9B9B' }, buttonText: { color: '#FFFFFF', fontSize: 16 },
 });

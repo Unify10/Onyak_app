@@ -1,5 +1,7 @@
+import Text from '../../components/Typography/Text';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../providers/AuthProvider';
@@ -9,6 +11,7 @@ import PersonalInfoFields from '../../components/PersonalInfo/PersonalInfoFields
 import { validatePersonalInfo } from '../../utils/personalInfo';
 
 export default function EditProfileScreen() {
+  const styles = useResponsiveStyles(baseStyles);
   const { profile, saveProfile } = useProfile();
   const { displayName, email, updateDisplayName } = useAuth();
   const [draft, setDraft] = useState(() => ({ ...profile, name: displayName }));
@@ -23,21 +26,26 @@ export default function EditProfileScreen() {
   }
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.header}><Pressable onPress={() => router.replace('/my-info')} accessibilityRole="button" style={styles.headerButton}><Text>뒤로가기</Text></Pressable><Pressable onPress={save} accessibilityRole="button" style={styles.headerButton}><Text>내 정보 수정</Text></Pressable></View>
+      <View style={styles.header}><Pressable onPress={() => router.replace('/my-info')} accessibilityRole="button" style={styles.headerButton}><Text>뒤로가기</Text></Pressable><Text style={styles.headerTitle}>내 정보 수정</Text><View style={styles.headerSpacer} /></View>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <ProfileHero name={displayName} email={email} />
-        <PersonalInfoFields value={draft} onChange={next => { setDraft(next); setError(''); }} />
-        {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+        <PersonalInfoFields showAge value={draft} onChange={next => { setDraft(next); setError(''); }} />
         <View style={styles.notice}><Ionicons name="shield-half" size={22} color="#000000" /><Text style={styles.noticeText}>입력한 신체 정보는 내 정보 화면에 반영됩니다.</Text></View>
+        {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+        <Pressable onPress={save} accessibilityRole="button" style={styles.saveButton}><Text style={styles.saveButtonText}>수정 완료</Text></Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { minHeight: 64, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerButton: { minHeight: 44, justifyContent: 'center' },
-  content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 30 },
+  headerButton: { width: 72, minHeight: 44, justifyContent: 'center' },
+  headerTitle: { fontSize: 18, color: '#111111' },
+  headerSpacer: { width: 72 },
+  saveButton: { minHeight: 52, marginTop: 24, padding: 14, borderRadius: 12, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center' },
+  saveButtonText: { color: '#FFFFFF', fontSize: 16, lineHeight: 24 },
+  content: { width: '100%', alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 30 },
   error: { color: '#D92D20', fontSize: 13, lineHeight: 20, marginTop: 14 },
   notice: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 12, backgroundColor: '#F5F5F7', marginTop: 24 },
   noticeText: { flex: 1, color: '#4B5563', fontSize: 14, lineHeight: 22 },

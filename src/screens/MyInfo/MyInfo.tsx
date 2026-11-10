@@ -1,3 +1,4 @@
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import ProfileHero from '../../components/MyInfo/ProfileHero';
@@ -7,6 +8,7 @@ import { useProfile } from '../../providers/ProfileProvider';
 
 type Props = { displayName: string; email: string; onSignOut: () => void };
 export default function MyInfo({ displayName, email, onSignOut }: Props) {
+  const styles = useResponsiveStyles(baseStyles);
   const { profile } = useProfile();
   function confirmSignOut() { Alert.alert('로그아웃', '온약에서 로그아웃할까요?', [{ text: '취소', style: 'cancel' }, { text: '로그아웃', onPress: onSignOut }]); }
   return (
@@ -19,14 +21,14 @@ export default function MyInfo({ displayName, email, onSignOut }: Props) {
         <ProfileMenuRow label="비밀번호 변경" icon="lock-closed" onPress={() => router.push('/change-password')} last />
       </View>
       <View style={styles.menu}>
-        <ProfileMenuRow label="로그아웃" logout onPress={confirmSignOut} />
-        <ProfileMenuRow label="계정 및 데이터 삭제" onPress={() => router.push('/delete-account')} last />
+        <ProfileMenuRow label="로그아웃" destructive logout onPress={confirmSignOut} />
+        <ProfileMenuRow label="계정 및 데이터 삭제" destructive onPress={() => router.push('/delete-account')} last />
       </View>
     </ScrollView>
   );
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
-  content: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 },
+  content: { width: '100%', alignSelf: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 },
   menu: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 14, marginTop: 26, overflow: 'hidden' },
 });

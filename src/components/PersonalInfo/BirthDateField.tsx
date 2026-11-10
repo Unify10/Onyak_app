@@ -1,8 +1,12 @@
+import Text from '../Typography/Text';
+import TextInput from '../Typography/TextInput';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function BirthDateField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const styles = useResponsiveStyles(baseStyles);
   const [visible, setVisible] = useState(false);
   const [month, setMonth] = useState({ year: 2000, month: 0 });
   const firstDay = new Date(month.year, month.month, 1).getDay();
@@ -49,7 +53,7 @@ export default function BirthDateField({ value, onChange }: { value: string; onC
     </>
   );
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   inputRow: { minHeight: 50, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
   input: { flex: 1, minWidth: 0, paddingHorizontal: 16, paddingVertical: 14, color: '#111111', fontSize: 16 },
   calendarButton: { minWidth: 46, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
