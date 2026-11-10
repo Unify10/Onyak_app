@@ -1,17 +1,9 @@
+import Text from '../../components/Typography/Text';
+import TextInput from '../../components/Typography/TextInput';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 // ───────────── 불러오기 ─────────────
 import { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Image,
-} from 'react-native';
+import { View, Pressable, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -41,6 +33,7 @@ export default function LoginScreen({
   onPressFindPassword,
   onLoginSuccess,
 }: Props) {
+  const styles = useResponsiveStyles(baseStyles);
   // 입력값과 화면 상태
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -237,7 +230,7 @@ export default function LoginScreen({
 
 // ───────────── 스타일 ─────────────
 // 로그인 화면 스타일
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: '#FFFFFF',

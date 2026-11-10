@@ -1,17 +1,8 @@
+import Text from '../../components/Typography/Text';
+import TextInput from '../../components/Typography/TextInput';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useEffect, useState } from 'react';
-import {
-  Alert,
-  Animated,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Animated, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
@@ -28,6 +19,7 @@ const HEIGHT_OPTIONS = Array.from({ length: 131 }, (_, index) => index + 100);
 const WEIGHT_OPTIONS = Array.from({ length: 151 }, (_, index) => index + 30);
 
 export default function SignupScreen({ onPressBack, onComplete }: Props) {
+  const styles = useResponsiveStyles(baseStyles);
   const [step, setStep] = useState(1);
 
   const [email, setEmail] = useState('');
@@ -651,7 +643,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
 }
 
 // ───────────── 화면 스타일 ─────────────
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   keyboardAvoiding: { flex: 1 },
   header: {

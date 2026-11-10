@@ -1,13 +1,7 @@
+import Text from '../../components/Typography/Text';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-} from 'react-native';
+import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, View, Image } from 'react-native';
 import {
   CameraView,
   useCameraPermissions,
@@ -27,6 +21,7 @@ export default function QRLoginScreen({
   onComplete,
   onSubmitQr,
 }: Props) {
+  const styles = useResponsiveStyles(baseStyles);
   const [permission, requestPermission] = useCameraPermissions();
   const [isScanning, setIsScanning] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -197,7 +192,7 @@ export default function QRLoginScreen({
 const CORNER_SIZE = 42;
 const CORNER_WIDTH = 7;
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: '#FFFFFF',

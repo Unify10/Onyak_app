@@ -1,17 +1,8 @@
+import Text from '../../components/Typography/Text';
+import TextInput from '../../components/Typography/TextInput';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useState } from 'react';
-import {
-  Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
 // -----------------------------------------------------------------------------
 // 화면 외부에서 받는 뒤로 가기 동작
@@ -26,6 +17,7 @@ type Props = {
 // -----------------------------------------------------------------------------
 
 export default function FindAccountScreen({ onPressBack }: Props) {
+  const styles = useResponsiveStyles(baseStyles);
   // 이메일 입력값과 형식 검사
   const [email, setEmail] = useState('');
 
@@ -118,7 +110,7 @@ export default function FindAccountScreen({ onPressBack }: Props) {
 }
 
 // 화면 스타일
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: '#FFFFFF',

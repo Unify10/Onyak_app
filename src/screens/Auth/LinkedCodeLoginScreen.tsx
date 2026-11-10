@@ -1,14 +1,7 @@
+import TextInput from '../../components/Typography/TextInput';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Keyboard,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, Keyboard, Pressable, SafeAreaView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from '../../components/Search/AppText/AppText';
 
@@ -36,6 +29,7 @@ export default function LinkedCodeLoginScreen({
   onComplete,
   onSubmitCode,
 }: Props) {
+  const styles = useResponsiveStyles(baseStyles);
   // TextInput ref에서 focus()만 사용합니다.
   const inputRef = useRef<{ focus: () => void } | null>(null);
 
@@ -220,7 +214,7 @@ export default function LinkedCodeLoginScreen({
 }
 
 // 연동 코드 로그인 스타일
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: '#FFFFFF',
