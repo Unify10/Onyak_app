@@ -11,6 +11,10 @@ import { SearchHistoryProvider } from '../providers/SearchHistoryProvider';
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Pretendard: require('../../assets/fonts/Pretendard-Regular.otf'),
+    'Pretendard-Medium': require('../../assets/fonts/Pretendard-Medium.otf'),
+    'Pretendard-SemiBold': require('../../assets/fonts/Pretendard-SemiBold.otf'),
+    'Pretendard-Bold': require('../../assets/fonts/Pretendard-Bold.otf'),
+    'Pretendard-ExtraBold': require('../../assets/fonts/Pretendard-ExtraBold.otf'),
   });
 
   if (!fontsLoaded) return null;
