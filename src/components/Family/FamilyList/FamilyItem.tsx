@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View, Image } from 'react-native';
+import Text from '../../Typography/Text';
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
+import { StyleSheet, View, Image } from 'react-native';
 
 interface familyItemData {
   familyItemName: string,
@@ -7,6 +9,7 @@ interface familyItemData {
 };
 
 export default function FamilyItem({ familyItemName, familyItemEmail, familyItemImage }:familyItemData) {
+  const styles = useResponsiveStyles(baseStyles);
   return(
     <View style={styles.familyItemContainer}>
       <View style={styles.familyItemImageContainer} >
@@ -27,7 +30,7 @@ export default function FamilyItem({ familyItemName, familyItemEmail, familyItem
   )
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   familyItemContainer: {
     width: '100%',
     flexDirection: 'row',

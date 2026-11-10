@@ -1,9 +1,12 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Text from '../../Typography/Text';
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 type Props = { code: string; secondsLeft: number; copied: boolean; onCopy: () => void };
 
 export default function InvitationCode({ code, secondsLeft, copied, onCopy }: Props) {
+  const styles = useResponsiveStyles(baseStyles);
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
   return (
@@ -20,7 +23,7 @@ export default function InvitationCode({ code, secondsLeft, copied, onCopy }: Pr
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { alignItems: 'center', paddingVertical: 36 },
   codeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
   code: { fontSize: 48, lineHeight: 64, letterSpacing: 1, color: '#000000' },

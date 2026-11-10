@@ -1,8 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native';
+import Text from '../../Typography/Text';
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
+import { StyleSheet, View } from 'react-native';
 import FamilyItem from './FamilyItem';
 import { useFamilies } from '../../../providers/FamilyProvider';
 
 export default function FamilyList() {
+  const styles = useResponsiveStyles(baseStyles);
   const { families } = useFamilies();
   return (
     <View style={styles.container}>
@@ -13,8 +16,8 @@ export default function FamilyList() {
     </View>
   );
 }
-const styles = StyleSheet.create({
-  container: { width: '95%', gap: 12 }, header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+const baseStyles = StyleSheet.create({
+  container: { width: '100%', gap: 12 }, header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 20, color: '#111111' }, count: { fontSize: 14, color: '#6B7280' }, list: { gap: 10 },
   empty: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 15, padding: 24, alignItems: 'center', gap: 8 },
   emptyTitle: { color: '#111111', fontSize: 16 }, emptyDescription: { color: '#6B7280', fontSize: 13, lineHeight: 20, textAlign: 'center' },

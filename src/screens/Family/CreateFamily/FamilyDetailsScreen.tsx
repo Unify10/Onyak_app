@@ -1,10 +1,13 @@
+import Text from '../../../components/Typography/Text';
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PersonalInfoFields from '../../../components/PersonalInfo/PersonalInfoFields';
 import { validatePersonalInfo, type PersonalInfo } from '../../../utils/personalInfo';
 
 export default function FamilyDetailsScreen({ value, onChange, onBack, onNext }: { value: PersonalInfo; onChange: (value: PersonalInfo) => void; onBack: () => void; onNext: () => void }) {
+  const styles = useResponsiveStyles(baseStyles);
   const [error, setError] = useState('');
   function submit() {
     const message = validatePersonalInfo(value, true);
@@ -13,7 +16,7 @@ export default function FamilyDetailsScreen({ value, onChange, onBack, onNext }:
   }
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.header}><Pressable onPress={onBack} style={styles.back} accessibilityRole="button" accessibilityLabel="가족 화면으로 돌아가기"><Ionicons name="arrow-back" size={22} /></Pressable><Text style={styles.title}>피보호자 계정 생성</Text><View style={{ width: 38 }} /></View>
+      <View style={styles.header}><Pressable onPress={onBack} style={styles.back} accessibilityRole="button" accessibilityLabel="가족 화면으로 돌아가기"><Ionicons name="arrow-back" size={22} /></Pressable><Text style={styles.title}>피보호자 계정 생성</Text><View style={styles.headerSpacer} /></View>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
         <Text style={styles.section}>신체 정보</Text>
         <PersonalInfoFields value={value} onChange={next => { onChange(next); setError(''); }} showBirthDate familyLayout />
@@ -23,10 +26,11 @@ export default function FamilyDetailsScreen({ value, onChange, onBack, onNext }:
     </KeyboardAvoidingView>
   );
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { minHeight: 72, paddingHorizontal: 20, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   back: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center' },
+  headerSpacer: { width: 44 },
   title: { fontSize: 18, color: '#111111' },
   content: { padding: 20, paddingBottom: 30, width: '100%', maxWidth: 640, alignSelf: 'center' },
   section: { color: '#657080', fontSize: 15, marginBottom: 28, marginTop: 4 },

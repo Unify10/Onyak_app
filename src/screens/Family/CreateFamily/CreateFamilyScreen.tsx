@@ -1,5 +1,7 @@
+import Text from '../../../components/Typography/Text';
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg';
@@ -11,6 +13,7 @@ function generateCode() {
 }
 
 export default function CreateFamilyScreen({ onBack, onComplete }: { onBack: () => void; onComplete: (invitation: { code: string; expiresAt: number }) => void }) {
+  const styles = useResponsiveStyles(baseStyles);
   const [now, setNow] = useState(() => Date.now());
   const [invitation, setInvitation] = useState(() => ({ code: generateCode(), expiresAt: now + 10 * 60 * 1000 }));
   const [showQr, setShowQr] = useState(false);
@@ -74,7 +77,7 @@ export default function CreateFamilyScreen({ onBack, onComplete }: { onBack: () 
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { minHeight: 72, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },
   back: { width: 38, height: 38, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
