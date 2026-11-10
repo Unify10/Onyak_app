@@ -1,14 +1,19 @@
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { router } from 'expo-router';
+import Text from '../../Typography/Text';
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
+import { StyleSheet, View, Image, Pressable } from 'react-native';
 
 interface activeMedicineData {
+  medicineId: string;
   activeMedicineTitle: string;
   activeMedicineInfo: string;
   activeMedicineImage?: string;
 }
 
-export default function ActiveMedicineItem({ activeMedicineTitle, activeMedicineInfo, activeMedicineImage }: activeMedicineData) {
+export default function ActiveMedicineItem({ medicineId, activeMedicineTitle, activeMedicineInfo, activeMedicineImage }: activeMedicineData) {
+  const styles = useResponsiveStyles(baseStyles, compactStyles);
   return (
-    <View style={styles.activeMedicineCard}>
+    <Pressable accessibilityRole="button" accessibilityLabel={activeMedicineTitle} onPress={() => router.push({ pathname: '/medicine/[id]', params: { id: medicineId } })} style={styles.activeMedicineCard}>
       <View>
         {activeMedicineImage ? (
           <Image
@@ -23,21 +28,23 @@ export default function ActiveMedicineItem({ activeMedicineTitle, activeMedicine
         )}
       </View>
       <View>
-        <Text style={styles.activeMedicineTitle}>{activeMedicineTitle}</Text>
+        <Text numberOfLines={2} style={styles.activeMedicineTitle}>{activeMedicineTitle}</Text>
         <Text style={styles.activeMedicineInfo}>{activeMedicineInfo}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   activeMedicineCard: {
     backgroundColor: '#ffffff',
     borderRadius: 15,
     borderColor: '#E5E7EB',
     borderWidth: 1,
     padding: 12,
-    width: '47.5%',
+    width: 220,
+    maxWidth: 240,
+    flexShrink: 0,
   },
   activeMedicineImage: {
     width: '100%',
@@ -55,7 +62,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   activeMedicineTitle: {
-    fontSize: 20,
+    fontSize: 17,
+    lineHeight: 24,
+    minHeight: 48,
     marginTop: 10,
   },
   activeMedicineInfo: {
@@ -64,3 +73,4 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
+const compactStyles = StyleSheet.create({ activeMedicineCard: { width: 200, padding: 10 }, activeMedicineImage: { height: 80 }, activeMedicineTitle: { fontSize: 16, lineHeight: 22, minHeight: 44, marginTop: 6 }, activeMedicineInfo: { fontSize: 14 } });
