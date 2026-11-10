@@ -1,7 +1,9 @@
+import Text from '../../components/Typography/Text';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { medicines } from '../../components/Search/medicineData';
 import { useMedications } from '../../providers/MedicationProvider';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import MedicationListHeader from '../../components/MedicationList/MedicationListHeader/MedicationListHeader';
 import MedicationSummary from '../../components/MedicationList/MedicationSummary/MedicationSummary';
 import MedicationTabs, { MedicationTab } from '../../components/MedicationList/MedicationTabs/MedicationTabs';
@@ -14,6 +16,7 @@ const pastMedications: Medication[] = [
 ];
 
 export default function MedicationList() {
+  const styles = useResponsiveStyles(baseStyles);
   const { medicineIds } = useMedications();
   const currentMedications: Medication[] = medicines.filter(item => medicineIds.includes(item.id)).map(item => ({ id: item.id, name: item.name, schedule: '복용 일정 미설정', startDate: '복용 목록에 등록됨' }));
   const [selectedTab, setSelectedTab] = useState<MedicationTab>('current');
@@ -33,7 +36,7 @@ export default function MedicationList() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, width: '100%', backgroundColor: '#FFFFFF' },
   listContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24, gap: 16 },
 });

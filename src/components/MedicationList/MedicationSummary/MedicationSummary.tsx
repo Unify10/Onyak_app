@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import Text from '../../Typography/Text';
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
+import { StyleSheet, View } from 'react-native';
 
 const summaries = [
   { count: '3개', label: '복용 중' },
@@ -7,6 +9,7 @@ const summaries = [
 ];
 
 export default function MedicationSummary({ currentCount = 3 }: { currentCount?: number }) {
+  const styles = useResponsiveStyles(baseStyles);
   return (
     <View style={styles.summary}>
       {summaries.map(({ count, label, highlighted }) => (
@@ -19,7 +22,7 @@ export default function MedicationSummary({ currentCount = 3 }: { currentCount?:
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   summary: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginTop: 16, marginBottom: 26 },
   card: { flex: 1, height: 80, borderWidth: 1, borderColor: '#E1E4E8', borderRadius: 16, alignItems: 'center', justifyContent: 'center', gap: 3 },
   highlightedCard: { borderColor: '#111111', borderWidth: 1.5 },

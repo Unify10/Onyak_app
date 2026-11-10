@@ -1,5 +1,8 @@
+import Text from '../../Typography/Text';
+import { medicineImageLayout } from '../../../theme/tokens';
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 export type Medication = {
   id: string;
@@ -10,9 +13,10 @@ export type Medication = {
 };
 
 export default function MedicationItem({ medication }: { medication: Medication }) {
+  const styles = useResponsiveStyles(baseStyles, compactStyles);
   return (
     <Pressable accessibilityRole="button" style={styles.card} onPress={() => router.push({ pathname: '/medicine/[id]', params: { id: medication.id } })}>
-      <View style={styles.medicineImage}><Text style={styles.imagePlaceholder}>약 이미지</Text></View>
+      <View style={[styles.medicineImage, medicineImageLayout]} accessibilityRole="image" accessibilityLabel={`${medication.name} 이미지 영역`}><Text style={styles.imagePlaceholder}>약 이미지</Text></View>
       <View style={styles.details}>
         <View style={styles.nameRow}>
           <Text style={styles.name}>{medication.name}</Text>
@@ -26,11 +30,11 @@ export default function MedicationItem({ medication }: { medication: Medication 
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { minHeight: 112, borderRadius: 16, borderWidth: 1, borderColor: '#E1E4E8', padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  medicineImage: { width: 62, height: 78, borderRadius: 12, backgroundColor: '#E6E8EB', alignItems: 'center', justifyContent: 'center' },
+  medicineImage: { borderRadius: 12, backgroundColor: '#E6E8EB', alignItems: 'center', justifyContent: 'center' },
   imagePlaceholder: { color: '#FFFFFF', fontSize: 11 },
-  details: { flex: 1, gap: 5 },
+  details: { flex: 1, minWidth: 0, gap: 5 },
   nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
   name: { color: '#17191D', fontSize: 17 },
   cautionBadge: { borderWidth: 1, borderColor: '#111111', borderRadius: 12, paddingHorizontal: 9, paddingVertical: 2, color: '#111111', fontSize: 12 },
@@ -38,3 +42,5 @@ const styles = StyleSheet.create({
   date: { color: '#A4ADBA', fontSize: 14 },
   chevron: { color: '#C8CDD5', fontSize: 30, lineHeight: 32, marginLeft: 2 },
 });
+
+const compactStyles = StyleSheet.create({ card: { minHeight: 92, padding: 12, gap: 10 }, details: { gap: 3 }, name: { fontSize: 16 }, schedule: { fontSize: 14, lineHeight: 20 }, date: { fontSize: 12 } });

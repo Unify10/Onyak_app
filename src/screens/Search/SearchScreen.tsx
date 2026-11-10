@@ -1,3 +1,4 @@
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Keyboard, ScrollView, StyleSheet, View } from 'react-native';
@@ -40,6 +41,7 @@ export default function SearchScreen({
   onDeleteSearch,
   onClearSearches,
 }: Props) {
+  const styles = useResponsiveStyles(baseStyles);
   const handledCaptureRequest = useRef<string | null>(null);
   const [query, setQuery] = useState(initialQuery ?? '');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -196,7 +198,7 @@ export default function SearchScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 26 },
 });

@@ -1,5 +1,7 @@
+import Text from '../../components/Typography/Text';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MedicineInfoAccordion from '../../components/MedicineDetail/MedicineInfoAccordion';
 import type { Medicine } from '../../components/Search/types';
@@ -7,6 +9,7 @@ import { useMedications } from '../../providers/MedicationProvider';
 import { typography } from '../../theme/tokens';
 
 export default function MedicineDetailScreen({ medicine }: { medicine: Medicine }) {
+  const styles = useResponsiveStyles(baseStyles);
   const { medicineIds, toggleMedicine } = useMedications();
   const isRegistered = medicineIds.includes(medicine.id);
   return (
@@ -32,7 +35,7 @@ export default function MedicineDetailScreen({ medicine }: { medicine: Medicine 
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { minHeight: 72, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heading: { ...typography.pageTitle },

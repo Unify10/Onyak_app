@@ -1,5 +1,7 @@
+import Text from '../Typography/Text';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const sections = [
@@ -9,6 +11,7 @@ const sections = [
 ];
 
 export default function MedicineInfoAccordion() {
+  const styles = useResponsiveStyles(baseStyles);
   const [expanded, setExpanded] = useState<string | null>('약의 효능');
   return (
     <View style={styles.container}>
@@ -33,7 +36,7 @@ export default function MedicineInfoAccordion() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 14, overflow: 'hidden' },
   border: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB' },
   row: { minHeight: 52, paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

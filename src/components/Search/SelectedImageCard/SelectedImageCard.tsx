@@ -1,9 +1,11 @@
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import AppText from '../AppText/AppText';
 
 type Props = { uri: string; onRemove: () => void };
 
 export default function SelectedImageCard({ uri, onRemove }: Props) {
+  const styles = useResponsiveStyles(baseStyles);
   return (
     <View style={styles.card}>
       <Image source={{ uri }} style={styles.image} />
@@ -16,7 +18,7 @@ export default function SelectedImageCard({ uri, onRemove }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F8FA', borderRadius: 15, padding: 12, marginTop: -12, marginBottom: 20 },
   image: { width: 70, height: 70, borderRadius: 11, backgroundColor: '#E5E7EB' },
   info: { flex: 1, marginLeft: 13 },

@@ -1,9 +1,11 @@
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from '../AppText/AppText';
 import type { SearchHistoryProps } from '../types';
 
 export default function SearchHistoryList({ recentSearches, onSelect, onDelete, onClear }: SearchHistoryProps) {
+  const styles = useResponsiveStyles(baseStyles);
   function confirmClear() {
     Alert.alert('검색 기록 삭제', '검색 기록을 모두 삭제할까요?', [
       { text: '취소', style: 'cancel' },
@@ -35,7 +37,7 @@ export default function SearchHistoryList({ recentSearches, onSelect, onDelete, 
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { paddingTop: 3 },
   heading: { minHeight: 45, color: '#7E8795', fontSize: 17, paddingTop: 10, marginBottom: 8 },
   row: { minHeight: 56, flexDirection: 'row', alignItems: 'center' },

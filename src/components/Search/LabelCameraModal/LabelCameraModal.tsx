@@ -1,3 +1,4 @@
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { useRef } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { CameraView } from 'expo-camera';
@@ -7,6 +8,7 @@ import AppText from '../AppText/AppText';
 type Props = { visible: boolean; onClose: () => void; onPickImage: () => void; onImageCaptured: (uri: string) => void };
 
 export default function LabelCameraModal({ visible, onClose, onPickImage, onImageCaptured }: Props) {
+  const styles = useResponsiveStyles(baseStyles);
   const cameraRef = useRef<CameraView>(null);
 
   async function capturePhoto() {
@@ -52,7 +54,7 @@ export default function LabelCameraModal({ visible, onClose, onPickImage, onImag
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#080B10' },
   header: { height: 100, paddingTop: 38, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   close: { width: 42, height: 42, alignItems: 'flex-start', justifyContent: 'center' },
