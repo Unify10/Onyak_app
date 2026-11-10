@@ -1,4 +1,6 @@
-import { Pressable, StyleSheet, Text, View, Image } from 'react-native';
+import Text from '../../Typography/Text';
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
+import { StyleSheet, View, Image } from 'react-native';
 
 interface familyAccountData {
   familyAccountName: string,
@@ -6,6 +8,7 @@ interface familyAccountData {
 }
 
 export default function HomeFamilyAccountItem({ familyAccountName, familyAccountImage }:familyAccountData) {
+  const styles = useResponsiveStyles(baseStyles);
   return(
     <View style={styles.homeFamilyAccountProfile}>
       <View style={styles.homeFamilyAccountImageContainer}>
@@ -19,15 +22,15 @@ export default function HomeFamilyAccountItem({ familyAccountName, familyAccount
                 )}
       </View>
       <View>
-        <Text style={styles.homeFamilyAccountName}>{familyAccountName}</Text>
+        <Text numberOfLines={2} style={styles.homeFamilyAccountName}>{familyAccountName}</Text>
       </View>
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   homeFamilyAccountProfile: {
-    width: 50,
+    width: 76,
     alignItems: 'center',
     marginHorizontal: 8,
 
