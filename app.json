@@ -20,9 +20,6 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-<<<<<<< Updated upstream
-    }
-=======
     },
     "plugins": [
       "@react-native-community/datetimepicker",
@@ -46,6 +43,5 @@
       ],
       "expo-status-bar"
     ]
->>>>>>> Stashed changes
   }
 }
