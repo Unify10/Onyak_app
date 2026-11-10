@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Text from '../../Typography/Text';
+import { StyleSheet, View } from 'react-native';
 import NotificationIcon from '../../../../assets/home/notification.svg';
 
 interface notificationData{

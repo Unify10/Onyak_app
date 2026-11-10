@@ -1,8 +1,11 @@
+import Text from '../../Typography/Text';
+import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import MedicinePhotoIcon from '../../../../assets/home/medicine-photo.svg';
 
 export default function MedicinePhoto() {
+  const styles = useResponsiveStyles(baseStyles);
   return (
     <Pressable style={styles.medicinePhotoButton} accessibilityRole="button" accessibilityLabel="약 성분 라벨 촬영" onPress={() => router.navigate({ pathname: '/search', params: { capture: 'label', requestId: String(Date.now()) } })}>
       <View style={styles.medicinePhotoTextContainer}>
@@ -16,7 +19,7 @@ export default function MedicinePhoto() {
   )
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   medicinePhotoButton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -24,7 +27,7 @@ const styles = StyleSheet.create({
     // alignSelf: 'stretch',
     backgroundColor: '#000000',
     borderRadius: 15,
-    width: '95%',
+    width: '100%',
     padding: 20,
   },
   medicinePhotoTextContainer: {
