@@ -4,9 +4,13 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   displayName: string;
   email: string;
+  contactNumber: string;
   signIn: (displayName?: string, email?: string) => void;
   signOut: () => void;
   updateDisplayName: (name: string) => void;
+  updateContactNumber: (number: string) => void;
+  updateEmail: (email: string) => void;
+  updatePassword: (password: string) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -15,11 +19,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [displayName, setDisplayName] = useState('김민지');
   const [email, setEmail] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [, setPassword] = useState('');
 
   const value = useMemo<AuthContextValue>(() => ({
     isAuthenticated,
     displayName,
     email,
+    contactNumber,
     signIn: (name, accountEmail) => {
       if (name?.trim()) setDisplayName(name.trim());
       if (accountEmail?.trim()) setEmail(accountEmail.trim());
@@ -27,7 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     signOut: () => setIsAuthenticated(false),
     updateDisplayName: setDisplayName,
-  }), [displayName, email, isAuthenticated]);
+    updateContactNumber: setContactNumber,
+    updateEmail: setEmail,
+    updatePassword: setPassword,
+  }), [contactNumber, displayName, email, isAuthenticated]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

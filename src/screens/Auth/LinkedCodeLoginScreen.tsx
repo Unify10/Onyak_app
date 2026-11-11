@@ -1,7 +1,7 @@
 import TextInput from '../../components/Typography/TextInput';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Image, Keyboard, Pressable, SafeAreaView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, Keyboard, Platform, Pressable, SafeAreaView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from '../../components/Search/AppText/AppText';
 
@@ -29,7 +29,9 @@ export default function LinkedCodeLoginScreen({
   onComplete,
   onSubmitCode,
 }: Props) {
-  const styles = useResponsiveStyles(baseStyles);
+  const styles = useResponsiveStyles(baseStyles, compactStyles);
+  const { width } = useWindowDimensions();
+  const desktopWeb = Platform.OS === 'web' && width > 760;
   // TextInput ref에서 focus()만 사용합니다.
   const inputRef = useRef<{ focus: () => void } | null>(null);
 
@@ -88,8 +90,8 @@ export default function LinkedCodeLoginScreen({
 
   // 화면 렌더링
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
+    <SafeAreaView style={[styles.safe, desktopWeb && styles.desktopSafe]}>
+      <View style={[styles.container, desktopWeb && styles.desktopContainer]}>
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={Keyboard.dismiss}
@@ -97,7 +99,7 @@ export default function LinkedCodeLoginScreen({
         />
 
         <Pressable
-          style={styles.backButton}
+          style={[styles.backButton, desktopWeb && styles.desktopBackButton]}
           onPress={() => {
             Keyboard.dismiss();
             onPressBack?.();
@@ -108,105 +110,41 @@ export default function LinkedCodeLoginScreen({
           <AppText style={styles.backButtonText}>‹</AppText>
         </Pressable>
 
-        <View style={styles.brand}>
-          <Image
-            source={require('../../../assets/onyak-logo.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-          <AppText style={styles.subtitle}>
-            약물 상호작용 확인 서비스
-          </AppText>
-        </View>
+        <View style={[styles.mainContent, desktopWeb && styles.desktopMainContent]}>
+          <View style={[styles.introColumn, desktopWeb && styles.desktopIntroColumn]}>
+            <View style={styles.brand}>
+              <Image source={require('../../../assets/onyak-logo.png')} style={styles.logoImage} resizeMode="contain" />
+              <AppText style={styles.subtitle}>약물 상호작용 확인 서비스</AppText>
+            </View>
+            <View style={styles.illustration}>
+              <View style={styles.phone}>
+                <Ionicons name="lock-closed" size={28} color="#4B5060" />
+                {status === 'success' && <View style={[styles.resultBadge, styles.successBadge]}><AppText style={styles.resultBadgeText}>✓</AppText></View>}
+                {status === 'error' && <View style={[styles.resultBadge, styles.errorBadge]}><AppText style={styles.resultBadgeText}>×</AppText></View>}
+              </View>
+            </View>
+            <AppText style={[styles.title, desktopWeb && styles.desktopTitle]}>
+              {status === 'success' ? `${userName}님의 가족이\n되신 걸 축하합니다!` : '보호자 계정에서 연동 코드를 확인해주세요.'}
+            </AppText>
+          </View>
 
-        <View style={styles.illustration}>
-          <View style={styles.phone}>
-            <Ionicons name="lock-closed" size={28} color="#4B5060" />
-
-            {status === 'success' && (
-              <View style={[styles.resultBadge, styles.successBadge]}>
-                <AppText style={styles.resultBadgeText}>✓</AppText>
+          <View style={[styles.formColumn, desktopWeb && styles.desktopFormColumn]}>
+            {status !== 'success' && (
+              <View style={styles.codeSection}>
+                <AppText style={styles.label}>연동 코드 입력</AppText>
+                <Pressable style={styles.codeBoxes} onPress={() => inputRef.current?.focus()} accessibilityRole="button" accessibilityLabel="연동 코드 입력">
+                  {Array.from({ length: CODE_LENGTH }, (_, index) => <View key={index} style={[styles.codeBox, index === code.length && styles.codeBoxFocused]}><AppText style={styles.codeDigit}>{code[index] ?? ''}</AppText></View>)}
+                  <TextInput ref={instance => { inputRef.current = instance; }} value={code} onChangeText={handleCodeChange} keyboardType="number-pad" maxLength={CODE_LENGTH} caretHidden style={styles.hiddenInput} accessibilityLabel="6자리 연동 코드" />
+                </Pressable>
+                {status === 'error' && <AppText style={styles.message}>{errorMessage}</AppText>}
               </View>
             )}
-
-            {status === 'error' && (
-              <View style={[styles.resultBadge, styles.errorBadge]}>
-                <AppText style={styles.resultBadgeText}>×</AppText>
-              </View>
-            )}
+            <View style={[styles.bottomArea, desktopWeb && styles.desktopBottomArea]}>
+              <Pressable style={[styles.loginButton, isButtonEnabled ? styles.loginButtonEnabled : styles.loginButtonDisabled]} onPress={status === 'success' ? onComplete : handleLogin} disabled={!isButtonEnabled || isLoading} accessibilityRole="button">
+                {isLoading ? <ActivityIndicator color="#FFFFFF" /> : <AppText style={styles.loginButtonText}>연동 로그인</AppText>}
+              </Pressable>
+            </View>
           </View>
-        </View>
-
-        <AppText style={styles.title}>
-          {status === 'success'
-            ? `${userName}님의 가족이\n되신 걸 축하합니다!`
-            : '보호자 계정에서 연동 코드를 확인해주세요.'}
-        </AppText>
-
-        {status !== 'success' && (
-          <View style={styles.codeSection}>
-            <AppText style={styles.label}>연동 코드 입력</AppText>
-
-            <Pressable
-              style={styles.codeBoxes}
-              onPress={() => inputRef.current?.focus()}
-              accessibilityRole="button"
-              accessibilityLabel="연동 코드 입력"
-            >
-              {Array.from({ length: CODE_LENGTH }, (_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.codeBox,
-                    index === code.length && styles.codeBoxFocused,
-                  ]}
-                >
-                  <AppText style={styles.codeDigit}>
-                    {code[index] ?? ''}
-                  </AppText>
-                </View>
-              ))}
-
-              <TextInput
-                ref={instance => {
-                  inputRef.current = instance;
-                }}
-                value={code}
-                onChangeText={handleCodeChange}
-                keyboardType="number-pad"
-                maxLength={CODE_LENGTH}
-                caretHidden
-                style={styles.hiddenInput}
-                accessibilityLabel="6자리 연동 코드"
-              />
-            </Pressable>
-
-            {status === 'error' && (
-              <AppText style={styles.message}>{errorMessage}</AppText>
-            )}
-          </View>
-        )}
-
-        <View style={styles.bottomArea}>
-          <Pressable
-            style={[
-              styles.loginButton,
-              isButtonEnabled
-                ? styles.loginButtonEnabled
-                : styles.loginButtonDisabled,
-            ]}
-            onPress={status === 'success' ? onComplete : handleLogin}
-            disabled={!isButtonEnabled || isLoading}
-            accessibilityRole="button"
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <AppText style={styles.loginButtonText}>
-                연동 로그인
-              </AppText>
-            )}
-          </Pressable>
         </View>
       </View>
     </SafeAreaView>
@@ -219,10 +157,15 @@ const baseStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+  desktopSafe: { backgroundColor: '#F3F5F8', justifyContent: 'center', padding: 32 },
   container: {
     flex: 1,
-    paddingHorizontal: 17,
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
+    paddingHorizontal: 24,
   },
+  desktopContainer: { maxWidth: 1080, minHeight: 620, maxHeight: 760, paddingHorizontal: 56, paddingVertical: 28, borderRadius: 28, backgroundColor: '#FFFFFF', shadowColor: '#101828', shadowOpacity: 0.12, shadowRadius: 32, shadowOffset: { width: 0, height: 16 }, elevation: 5 },
   backButton: {
     width: 42,
     height: 42,
@@ -233,6 +176,14 @@ const baseStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  desktopBackButton: { marginTop: 0, borderWidth: 0, width: 44, alignSelf: 'flex-start' },
+  mainContent: { flex: 1 },
+  desktopMainContent: { flexDirection: 'row', alignItems: 'center', gap: 76, paddingHorizontal: 28, paddingBottom: 16 },
+  introColumn: {},
+  desktopIntroColumn: { flex: 1, justifyContent: 'center', alignItems: 'flex-start' },
+  formColumn: { flex: 1 },
+  desktopFormColumn: { flex: 1, maxWidth: 420, justifyContent: 'center' },
+  desktopBottomArea: { marginTop: 24, marginBottom: 0 },
   backButtonText: {
     marginTop: -4,
     color: '#333333',
@@ -252,6 +203,7 @@ const baseStyles = StyleSheet.create({
     color: '#8893A0',
     fontSize: 15,
   },
+  desktopTitle: { textAlign: 'left', fontSize: 28, lineHeight: 38, marginTop: 20, maxWidth: 420 },
   illustration: {
     height: 118,
     marginTop: 18,
@@ -302,7 +254,9 @@ const baseStyles = StyleSheet.create({
   },
   codeSection: {
     marginTop: 18,
-    marginHorizontal: 10,
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
   },
   label: {
     marginBottom: 10,
@@ -313,10 +267,10 @@ const baseStyles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 7,
+    gap: 10,
   },
   codeBox: {
-    height: 58,
+    height: 64,
     flex: 1,
     borderWidth: 1.5,
     borderColor: '#DDE1E6',
@@ -364,4 +318,12 @@ const baseStyles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
   },
+});
+
+const compactStyles = StyleSheet.create({
+  container: { paddingHorizontal: 18 },
+  codeSection: { marginTop: 14 },
+  codeBoxes: { gap: 7 },
+  codeBox: { height: 58, borderRadius: 12 },
+  illustration: { height: 100, marginTop: 12 },
 });

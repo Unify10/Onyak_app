@@ -4,13 +4,13 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PersonalInfoFields from '../../../components/PersonalInfo/PersonalInfoFields';
-import { validatePersonalInfo, type PersonalInfo } from '../../../utils/personalInfo';
+import { validateFamilyInfo, type PersonalInfo } from '../../../utils/personalInfo';
 
 export default function FamilyDetailsScreen({ value, onChange, onBack, onNext }: { value: PersonalInfo; onChange: (value: PersonalInfo) => void; onBack: () => void; onNext: () => void }) {
   const styles = useResponsiveStyles(baseStyles);
   const [error, setError] = useState('');
   function submit() {
-    const message = validatePersonalInfo(value, true);
+    const message = validateFamilyInfo(value);
     setError(message);
     if (!message) onNext();
   }
@@ -19,7 +19,7 @@ export default function FamilyDetailsScreen({ value, onChange, onBack, onNext }:
       <View style={styles.header}><Pressable onPress={onBack} style={styles.back} accessibilityRole="button" accessibilityLabel="가족 화면으로 돌아가기"><Ionicons name="arrow-back" size={22} /></Pressable><Text style={styles.title}>피보호자 계정 생성</Text><View style={styles.headerSpacer} /></View>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
         <Text style={styles.section}>신체 정보</Text>
-        <PersonalInfoFields value={value} onChange={next => { onChange(next); setError(''); }} showBirthDate familyLayout />
+        <PersonalInfoFields value={value} onChange={next => { onChange(next); setError(''); }} showAge familyLayout />
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
       </ScrollView>
       <View style={styles.footer}><Pressable onPress={submit} accessibilityRole="button" style={styles.next}><Text style={styles.nextText}>다음</Text></Pressable></View>

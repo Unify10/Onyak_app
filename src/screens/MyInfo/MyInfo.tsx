@@ -17,8 +17,14 @@ export default function MyInfo({ displayName, email, onSignOut }: Props) {
       <ProfileInfoTable profile={profile} />
       <View style={styles.menu}>
         <ProfileMenuRow label="가족 계정 관리" icon="people" onPress={() => router.push('/family')} />
-        <ProfileMenuRow label="내 정보 수정" icon="person" onPress={() => router.push('/edit-profile')} />
-        <ProfileMenuRow label="비밀번호 변경" icon="lock-closed" onPress={() => router.push('/change-password')} last />
+        <ProfileMenuRow label="개인정보 변경" icon="person" onPress={() => router.push('/edit-profile')} last />
+      </View>
+      <View style={styles.menu}>
+        <ProfileMenuRow label="푸시 알림 설정" icon="notifications-outline" onPress={() => router.push('/notification-settings')} />
+        <ProfileMenuRow label="공지사항" icon="megaphone-outline" onPress={() => router.push('/information/announcements')} />
+        <ProfileMenuRow label="이용약관" icon="document-text-outline" onPress={() => router.push('/information/terms')} />
+        <ProfileMenuRow label="개인정보 처리방침" icon="shield-checkmark-outline" onPress={() => router.push('/information/privacy')} />
+        <ProfileMenuRow label="앱 버전 정보" icon="information-circle-outline" onPress={() => router.push('/information/version')} last />
       </View>
       <View style={styles.menu}>
         <ProfileMenuRow label="로그아웃" destructive logout onPress={confirmSignOut} />

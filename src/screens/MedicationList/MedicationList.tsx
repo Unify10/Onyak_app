@@ -2,14 +2,13 @@ import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { medicines } from '../../components/Search/medicineData';
 import { useMedications } from '../../providers/MedicationProvider';
-import { getMedicationScheduleLabel } from '../../utils/medicationSchedule';
+import { getMedicationPeriodLabel, getMedicationScheduleLabel } from '../../utils/medicationSchedule';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import MedicationListHeader from '../../components/MedicationList/MedicationListHeader/MedicationListHeader';
 import MedicationSummary from '../../components/MedicationList/MedicationSummary/MedicationSummary';
 import MedicationTabs, { MedicationTab } from '../../components/MedicationList/MedicationTabs/MedicationTabs';
 import MedicationItem, { Medication } from '../../components/MedicationList/MedicationListContent/MedicationItem';
-import MedicationNotice from '../../components/MedicationList/MedicationNotice/MedicationNotice';
 
 const pastMedications: Medication[] = [
   { id: '4', name: '비타민D 2000IU', schedule: '지난 복용 기록', startDate: '2026.10.12 종료' },
@@ -19,19 +18,23 @@ const pastMedications: Medication[] = [
 export default function MedicationList() {
   const styles = useResponsiveStyles(baseStyles);
   const { medicineIds, schedules } = useMedications();
-  const currentMedications: Medication[] = medicines.filter(item => medicineIds.includes(item.id)).map(item => ({ id: item.id, name: item.name, schedule: getMedicationScheduleLabel(schedules, item.id), startDate: '복용 목록에 등록됨' }));
+  const currentMedications: Medication[] = medicines.filter(item => medicineIds.includes(item.id)).map(item => ({
+    id: item.id,
+    name: item.name,
+    schedule: getMedicationScheduleLabel(schedules, item.id),
+    startDate: getMedicationPeriodLabel(schedules, item.id),
+  }));
   const [selectedTab, setSelectedTab] = useState<MedicationTab>('current');
   const medications = selectedTab === 'current' ? currentMedications : pastMedications;
 
   return (
     <View style={styles.container}>
       <MedicationListHeader />
-      <MedicationSummary currentCount={currentMedications.length} />
+      <MedicationSummary currentCount={currentMedications.length} cautionCount={currentMedications.filter(medication => medication.caution).length} recordCount={pastMedications.length} />
       <MedicationTabs selectedTab={selectedTab} onSelectTab={setSelectedTab} />
       <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
         {medications.length === 0 && <Text style={{ textAlign: 'center', color: '#7B8494', paddingVertical: 40 }}>등록한 약이 없습니다. 검색에서 약을 추가해주세요.</Text>}
         {medications.map((medication) => <MedicationItem key={medication.id} medication={medication} />)}
-        {selectedTab === 'current' && <MedicationNotice />}
       </ScrollView>
     </View>
   );

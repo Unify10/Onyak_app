@@ -5,6 +5,7 @@ import MedicineList from '../../components/Home/TodayMedicineList/TodayMedicineL
 import ActiveMedicineList from '../../components/Home/ActiveMedicineList/ActiveMedicineList';
 import HomeFamilyAccountList from '../../components/Home/HomeFamilyAccount/HomeFamilyAccountList';
 import PageTitle from '../../components/Home/PageTitle/PageTitle';
+import Text from '../../components/Typography/Text';
 
 export default function Home() {
   const styles = useResponsiveStyles(baseStyles);
@@ -20,6 +21,7 @@ export default function Home() {
       <MedicineList/>
       <ActiveMedicineList/>
       <HomeFamilyAccountList/>
+      <Text style={styles.footer}>좋은 하루 보내세요</Text>
     </ScrollView>
   );
 }
@@ -33,4 +35,5 @@ const baseStyles = StyleSheet.create({
     paddingBottom: 40,
     gap: 20,
   },
+  footer: { alignSelf: 'flex-end', color: '#7B8494', fontSize: 14, marginTop: 4 },
 });

@@ -6,9 +6,13 @@ import NotificationCard from '../../components/Notifications/NotificationCard';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { typography } from '../../theme/tokens';
 import { notificationExamples } from './notificationExamples';
+import { useEffect } from 'react';
+import { useNotifications } from '../../providers/NotificationProvider';
 
 export default function NotificationsScreen() {
   const styles = useResponsiveStyles(baseStyles);
+  const { markAllRead } = useNotifications();
+  useEffect(() => { markAllRead(); }, [markAllRead]);
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -16,7 +20,6 @@ export default function NotificationsScreen() {
         <Text style={styles.title}>알림 내역</Text>
       </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.demoNote}>디자인 확인용 예시 알림입니다.</Text>
         {notificationExamples.map(group => (
           <View key={group.label} style={styles.group}>
             <Text style={styles.groupTitle}>{group.label}</Text>
@@ -33,6 +36,5 @@ const baseStyles = StyleSheet.create({
   backButton: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   title: { ...typography.pageTitle },
   content: { paddingHorizontal: 20, paddingBottom: 28, gap: 24 },
-  demoNote: { color: '#8B929D', fontSize: 12, lineHeight: 18 },
   group: { gap: 10 }, groupTitle: { color: '#6B7280', fontSize: 16, lineHeight: 24 }, list: { gap: 14 },
 });

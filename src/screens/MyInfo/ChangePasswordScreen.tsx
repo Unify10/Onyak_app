@@ -5,9 +5,11 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../providers/AuthProvider';
 
 export default function ChangePasswordScreen() {
   const styles = useResponsiveStyles(baseStyles);
+  const { updatePassword } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
@@ -16,8 +18,9 @@ export default function ChangePasswordScreen() {
   const canSubmit = !!currentPassword && valid && confirmation === password && password !== currentPassword;
   function submit() {
     if (!canSubmit) return;
+    updatePassword(password);
     setCurrentPassword(''); setPassword(''); setConfirmation('');
-    setMessage('입력 형식을 확인했습니다. 실제 비밀번호 변경은 계정 연결 후 사용할 수 있습니다.');
+    setMessage('비밀번호가 변경되었습니다.');
   }
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
