@@ -29,7 +29,7 @@ export default function FamilyDetailsScreen({ value, onChange, onBack, onNext }:
 const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { minHeight: 72, paddingHorizontal: 20, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  back: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center' },
+  back: { width: 38, height: 38, borderRadius: '50%', borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center' },
   headerSpacer: { width: 44 },
   title: { fontSize: 18, color: '#111111' },
   content: { padding: 20, paddingBottom: 30, width: '100%', maxWidth: 640, alignSelf: 'center' },

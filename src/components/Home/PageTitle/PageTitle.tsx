@@ -34,7 +34,7 @@ const baseStyles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   titleText: { flex: 1 },
   name: { ...typography.pageTitle },
-  notificationButton: { width: 48, height: 48, flexShrink: 0, borderRadius: 24, borderWidth: 1.5, borderColor: '#D5D9E0', alignItems: 'center', justifyContent: 'center' },
+  notificationButton: { width: 48, height: 48, flexShrink: 0, borderRadius: '50%', borderWidth: 1.5, borderColor: '#D5D9E0', alignItems: 'center', justifyContent: 'center' },
   notificationIcon: { width: 24, height: 24 },
   notificationDot: { position: 'absolute', top: 1, right: 1, width: 11, height: 11, borderRadius: 6, backgroundColor: '#D92D20', borderWidth: 1.5, borderColor: '#FFFFFF' },
 });

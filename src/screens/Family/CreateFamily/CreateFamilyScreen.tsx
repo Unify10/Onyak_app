@@ -79,7 +79,7 @@ export default function CreateFamilyScreen({ onBack, onComplete }: { onBack: () 
 const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { minHeight: 72, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },
-  back: { width: 38, height: 38, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  back: { width: 38, height: 38, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: '50%', alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 18, lineHeight: 26, fontWeight: '500', color: '#111111' },
   headerSpacer: { width: 38 },
   content: { flexGrow: 1, width: '100%', maxWidth: 640, alignSelf: 'center' },
