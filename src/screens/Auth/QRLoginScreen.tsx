@@ -1,7 +1,8 @@
 import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, View, Image } from 'react-native';
+import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, View, Image, Platform, useWindowDimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import {
   CameraView,
   useCameraPermissions,
@@ -22,6 +23,8 @@ export default function QRLoginScreen({
   onSubmitQr,
 }: Props) {
   const styles = useResponsiveStyles(baseStyles);
+  const { width } = useWindowDimensions();
+  const desktopWeb = Platform.OS === 'web' && width >= 900;
   const [permission, requestPermission] = useCameraPermissions();
   const [isScanning, setIsScanning] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,6 +69,9 @@ export default function QRLoginScreen({
 
   // 카메라 권한 정보를 불러오는 중입니다.
   if (!permission) {
+    if (desktopWeb) {
+      // Keep the full desktop layout visible while browser permission state loads.
+    } else {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.centerContent}>
@@ -73,6 +79,7 @@ export default function QRLoginScreen({
         </View>
       </SafeAreaView>
     );
+    }
   }
 
   // 로그인 완료 화면
@@ -114,7 +121,7 @@ export default function QRLoginScreen({
   }
 
   // 카메라 권한이 없으면 권한을 요청합니다.
-  if (!permission.granted) {
+  if (!permission?.granted && !desktopWeb) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.permissionScreen}>
@@ -138,7 +145,31 @@ export default function QRLoginScreen({
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, desktopWeb && styles.desktopSafe]}>
+      {desktopWeb ? (
+        <View style={styles.desktopScreen}>
+          <Pressable style={styles.desktopBackButton} onPress={onPressBack} accessibilityRole="button" accessibilityLabel="로그인 화면으로 돌아가기"><Text style={styles.backButtonText}>‹</Text></Pressable>
+          <View style={styles.desktopBrandHeader}>
+            <Image source={require('../../../assets/onyak-logo.png')} style={styles.logoImage} resizeMode="contain" />
+            <Text style={[styles.subtitle, styles.desktopBrandSubtitle]}>약물 상호작용 확인 서비스</Text>
+          </View>
+          <View style={styles.desktopMain}>
+            <View style={styles.desktopIntro}>
+              <View style={styles.desktopPhone}><Ionicons name="lock-closed" size={30} color="#4B5060" /></View>
+              <Text style={styles.desktopInstruction}>보호자 계정에서 QR 코드를 확인해주세요.</Text>
+            </View>
+            <View style={styles.desktopRight}>
+              <View style={styles.desktopQrHeader}><Text style={styles.panelTitle}>QR 코드 스캔</Text><Text style={styles.desktopQrDescription}>보호자 계정에 표시된 QR 코드를 스캔해주세요.</Text></View>
+              <View style={styles.desktopCameraFrame}>
+                {permission?.granted ? <CameraView style={StyleSheet.absoluteFill} facing="back" barcodeScannerSettings={{ barcodeTypes: ['qr'] }} onBarcodeScanned={isScanning ? handleBarcodeScanned : undefined} /> : permission ? <View style={styles.cameraPermissionPrompt}><Text style={styles.cameraPermissionText}>QR 코드를 스캔하려면 카메라 권한이 필요합니다.</Text><Pressable style={styles.permissionButton} onPress={requestPermission}><Text style={styles.permissionButtonText}>카메라 권한 허용</Text></Pressable></View> : <ActivityIndicator color="#6686A5" />}
+                {permission?.granted && <View pointerEvents="none" style={styles.cornerOverlay}><View style={[styles.corner, styles.topLeft]} /><View style={[styles.corner, styles.topRight]} /><View style={[styles.corner, styles.bottomLeft]} /><View style={[styles.corner, styles.bottomRight]} /></View>}
+              </View>
+              {isLoading && <View style={styles.loadingMessage}><ActivityIndicator color="#6686A5" /><Text style={styles.loadingText}>QR 코드를 확인하고 있어요.</Text></View>}
+              {scanError !== '' && <Text style={styles.errorText}>{scanError}</Text>}
+            </View>
+          </View>
+        </View>
+      ) : (
       <View style={styles.scanScreen}>
         <Pressable style={styles.backButton} onPress={onPressBack}>
           <Text style={styles.backButtonText}>‹</Text>
@@ -185,6 +216,7 @@ export default function QRLoginScreen({
 
         {scanError !== '' && <Text style={styles.errorText}>{scanError}</Text>}
       </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -197,6 +229,20 @@ const baseStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+  desktopSafe: { backgroundColor: '#FFFFFF' },
+  desktopScreen: { flex: 1, width: '100%', alignSelf: 'center', paddingHorizontal: 48, paddingVertical: 24 },
+  desktopBackButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  desktopBrandHeader: { width: '100%', alignSelf: 'center', alignItems: 'center', marginTop: 8, marginBottom: 16 },
+  desktopMain: { flex: 1, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 64, paddingHorizontal: 40, paddingBottom: 16 },
+  desktopIntro: { flex: 0.45, maxWidth: 340, alignSelf: 'center', alignItems: 'center', justifyContent: 'center' },
+  desktopPhone: { width: 58, height: 82, borderWidth: 3, borderColor: '#4B5060', borderRadius: 12, backgroundColor: '#B8E8F4', alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '8deg' }], marginTop: 36 },
+  desktopInstruction: { alignSelf: 'center', width: '100%', maxWidth: 340, color: '#444444', fontSize: 28, fontWeight: '700', lineHeight: 38, textAlign: 'center', marginTop: 20 },
+  desktopRight: { flex: 1.55, maxWidth: 760, minWidth: 360, justifyContent: 'center' },
+  panelTitle: { color: '#111111', fontSize: 20, fontWeight: '600', marginBottom: 8 },
+  desktopQrHeader: { width: '100%', maxWidth: 480, alignSelf: 'center', marginBottom: 16 }, desktopQrDescription: { color: '#7B8494', fontSize: 14 },
+  desktopCameraFrame: { position: 'relative', width: '100%', maxWidth: 480, aspectRatio: 1, maxHeight: 480, alignSelf: 'center', borderRadius: 16, overflow: 'hidden', backgroundColor: '#F4F6F8', alignItems: 'center', justifyContent: 'center' },
+  cameraPermissionPrompt: { alignItems: 'center', justifyContent: 'center', padding: 20 }, cameraPermissionText: { color: '#667085', fontSize: 14, textAlign: 'center', lineHeight: 21 },
+  desktopError: { color: '#E5484D', fontSize: 13, marginTop: 8 },
   scanScreen: {
     flex: 1,
     paddingHorizontal: 24,
@@ -241,6 +287,7 @@ const baseStyles = StyleSheet.create({
     color: '#727C8B',
     fontSize: 17,
   },
+  desktopBrandSubtitle: { marginTop: 14 },
   scanTitle: {
     marginTop: 118,
     marginLeft: 20,

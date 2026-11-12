@@ -29,7 +29,7 @@ export default function TodayMedicineList() {
       </View>
       <View style={styles.columns}>
         <View style={styles.pane}>
-          <View style={styles.paneHeader}><Text style={styles.paneTitle}>복용 예정</Text><Text style={styles.paneCount}>{upcoming.length + overdue.length}</Text></View>
+          <View style={styles.paneHeader}><Text style={styles.paneTitle}>오늘 복용할 약</Text><Text style={styles.paneCount}>{upcoming.length + overdue.length}</Text></View>
           <ScrollView style={styles.paneList} contentContainerStyle={styles.paneContent} nestedScrollEnabled directionalLockEnabled showsVerticalScrollIndicator>
             {overdue.map(dose => <TodayMedicineItem key={dose.doseId} title={dose.title} timeOfDay={dose.timeOfDay} time={dose.time} completed={dose.completed} onToggle={() => toggleDose(dose.doseId)} />)}
             {upcoming.length > 0 && overdue.length > 0 && <Text style={styles.groupTitle}>다음 복용</Text>}
@@ -38,7 +38,7 @@ export default function TodayMedicineList() {
           </ScrollView>
         </View>
         <View style={styles.pane}>
-          <View style={styles.paneHeader}><Text style={styles.paneTitle}>복용 완료</Text><Text style={styles.paneCount}>{completed.length}</Text></View>
+          <View style={styles.paneHeader}><Text style={styles.paneTitle}>오늘 복용한 약</Text><Text style={styles.paneCount}>{completed.length}</Text></View>
           <ScrollView style={styles.paneList} contentContainerStyle={styles.paneContent} nestedScrollEnabled directionalLockEnabled showsVerticalScrollIndicator>
             {completed.map(dose => <TodayMedicineItem key={dose.doseId} title={dose.title} timeOfDay={dose.timeOfDay} time={dose.time} completed={dose.completed} onToggle={() => toggleDose(dose.doseId)} />)}
             {!completed.length && <Text style={styles.emptyText}>아직 복용한 약이 없습니다.</Text>}

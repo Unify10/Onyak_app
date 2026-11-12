@@ -31,7 +31,7 @@ export default function LinkedCodeLoginScreen({
 }: Props) {
   const styles = useResponsiveStyles(baseStyles, compactStyles);
   const { width } = useWindowDimensions();
-  const desktopWeb = Platform.OS === 'web' && width > 760;
+  const desktopWeb = Platform.OS === 'web' && width >= 900;
   // TextInput ref에서 focus()만 사용합니다.
   const inputRef = useRef<{ focus: () => void } | null>(null);
 
@@ -110,13 +110,22 @@ export default function LinkedCodeLoginScreen({
           <AppText style={styles.backButtonText}>‹</AppText>
         </Pressable>
 
+        {desktopWeb && (
+          <View style={styles.desktopBrandHeader}>
+            <Image source={require('../../../assets/onyak-logo.png')} style={styles.logoImage} resizeMode="contain" />
+            <AppText style={styles.subtitle}>약물 상호작용 확인 서비스</AppText>
+          </View>
+        )}
+
         <View style={[styles.mainContent, desktopWeb && styles.desktopMainContent]}>
           <View style={[styles.introColumn, desktopWeb && styles.desktopIntroColumn]}>
-            <View style={styles.brand}>
-              <Image source={require('../../../assets/onyak-logo.png')} style={styles.logoImage} resizeMode="contain" />
-              <AppText style={styles.subtitle}>약물 상호작용 확인 서비스</AppText>
-            </View>
-            <View style={styles.illustration}>
+            {!desktopWeb && (
+              <View style={styles.brand}>
+                <Image source={require('../../../assets/onyak-logo.png')} style={styles.logoImage} resizeMode="contain" />
+                <AppText style={styles.subtitle}>약물 상호작용 확인 서비스</AppText>
+              </View>
+            )}
+            <View style={[styles.illustration, desktopWeb && styles.desktopIllustration]}>
               <View style={styles.phone}>
                 <Ionicons name="lock-closed" size={28} color="#4B5060" />
                 {status === 'success' && <View style={[styles.resultBadge, styles.successBadge]}><AppText style={styles.resultBadgeText}>✓</AppText></View>}
@@ -157,7 +166,7 @@ const baseStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  desktopSafe: { backgroundColor: '#F3F5F8', justifyContent: 'center', padding: 32 },
+  desktopSafe: { backgroundColor: '#FFFFFF', justifyContent: 'flex-start', padding: 0 },
   container: {
     flex: 1,
     width: '100%',
@@ -165,7 +174,7 @@ const baseStyles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: 24,
   },
-  desktopContainer: { maxWidth: 1080, minHeight: 620, maxHeight: 760, paddingHorizontal: 56, paddingVertical: 28, borderRadius: 28, backgroundColor: '#FFFFFF', shadowColor: '#101828', shadowOpacity: 0.12, shadowRadius: 32, shadowOffset: { width: 0, height: 16 }, elevation: 5 },
+  desktopContainer: { maxWidth: '100%', minHeight: undefined, maxHeight: undefined, alignSelf: 'stretch', paddingHorizontal: 48, paddingVertical: 24, borderRadius: 0, backgroundColor: '#FFFFFF', shadowOpacity: 0, elevation: 0 },
   backButton: {
     width: 42,
     height: 42,
@@ -178,12 +187,13 @@ const baseStyles = StyleSheet.create({
   },
   desktopBackButton: { marginTop: 0, borderWidth: 0, width: 44, alignSelf: 'flex-start' },
   mainContent: { flex: 1 },
-  desktopMainContent: { flexDirection: 'row', alignItems: 'center', gap: 76, paddingHorizontal: 28, paddingBottom: 16 },
+  desktopMainContent: { width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 64, paddingHorizontal: 40, paddingBottom: 16 },
   introColumn: {},
-  desktopIntroColumn: { flex: 1, justifyContent: 'center', alignItems: 'flex-start' },
+  desktopIntroColumn: { flex: 0.45, maxWidth: 340, justifyContent: 'center', alignItems: 'center', alignSelf: 'center' },
+  desktopBrandHeader: { width: '100%', alignSelf: 'center', alignItems: 'center', marginTop: 8, marginBottom: 16 },
   formColumn: { flex: 1 },
-  desktopFormColumn: { flex: 1, maxWidth: 420, justifyContent: 'center' },
-  desktopBottomArea: { marginTop: 24, marginBottom: 0 },
+  desktopFormColumn: { flex: 1.55, maxWidth: 760, justifyContent: 'center' },
+  desktopBottomArea: { marginTop: 36, marginBottom: 0, width: '100%', maxWidth: 520, alignSelf: 'center' },
   backButtonText: {
     marginTop: -4,
     color: '#333333',
@@ -203,13 +213,14 @@ const baseStyles = StyleSheet.create({
     color: '#8893A0',
     fontSize: 15,
   },
-  desktopTitle: { textAlign: 'left', fontSize: 28, lineHeight: 38, marginTop: 20, maxWidth: 420 },
+  desktopTitle: { alignSelf: 'center', width: '100%', textAlign: 'center', fontSize: 28, lineHeight: 38, marginTop: 20, maxWidth: 340 },
   illustration: {
     height: 118,
     marginTop: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  desktopIllustration: { width: '100%', alignItems: 'center', alignSelf: 'center' },
   phone: {
     width: 58,
     height: 82,
@@ -255,7 +266,7 @@ const baseStyles = StyleSheet.create({
   codeSection: {
     marginTop: 18,
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 520,
     alignSelf: 'center',
   },
   label: {
@@ -268,9 +279,10 @@ const baseStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 10,
+    alignSelf: 'center',
   },
   codeBox: {
-    height: 64,
+    height: 88,
     flex: 1,
     borderWidth: 1.5,
     borderColor: '#DDE1E6',
