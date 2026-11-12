@@ -258,7 +258,7 @@ const baseStyles = StyleSheet.create({
     marginTop: 8,
     borderWidth: 1,
     borderColor: '#D9DDE2',
-    borderRadius: 20,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },

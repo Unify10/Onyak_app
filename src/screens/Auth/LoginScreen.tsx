@@ -156,7 +156,7 @@ export default function LoginScreen({
               accessibilityRole="checkbox"
               accessibilityState={{ checked: keepLogin }}
             >
-              <View style={[styles.checkbox, keepLogin && styles.checkboxOn]}>
+              <View style={[styles.keepLoginIndicator, keepLogin && styles.checkboxOn]}>
                 {keepLogin && (
                   <Ionicons name="checkmark" size={12} color="#FFFFFF" />
                 )}
@@ -321,7 +321,7 @@ const baseStyles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  checkbox: {
+  keepLoginIndicator: {
     width: 16,
     height: 16,
     borderWidth: 1,
