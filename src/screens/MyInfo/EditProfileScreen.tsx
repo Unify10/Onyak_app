@@ -1,3 +1,4 @@
+import RoundBackButton from '../../components/Navigation/RoundBackButton';
 import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useState } from 'react';
@@ -60,7 +61,13 @@ export default function EditProfileScreen() {
   }
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.header}><Pressable onPress={() => router.replace('/my-info')} accessibilityRole="button" style={styles.headerButton}><Text>뒤로가기</Text></Pressable><Text style={styles.headerTitle}>내 정보 변경</Text><View style={styles.headerSpacer} /></View>
+      <View style={styles.header}>
+        <View style={styles.headerSpacer}>
+          <RoundBackButton onPress={() => router.replace('/my-info')} accessibilityLabel="내 정보로 돌아가기" />
+        </View>
+        <Text style={styles.headerTitle}>내 정보 변경</Text>
+        <View style={styles.headerSpacer} />
+      </View>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {activeTab === 'personal' ? <>
           <Text style={styles.sectionTitle}>계정 정보</Text>
@@ -86,7 +93,6 @@ export default function EditProfileScreen() {
 const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { minHeight: 64, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerButton: { width: 72, minHeight: 44, justifyContent: 'center' },
   headerTitle: { fontSize: 18, color: '#111111' },
   headerSpacer: { width: 72 },
   saveButton: { minHeight: 52, marginTop: 24, padding: 14, borderRadius: 12, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center' },

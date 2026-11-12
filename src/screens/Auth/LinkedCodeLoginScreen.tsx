@@ -1,3 +1,4 @@
+import RoundBackButton from '../../components/Navigation/RoundBackButton';
 import TextInput from '../../components/Typography/TextInput';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useRef, useState } from 'react';
@@ -98,17 +99,14 @@ export default function LinkedCodeLoginScreen({
           accessible={false}
         />
 
-        <Pressable
-          style={[styles.backButton, desktopWeb && styles.desktopBackButton]}
+        <RoundBackButton
+          style={[styles.backPosition, desktopWeb && styles.desktopBackPosition]}
           onPress={() => {
             Keyboard.dismiss();
             onPressBack?.();
           }}
-          accessibilityRole="button"
           accessibilityLabel="로그인 화면으로 돌아가기"
-        >
-          <AppText style={styles.backButtonText}>‹</AppText>
-        </Pressable>
+        />
 
         {desktopWeb && (
           <View style={styles.desktopBrandHeader}>
@@ -175,17 +173,8 @@ const baseStyles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   desktopContainer: { maxWidth: '100%', minHeight: undefined, maxHeight: undefined, alignSelf: 'stretch', paddingHorizontal: 48, paddingVertical: 24, borderRadius: 0, backgroundColor: '#FFFFFF', shadowOpacity: 0, elevation: 0 },
-  backButton: {
-    width: 42,
-    height: 42,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  desktopBackButton: { marginTop: 0, borderWidth: 0, width: 44, alignSelf: 'flex-start' },
+  backPosition: { marginTop: 8 },
+  desktopBackPosition: { marginTop: 0, alignSelf: 'flex-start' },
   mainContent: { flex: 1 },
   desktopMainContent: { width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 64, paddingHorizontal: 40, paddingBottom: 16 },
   introColumn: {},
@@ -194,12 +183,6 @@ const baseStyles = StyleSheet.create({
   formColumn: { flex: 1 },
   desktopFormColumn: { flex: 1.55, maxWidth: 760, justifyContent: 'center' },
   desktopBottomArea: { marginTop: 36, marginBottom: 0, width: '100%', maxWidth: 520, alignSelf: 'center' },
-  backButtonText: {
-    marginTop: -4,
-    color: '#333333',
-    fontSize: 30,
-    lineHeight: 34,
-  },
   brand: {
     alignItems: 'center',
     marginTop: 14,
@@ -210,6 +193,7 @@ const baseStyles = StyleSheet.create({
   },
   subtitle: {
     marginTop: 14,
+    textAlign: 'center',
     color: '#8893A0',
     fontSize: 15,
   },

@@ -1,15 +1,14 @@
+import RoundBackButton from '../../components/Navigation/RoundBackButton';
 import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import MedicineInfoAccordion from '../../components/MedicineDetail/MedicineInfoAccordion';
 import MedicationScheduleForm from '../../components/MedicineDetail/MedicationScheduleForm';
 import type { Medicine } from '../../components/Search/types';
 import { useMedications } from '../../providers/MedicationProvider';
 import type { DoseTimeOfDay } from '../../utils/medicationSchedule';
-import { typography } from '../../theme/tokens';
 
 export default function MedicineDetailScreen({ medicine }: { medicine: Medicine }) {
   const styles = useResponsiveStyles(baseStyles);
@@ -31,10 +30,10 @@ export default function MedicineDetailScreen({ medicine }: { medicine: Medicine 
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.heading}>검색</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="검색으로 돌아가기" onPress={() => router.canGoBack() ? router.back() : router.replace('/search')} style={styles.back}>
-          <Ionicons name="chevron-back" size={20} color="#111111" /><Text style={styles.backText}>이전</Text>
-        </Pressable>
+        <RoundBackButton
+          accessibilityLabel="이전 화면으로 돌아가기"
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/search')}
+        />
       </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
@@ -69,10 +68,7 @@ export default function MedicineDetailScreen({ medicine }: { medicine: Medicine 
 
 const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { minHeight: 72, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  heading: { ...typography.pageTitle },
-  back: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 2 },
-  backText: { fontSize: 15, color: '#111111' },
+  header: { minHeight: 72, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', gap: 12 },
   content: { paddingHorizontal: 20, paddingBottom: 24, width: '100%', maxWidth: 640, alignSelf: 'center' },
   hero: { alignItems: 'center', paddingBottom: 80 },
   image: { width: 150, height: 150, backgroundColor: '#E5E7EB', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
