@@ -1,4 +1,18 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+
+const AUTH_STORAGE_KEY = 'onyak.auth-state';
+
+type PersistedAuthState = { isAuthenticated: boolean; displayName: string; email: string; contactNumber: string };
+
+function readPersistedAuthState(): Partial<PersistedAuthState> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const value = window.localStorage.getItem(AUTH_STORAGE_KEY);
+    return value ? JSON.parse(value) as Partial<PersistedAuthState> : {};
+  } catch {
+    return {};
+  }
+}
 
 type AuthContextValue = {
   isAuthenticated: boolean;
@@ -16,11 +30,22 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [displayName, setDisplayName] = useState('김민지');
-  const [email, setEmail] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
+  const [initialAuth] = useState(readPersistedAuthState);
+  const [isAuthenticated, setIsAuthenticated] = useState(initialAuth.isAuthenticated ?? false);
+  const [displayName, setDisplayName] = useState(initialAuth.displayName ?? '김민지');
+  const [email, setEmail] = useState(initialAuth.email ?? '');
+  const [contactNumber, setContactNumber] = useState(initialAuth.contactNumber ?? '');
   const [, setPassword] = useState('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const state: PersistedAuthState = { isAuthenticated, displayName, email, contactNumber };
+      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Keep the current session usable if browser storage is unavailable.
+    }
+  }, [contactNumber, displayName, email, isAuthenticated]);
 
   const value = useMemo<AuthContextValue>(() => ({
     isAuthenticated,

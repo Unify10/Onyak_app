@@ -3,11 +3,12 @@ import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../providers/AuthProvider';
 import { useProfile } from '../../providers/ProfileProvider';
 import PersonalInfoFields from '../../components/PersonalInfo/PersonalInfoFields';
-import { validatePersonalInfo } from '../../utils/personalInfo';
+import { calculateAge, validatePersonalInfo } from '../../utils/personalInfo';
 import TextInput from '../../components/Typography/TextInput';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -38,7 +39,7 @@ export default function EditProfileScreen() {
     const changingPassword = activeTab === 'personal' && !!(currentPassword || newPassword || passwordConfirmation);
     let message = activeTab === 'personal'
       ? validatePersonalInfo({ ...draft, age: '', height: '', weight: '' })
-      : validatePersonalInfo({ ...draft, name: draft.name || '사용자', birthDate: '' });
+      : validatePersonalInfo({ ...draft, name: draft.name || '사용자', age: calculateAge(draft.birthDate) }, true);
     if (activeTab === 'personal') {
       if (!message && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailDraft.trim())) message = '올바른 이메일 주소를 입력해주세요.';
       const phoneDigits = phone.replace(/\D/g, '');
@@ -50,7 +51,7 @@ export default function EditProfileScreen() {
     }
     setError(message);
     if (message) return;
-    saveProfile({ ...draft, name: draft.name.trim() });
+    saveProfile({ ...draft, name: draft.name.trim(), ...(activeTab === 'body' ? { age: calculateAge(draft.birthDate) } : {}) });
     if (activeTab === 'personal') {
       updateDisplayName(draft.name.trim());
       updateContactNumber(formatPhoneNumber(phone));
@@ -61,11 +62,12 @@ export default function EditProfileScreen() {
   }
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerSpacer}>
           <RoundBackButton onPress={() => router.replace('/my-info')} accessibilityLabel="내 정보로 돌아가기" />
         </View>
-        <Text style={styles.headerTitle}>내 정보 변경</Text>
+        <Text style={styles.headerTitle}>{activeTab === 'body' ? '신체정보 변경' : '개인정보 변경'}</Text>
         <View style={styles.headerSpacer} />
       </View>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -82,11 +84,12 @@ export default function EditProfileScreen() {
           </View>
         </> : <>
           <Text style={styles.sectionTitle}>신체정보</Text>
-          <PersonalInfoFields showAge section="body" spacious value={draft} onChange={next => { setDraft(next); setError(''); }} />
+          <PersonalInfoFields section="body" spacious value={draft} onChange={next => { setDraft(next); setError(''); }} />
         </>}
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
         <Pressable onPress={save} accessibilityRole="button" style={styles.saveButton}><Text style={styles.saveButtonText}>수정 완료</Text></Pressable>
       </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
@@ -99,9 +102,9 @@ const baseStyles = StyleSheet.create({
   saveButtonText: { color: '#FFFFFF', fontSize: 16, lineHeight: 24 },
   content: { flexGrow: 1, width: '100%', alignSelf: 'center', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 30 },
   sectionTitle: { color: '#111111', fontSize: 18, fontWeight: '600', marginBottom: 16 },
-  accountSection: { marginTop: 8 },
-  passwordTitle: { color: '#111111', fontSize: 18, fontWeight: '600', marginTop: 36, marginBottom: 4 },
-  phoneField: { marginTop: 30, gap: 8 },
+  accountSection: { marginTop: 0 },
+  passwordTitle: { color: '#111111', fontSize: 18, fontWeight: '600', marginTop: 24, marginBottom: 0 },
+  phoneField: { marginTop: 24, gap: 8 },
   phoneLabel: { color: '#111111', fontSize: 16, lineHeight: 24 },
   phoneInput: { borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 12, minHeight: 50, paddingHorizontal: 16, paddingVertical: 14, color: '#111111', fontSize: 16 },
   passwordInputWrap: { position: 'relative', justifyContent: 'center' },

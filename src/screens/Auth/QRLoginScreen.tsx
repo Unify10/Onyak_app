@@ -74,8 +74,21 @@ export default function QRLoginScreen({
     } else {
     return (
       <SafeAreaView style={styles.safe}>
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color="#6686A5" />
+        <View style={styles.permissionScreen}>
+          <Pressable style={styles.backButton} onPress={onPressBack}>
+            <Text style={styles.backButtonText}>‹</Text>
+          </Pressable>
+          <View style={styles.brand}>
+            <Image
+              source={require('../../../assets/onyak-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.subtitle}>약물 상호작용 확인 서비스</Text>
+          </View>
+          <View style={styles.permissionMessage}>
+            <ActivityIndicator size="large" color="#6686A5" />
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -128,6 +141,15 @@ export default function QRLoginScreen({
           <Pressable style={styles.backButton} onPress={onPressBack}>
             <Text style={styles.backButtonText}>‹</Text>
           </Pressable>
+
+          <View style={styles.brand}>
+            <Image
+              source={require('../../../assets/onyak-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.subtitle}>약물 상호작용 확인 서비스</Text>
+          </View>
 
           <View style={styles.permissionMessage}>
             <Text style={styles.title}>QR 코드를 스캔하려면</Text>
@@ -232,6 +254,7 @@ const baseStyles = StyleSheet.create({
   desktopSafe: { backgroundColor: '#FFFFFF' },
   desktopScreen: { flex: 1, width: '100%', alignSelf: 'center', paddingHorizontal: 48, paddingVertical: 24 },
   desktopBackButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  logoImage: { width: 64, height: 64 },
   desktopBrandHeader: { width: '100%', alignSelf: 'center', alignItems: 'center', marginTop: 8, marginBottom: 16 },
   desktopMain: { flex: 1, width: '100%', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 64, paddingHorizontal: 40, paddingBottom: 16 },
   desktopIntro: { flex: 0.45, maxWidth: 340, alignSelf: 'center', alignItems: 'center', justifyContent: 'center' },
@@ -270,7 +293,7 @@ const baseStyles = StyleSheet.create({
   },
   brand: {
     alignItems: 'center',
-    marginTop: 28,
+    marginTop: 14,
   },
   logoMark: {
     color: '#6686A5',
@@ -283,9 +306,10 @@ const baseStyles = StyleSheet.create({
     fontSize: 15,
   },
   subtitle: {
-    marginTop: 38,
+    marginTop: 14,
     color: '#727C8B',
-    fontSize: 17,
+    fontSize: 15,
+    textAlign: 'center',
   },
   desktopBrandSubtitle: { marginTop: 14 },
   scanTitle: {

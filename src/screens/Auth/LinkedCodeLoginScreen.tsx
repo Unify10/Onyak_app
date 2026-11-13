@@ -20,6 +20,7 @@ type Props = {
 
 // 연동 코드는 여섯 자리 숫자입니다.
 const CODE_LENGTH = 6;
+const ENABLE_TEST_LINKED_CODE_LOGIN = true; // 실제 연동 코드 인증 연결 후 false로 변경
 
 // -----------------------------------------------------------------------------
 // 연동 코드 로그인 화면
@@ -60,6 +61,12 @@ export default function LinkedCodeLoginScreen({
     if (code.length !== CODE_LENGTH || isLoading) return;
 
     Keyboard.dismiss();
+
+  if (ENABLE_TEST_LINKED_CODE_LOGIN) {
+    setUserName('테스트 사용자');
+    setStatus('success');
+    return;
+  }
 
     if (!onSubmitCode) {
       setErrorMessage('올바르지 않은 연동 코드입니다.');

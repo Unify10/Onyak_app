@@ -18,6 +18,14 @@ export function isValidBirthDate(value: string, now = Date.now()) {
   return year >= 1900 && date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day && date.getTime() <= now;
 }
 
+export function calculateAge(value: string, today = new Date()) {
+  if (!isValidBirthDate(value, today.getTime())) return '';
+  const [year, month, day] = value.split('-').map(Number);
+  let age = today.getFullYear() - year;
+  if (today.getMonth() + 1 < month || (today.getMonth() + 1 === month && today.getDate() < day)) age -= 1;
+  return String(age);
+}
+
 export function validatePersonalInfo(value: PersonalInfo, requireBirthDate = false) {
   if (!value.name.trim()) return '이름을 입력해주세요.';
   if ((requireBirthDate || value.birthDate) && !isValidBirthDate(value.birthDate)) return '생년월일을 YYYY-MM-DD 형식의 올바른 날짜로 입력해주세요.';
