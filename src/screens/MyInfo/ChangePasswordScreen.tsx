@@ -42,7 +42,8 @@ export default function ChangePasswordScreen() {
 function PasswordField({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
   const styles = useResponsiveStyles(baseStyles);
   const [visible, setVisible] = useState(false);
-  return <View style={styles.field}><Text style={styles.label}>{label}</Text><View style={styles.inputRow}><TextInput accessibilityLabel={label} value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor="#9CA3AF" secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} style={styles.input} /><Pressable accessibilityRole="button" accessibilityLabel={`${label} ${visible ? '숨기기' : '보기'}`} onPress={() => setVisible(current => !current)} style={styles.eye}><Ionicons name={visible ? 'eye-outline' : 'eye-off-outline'} size={22} color="#9CA3AF" /></Pressable></View></View>;
+  const [focused, setFocused] = useState(false);
+  return <View style={styles.field}><Text style={styles.label}>{label}</Text><View style={[styles.inputRow, focused && styles.inputFocused]}><TextInput accessibilityLabel={label} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor="#9CA3AF" secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} style={styles.input} /><Pressable accessibilityRole="button" accessibilityLabel={`${label} ${visible ? '숨기기' : '보기'}`} onPress={() => setVisible(current => !current)} style={styles.eye}><Ionicons name={visible ? 'eye-outline' : 'eye-off-outline'} size={22} color="#9CA3AF" /></Pressable></View></View>;
 }
 const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
@@ -52,6 +53,7 @@ const baseStyles = StyleSheet.create({
   notice: { backgroundColor: '#F5F5F7', borderRadius: 12, padding: 16, flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 26 },
   noticeText: { flex: 1, color: '#4B5563', fontSize: 14, lineHeight: 22 },
   field: { marginTop: 18, gap: 8 }, label: { color: '#111111', fontSize: 16 },
+  inputFocused: { borderColor: '#000000' },
   inputRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 12, minHeight: 50 },
   input: { flex: 1, minWidth: 0, fontSize: 15, paddingHorizontal: 16, paddingVertical: 14, color: '#111111' },
   eye: { minWidth: 44, minHeight: 48, justifyContent: 'center', alignItems: 'center' },
