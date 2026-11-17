@@ -30,6 +30,25 @@ export function addDaysToDateKey(dateKey: string, days: number) {
   return getLocalDateKey(date);
 }
 
+export type MedicationScheduleInput = {
+  startDate: string;
+  durationDays: number;
+  doses: { timeOfDay: DoseTimeOfDay; time: string }[];
+};
+
+export function createMedicationSchedules(medicineId: string, input: MedicationScheduleInput): MedicationSchedule[] {
+  const endDate = addDaysToDateKey(input.startDate, input.durationDays - 1);
+  const createdAt = Date.now();
+  return input.doses.map((dose, index) => ({
+    id: `${medicineId}-${createdAt}-${index}`,
+    medicineId,
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+    startDate: input.startDate,
+    endDate,
+    ...dose,
+  }));
+}
+
 export function formatDateKey(dateKey: string) {
   const [year, month, day] = dateKey.split('-');
   return `${year}.${month}.${day}`;

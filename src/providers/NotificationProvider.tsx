@@ -1,3 +1,4 @@
+import type { NotificationEntry } from '../components/Notifications/NotificationCard';
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 
 type NotificationPreferences = {
@@ -13,6 +14,8 @@ type NotificationContextValue = NotificationPreferences & {
   setSosEnabled: (enabled: boolean) => void;
   setServiceEnabled: (enabled: boolean) => void;
   hasUnreadNotifications: boolean;
+  sosRequests: NotificationEntry[];
+  addSosRequest: (name: string) => void;
   markAllRead: () => void;
   markNotificationUnread: () => void;
 };
@@ -35,8 +38,21 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const markAllRead = useCallback(() => setHasUnreadNotifications(false), []);
   const markNotificationUnread = useCallback(() => setHasUnreadNotifications(true), []);
 
+  const [sosRequests, setSosRequests] = useState<NotificationEntry[]>([]);
+  const addSosRequest = useCallback((name: string) => {
+    setSosRequests(current => [{
+      id: `sos-request-${current.length}`,
+      type: 'sos',
+      title: 'SOS 긴급 알림',
+      body: `${name}님이 SOS 도움을 요청했어요.`,
+    }, ...current]);
+    markNotificationUnread();
+  }, [markNotificationUnread]);
+
   const value = useMemo(() => ({
     ...preferences,
+    sosRequests,
+    addSosRequest,
     setAllEnabled,
     setMedicationEnabled,
     setSosEnabled,
@@ -44,7 +60,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     hasUnreadNotifications,
     markAllRead,
     markNotificationUnread,
-  }), [preferences, hasUnreadNotifications, setAllEnabled, setMedicationEnabled, setSosEnabled, setServiceEnabled, markAllRead, markNotificationUnread]);
+  }), [preferences, sosRequests, addSosRequest, hasUnreadNotifications, setAllEnabled, setMedicationEnabled, setSosEnabled, setServiceEnabled, markAllRead, markNotificationUnread]);
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 }

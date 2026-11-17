@@ -28,6 +28,14 @@ export default function FamilyItem({ family, onDelete }: Props) {
         </Pressable>
         <View style={styles.actions}>
           <Pressable accessibilityRole="button" accessibilityLabel={`${family.details.name} 정보 수정`} onPress={() => router.push(`/family/edit/${family.id}`)} style={styles.iconButton}><Ionicons name="create-outline" size={21} color="#344054" /></Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${family.details.name} 연동 코드 관리 및 재발급`}
+            onPress={() => router.push({ pathname: '/family/invitation/[id]', params: { id: family.id } })}
+            style={styles.iconButton}
+          >
+            <Ionicons name="key-outline" size={21} color="#344054" />
+          </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={`${family.details.name} 계정 삭제`} onPress={() => setConfirmingDelete(true)} style={styles.iconButton}><Ionicons name="trash-outline" size={21} color="#D92D20" /></Pressable>
         </View>
       </View>
@@ -44,13 +52,13 @@ export default function FamilyItem({ family, onDelete }: Props) {
 
 const baseStyles = StyleSheet.create({
   card: { width: '100%', borderRadius: 15, borderColor: '#E5E7EB', borderWidth: 1, padding: 12 },
-  summary: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  openProfile: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  summary: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12 },
+  openProfile: { flexGrow: 1, flexBasis: 140, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 50, height: 50, borderRadius: 25, overflow: 'hidden', backgroundColor: '#F2F4F7', alignItems: 'center', justifyContent: 'center' },
   details: { flex: 1, minWidth: 0, gap: 2 },
   name: { fontSize: 18, lineHeight: 24, color: '#111111' },
   description: { fontSize: 13, lineHeight: 18, color: '#667085' },
-  actions: { flexDirection: 'row', gap: 2 },
+  actions: { flexDirection: 'row', gap: 2, marginLeft: 'auto' },
   iconButton: { width: 38, height: 40, alignItems: 'center', justifyContent: 'center' },
   deleteConfirm: { flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB', marginTop: 12, paddingTop: 12, flexWrap: 'wrap' },
   confirmText: { flex: 1, minWidth: 150, color: '#344054', fontSize: 14 },

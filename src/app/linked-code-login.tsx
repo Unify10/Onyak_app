@@ -8,7 +8,7 @@ import { findInvitedFamily, getTestDependent } from '../utils/familyInvitation';
 export default function LinkedCodeLoginRoute() {
   const { dependentId, signInDependent } = useAuth();
   const { families } = useFamilies();
-  const [verifiedId, setVerifiedId] = useState<string | null>(null);
+  const [verified, setVerified] = useState<{ id: string; code: string; expiresAt?: number } | null>(null);
   const testDependent = getTestDependent();
   if (dependentId) return <Redirect href="/dependent" />;
 
@@ -21,19 +21,19 @@ export default function LinkedCodeLoginRoute() {
           ? testDependent
           : undefined;
         const id = family?.id ?? testAccount?.id;
-        setVerifiedId(id ?? null);
+        setVerified(id ? { id, code: input, expiresAt: family?.expiresAt } : null);
         return { success: !!id, userName: family?.details.name ?? testAccount?.name };
       }}
       onComplete={() => {
-        if (testDependent && verifiedId === testDependent.id) {
+        if (testDependent && verified?.id === testDependent.id && verified.code === testDependent.code) {
           signInDependent(testDependent.id);
           return;
         }
-        if (!families.some(family => family.id === verifiedId && family.expiresAt > Date.now())) {
+        if (!verified || findInvitedFamily(families, verified.code, verified.expiresAt)?.id !== verified.id) {
           router.replace('/login');
           return;
         }
-        if (verifiedId) signInDependent(verifiedId);
+        signInDependent(verified.id);
       }}
     />
   );

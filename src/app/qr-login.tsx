@@ -8,7 +8,7 @@ import { findInvitedFamily, readFamilyQr } from '../utils/familyInvitation';
 export default function QRLoginRoute() {
   const { dependentId, signInDependent } = useAuth();
   const { families } = useFamilies();
-  const [verifiedId, setVerifiedId] = useState<string | null>(null);
+  const [verified, setVerified] = useState<{ id: string; code: string; expiresAt?: number } | null>(null);
   if (dependentId) return <Redirect href="/dependent" />;
 
   return (
@@ -17,15 +17,15 @@ export default function QRLoginRoute() {
       onSubmitQr={async input => {
         const invitation = readFamilyQr(input);
         const family = invitation && findInvitedFamily(families, invitation.code, invitation.expiresAt);
-        setVerifiedId(family?.id ?? null);
+        setVerified(family ? { id: family.id, code: family.code, expiresAt: family.expiresAt } : null);
         return { success: !!family, userName: family?.details.name };
       }}
       onComplete={() => {
-        if (!families.some(family => family.id === verifiedId && family.expiresAt > Date.now())) {
+        if (!verified || findInvitedFamily(families, verified.code, verified.expiresAt)?.id !== verified.id) {
           router.replace('/login');
           return;
         }
-        if (verifiedId) signInDependent(verifiedId);
+        signInDependent(verified.id);
       }}
     />
   );

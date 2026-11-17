@@ -1,3 +1,4 @@
+import SosSlider from '../../components/Home/SosSlider';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { StyleSheet, ScrollView } from 'react-native';
 import MedicinePhoto from '../../components/Home/MedicinePhoto/MedicinePhoto';
@@ -20,6 +21,7 @@ export default function Home({ dependentName }: { dependentName?: string }) {
       {!dependentName && <MedicinePhoto />}
       <MedicineList/>
       <ActiveMedicineList readOnly={!!dependentName} />
+      {dependentName && <SosSlider name={dependentName} />}
       {!dependentName && <HomeFamilyAccountList />}
       <Text style={styles.footer}>좋은 하루 보내세요</Text>
     </ScrollView>

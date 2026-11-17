@@ -27,3 +27,16 @@ const testDependent = { id: 'test-dependent', name: '테스트 피보호자', co
 export function getTestDependent() {
   return __DEV__ ? testDependent : undefined;
 }
+
+export type FamilyInvitation = { code: string; expiresAt: number };
+
+export function createFamilyInvitation(existingCodes: readonly string[]): FamilyInvitation {
+  const reserved = new Set([...existingCodes, testDependent.code]);
+  let number = Math.floor(Math.random() * 1_000_000);
+  let code = String(number).padStart(6, '0');
+  while (reserved.has(code)) {
+    number = (number + 1) % 1_000_000;
+    code = String(number).padStart(6, '0');
+  }
+  return { code, expiresAt: Date.now() + 10 * 60 * 1000 };
+}

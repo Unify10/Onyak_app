@@ -7,15 +7,20 @@ import * as Clipboard from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg';
 import InvitationCode from '../../../components/Family/Invitation/InvitationCode';
 
-function generateCode() {
-  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  return Array.from({ length: 6 }, () => characters[Math.floor(Math.random() * characters.length)]).join('');
-}
+import { createFamilyInvitation, type FamilyInvitation } from '../../../utils/familyInvitation';
 
-export default function CreateFamilyScreen({ onBack, onComplete }: { onBack: () => void; onComplete: (invitation: { code: string; expiresAt: number }) => void }) {
+type Props = {
+  onBack: () => void;
+  onComplete: (invitation: FamilyInvitation) => void;
+  existingCodes: readonly string[];
+  initialInvitation?: FamilyInvitation;
+  onRenew?: (invitation: FamilyInvitation) => void;
+};
+
+export default function CreateFamilyScreen({ onBack, onComplete, existingCodes, initialInvitation, onRenew }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   const [now, setNow] = useState(() => Date.now());
-  const [invitation, setInvitation] = useState(() => ({ code: generateCode(), expiresAt: now + 10 * 60 * 1000 }));
+  const [invitation, setInvitation] = useState(() => initialInvitation ?? createFamilyInvitation(existingCodes));
   const [showQr, setShowQr] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
@@ -29,15 +34,19 @@ export default function CreateFamilyScreen({ onBack, onComplete }: { onBack: () 
   function regenerate() {
     const currentTime = Date.now();
     setNow(currentTime);
-    setInvitation({ code: generateCode(), expiresAt: currentTime + 10 * 60 * 1000 });
+    const next = createFamilyInvitation([...existingCodes, invitation.code]);
+    setInvitation(next);
+    onRenew?.(next);
     setCopied(false);
     setShowQr(false);
     setError('');
   }
 
   async function copyCode() {
+    if (Date.now() >= invitation.expiresAt) return;
     try {
-      await Clipboard.setStringAsync(invitation.code);
+      const copied = await Clipboard.setStringAsync(invitation.code);
+      if (!copied) throw new Error();
       setCopied(true);
       setError('');
     } catch {
@@ -49,7 +58,7 @@ export default function CreateFamilyScreen({ onBack, onComplete }: { onBack: () 
     <View style={styles.screen}>
       <View style={styles.header}>
         <Pressable onPress={onBack} style={styles.back} accessibilityRole="button" accessibilityLabel="가족 화면으로 돌아가기"><Ionicons name="arrow-back" size={22} color="#000000" /></Pressable>
-        <Text style={styles.title}>피보호자 계정 생성</Text>
+        <Text style={styles.title}>{initialInvitation ? '가족 연동 코드' : '피보호자 계정 생성'}</Text>
         <View style={styles.headerSpacer} />
       </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -59,7 +68,8 @@ export default function CreateFamilyScreen({ onBack, onComplete }: { onBack: () 
         </View>
         <View style={styles.actions}>
           <Text style={styles.instruction}>연동 코드를 피보호자 계정에서 입력해주세요.</Text>
-          <Pressable accessibilityRole="button" style={styles.outlineButton} onPress={regenerate}><Text style={styles.buttonLabel}>연동 코드 재생성</Text></Pressable>
+          {initialInvitation && <Text style={styles.qrLabel}>재발급하면 이전 연동 코드와 QR은 만료돼요.</Text>}
+          <Pressable accessibilityRole="button" style={styles.outlineButton} onPress={regenerate}><Text style={styles.buttonLabel}>연동 코드 재발급</Text></Pressable>
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: showQr, disabled: secondsLeft === 0 }} disabled={secondsLeft === 0} style={[styles.outlineButton, secondsLeft === 0 && styles.disabled]} onPress={() => setShowQr(current => !current)}><Text style={styles.buttonLabel}>{showQr ? 'QR 닫기' : 'QR 생성'}</Text></Pressable>
           {showQr && secondsLeft > 0 && (
             <View style={styles.qr} accessibilityLabel="가족 연동 QR 코드">
