@@ -3,7 +3,8 @@ import LoginScreen from '../screens/Auth/LoginScreen';
 import { useAuth } from '../providers/AuthProvider';
 
 export default function LoginRoute() {
-  const { isAuthenticated, signIn } = useAuth();
+  const { dependentId, isAuthenticated, signIn } = useAuth();
+  if (dependentId) return <Redirect href="/dependent" />;
   if (isAuthenticated) return <Redirect href="/(tabs)" />;
 
   return (

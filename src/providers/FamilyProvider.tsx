@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import type { PersonalInfo } from '../utils/personalInfo';
 
-export type FamilyDraft = { id: string; details: PersonalInfo; expiresAt: number };
+export type FamilyDraft = { id: string; details: PersonalInfo; code: string; expiresAt: number };
 type FamilyContextValue = {
   families: FamilyDraft[];
-  addFamily: (details: PersonalInfo, expiresAt: number) => void;
+  addFamily: (details: PersonalInfo, invitation: { code: string; expiresAt: number }) => void;
   updateFamily: (id: string, details: PersonalInfo) => void;
   removeFamily: (id: string) => void;
   clearFamilies: () => void;
@@ -12,7 +12,7 @@ type FamilyContextValue = {
 const FamilyContext = createContext<FamilyContextValue | null>(null);
 export function FamilyProvider({ children }: { children: ReactNode }) {
   const [families, setFamilies] = useState<FamilyDraft[]>([]);
-  function addFamily(details: PersonalInfo, expiresAt: number) { setFamilies(current => [...current, { id: `${Date.now()}-${current.length}`, details: { ...details, name: details.name.trim() }, expiresAt }]); }
+  function addFamily(details: PersonalInfo, invitation: { code: string; expiresAt: number }) { setFamilies(current => [...current, { id: `${Date.now()}-${current.length}`, details: { ...details, name: details.name.trim() }, ...invitation }]); }
   function updateFamily(id: string, details: PersonalInfo) { setFamilies(current => current.map(family => family.id === id ? { ...family, details: { ...details, name: details.name.trim() } } : family)); }
   function removeFamily(id: string) { setFamilies(current => current.filter(family => family.id !== id)); }
   return <FamilyContext.Provider value={{ families, addFamily, updateFamily, removeFamily, clearFamilies: () => setFamilies([]) }}>{children}</FamilyContext.Provider>;

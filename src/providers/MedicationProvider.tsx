@@ -14,9 +14,9 @@ type MedicationContextValue = {
 };
 const MedicationContext = createContext<MedicationContextValue | null>(null);
 
-export function MedicationProvider({ children }: { children: ReactNode }) {
-  const [medicineIds, setMedicineIds] = useState<string[]>(exampleMedicineIds);
-  const [schedules, setSchedules] = useState<MedicationSchedule[]>(exampleMedicationSchedules);
+export function MedicationProvider({ children, includeExamples = true }: { children: ReactNode; includeExamples?: boolean }) {
+  const [medicineIds, setMedicineIds] = useState<string[]>(includeExamples ? exampleMedicineIds : []);
+  const [schedules, setSchedules] = useState<MedicationSchedule[]>(includeExamples ? exampleMedicationSchedules : []);
   const [completedDoseIds, setCompletedDoseIds] = useState<string[]>([]);
   const [today, setToday] = useState(() => new Date());
   useEffect(() => {

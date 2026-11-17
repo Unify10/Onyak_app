@@ -20,7 +20,6 @@ type Props = {
 
 // 연동 코드는 여섯 자리 숫자입니다.
 const CODE_LENGTH = 6;
-const ENABLE_TEST_LINKED_CODE_LOGIN = true; // 실제 연동 코드 인증 연결 후 false로 변경
 
 // -----------------------------------------------------------------------------
 // 연동 코드 로그인 화면
@@ -37,6 +36,7 @@ export default function LinkedCodeLoginScreen({
   // TextInput ref에서 focus()만 사용합니다.
   const inputRef = useRef<{ focus: () => void } | null>(null);
 
+  const [codeFocused, setCodeFocused] = useState(false);
   const [code, setCode] = useState('');
   const [status, setStatus] = useState<'input' | 'success' | 'error'>('input');
   const [userName, setUserName] = useState('');
@@ -61,12 +61,6 @@ export default function LinkedCodeLoginScreen({
     if (code.length !== CODE_LENGTH || isLoading) return;
 
     Keyboard.dismiss();
-
-  if (ENABLE_TEST_LINKED_CODE_LOGIN) {
-    setUserName('테스트 사용자');
-    setStatus('success');
-    return;
-  }
 
     if (!onSubmitCode) {
       setErrorMessage('올바르지 않은 연동 코드입니다.');
@@ -147,8 +141,8 @@ export default function LinkedCodeLoginScreen({
               <View style={styles.codeSection}>
                 <AppText style={styles.label}>연동 코드 입력</AppText>
                 <Pressable style={styles.codeBoxes} onPress={() => inputRef.current?.focus()} accessibilityRole="button" accessibilityLabel="연동 코드 입력">
-                  {Array.from({ length: CODE_LENGTH }, (_, index) => <View key={index} style={[styles.codeBox, index === code.length && styles.codeBoxFocused]}><AppText style={styles.codeDigit}>{code[index] ?? ''}</AppText></View>)}
-                  <TextInput ref={instance => { inputRef.current = instance; }} value={code} onChangeText={handleCodeChange} keyboardType="number-pad" maxLength={CODE_LENGTH} caretHidden style={styles.hiddenInput} accessibilityLabel="6자리 연동 코드" />
+                  {Array.from({ length: CODE_LENGTH }, (_, index) => <View key={index} style={[styles.codeBox, codeFocused && index === Math.min(code.length, CODE_LENGTH - 1) && styles.codeBoxFocused]}><AppText style={styles.codeDigit}>{code[index] ?? ''}</AppText></View>)}
+                  <TextInput ref={instance => { inputRef.current = instance; }} value={code} onFocus={() => setCodeFocused(true)} onBlur={() => setCodeFocused(false)} onChangeText={handleCodeChange} keyboardType="number-pad" maxLength={CODE_LENGTH} caretHidden style={styles.hiddenInput} accessibilityLabel="6자리 연동 코드" />
                 </Pressable>
                 {status === 'error' && <AppText style={styles.message}>{errorMessage}</AppText>}
               </View>
@@ -282,7 +276,7 @@ const baseStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   codeBoxFocused: {
-    borderColor: '#8EA5BC',
+    borderColor: '#000000',
   },
   codeDigit: {
     color: '#222222',

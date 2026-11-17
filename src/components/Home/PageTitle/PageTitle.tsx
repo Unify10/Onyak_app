@@ -7,7 +7,7 @@ import Svg, { Path } from 'react-native-svg';
 import { typography } from '../../../theme/tokens';
 import { useNotifications } from '../../../providers/NotificationProvider';
 
-export default function PageTitle() {
+export default function PageTitle({ dependentName }: { dependentName?: string }) {
   const styles = useResponsiveStyles(baseStyles, compactStyles);
   const { displayName } = useAuth();
   const { hasUnreadNotifications } = useNotifications();
@@ -15,15 +15,15 @@ export default function PageTitle() {
     <View style={styles.container}>
       <View style={styles.titleRow}>
         <View style={styles.titleText}>
-          <Text style={styles.name} numberOfLines={1}>{displayName}님</Text>
+          <Text style={styles.name} numberOfLines={1}>{dependentName ?? displayName}님</Text>
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel="알림 내역" style={styles.notificationButton} onPress={() => router.push('/notifications')}>
+        {!dependentName && <Pressable accessibilityRole="button" accessibilityLabel="알림 내역" style={styles.notificationButton} onPress={() => router.push('/notifications')}>
           <Svg width={styles.notificationIcon.width} height={styles.notificationIcon.height} viewBox="0 0 24 24" fill="none">
             <Path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" stroke="#111111" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
             <Path d="M10 21h4" stroke="#111111" strokeWidth={1.8} strokeLinecap="round" />
           </Svg>
           {hasUnreadNotifications && <View style={styles.notificationDot} />}
-        </Pressable>
+        </Pressable>}
       </View>
     </View>
   );

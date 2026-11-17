@@ -5,15 +5,16 @@ import { StyleSheet, View, Image, Pressable } from 'react-native';
 
 interface activeMedicineData {
   medicineId: string;
+  readOnly?: boolean;
   activeMedicineTitle: string;
   activeMedicineInfo: string;
   activeMedicineImage?: string;
 }
 
-export default function ActiveMedicineItem({ medicineId, activeMedicineTitle, activeMedicineInfo, activeMedicineImage }: activeMedicineData) {
+export default function ActiveMedicineItem({ readOnly = false, medicineId, activeMedicineTitle, activeMedicineInfo, activeMedicineImage }: activeMedicineData) {
   const styles = useResponsiveStyles(baseStyles, compactStyles);
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={activeMedicineTitle} onPress={() => router.push({ pathname: '/medicine/[id]', params: { id: medicineId } })} style={styles.activeMedicineCard}>
+    <Pressable disabled={readOnly} accessibilityRole={readOnly ? undefined : "button"} accessibilityLabel={activeMedicineTitle} onPress={() => router.push({ pathname: '/medicine/[id]', params: { id: medicineId } })} style={styles.activeMedicineCard}>
       <View>
         {activeMedicineImage ? (
           <Image

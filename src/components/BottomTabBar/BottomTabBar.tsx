@@ -19,15 +19,21 @@ const tabs = [
   { label: '내 정보', href: '/(tabs)/my-info' as Href, Icon: ProfileIcon },
 ] as const;
 
-export default function BottomTabBar() {
+const dependentTabs = [
+  { label: '홈', href: '/dependent', Icon: HomeIcon },
+  { label: '복용 목록', href: '/dependent/medication-list', Icon: MedicationListIcon },
+  { label: '내 정보', href: '/dependent/my-info', Icon: ProfileIcon },
+] as const;
+
+export default function BottomTabBar({ dependent = false }: { dependent?: boolean }) {
   const styles = useResponsiveStyles(baseStyles);
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-      {tabs.map(({ label, href, Icon }) => {
-        const isActive = label === '홈'
+      {(dependent ? dependentTabs : tabs).map(({ label, href, Icon }) => {
+        const isActive = dependent ? pathname === href : label === '홈'
           ? pathname === '/' || pathname === '/index' || pathname === '/notifications'
           : (label === '내 정보' && ['/edit-profile', '/change-password', '/delete-account'].includes(pathname)) || (label === '검색' && pathname.startsWith('/medicine/')) || pathname.endsWith(href.toString().split('/').at(-1) ?? '');
         return (

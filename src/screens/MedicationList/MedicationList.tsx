@@ -15,7 +15,7 @@ const pastMedications: Medication[] = [
   { id: '5', name: '오메가3', schedule: '지난 복용 기록', startDate: '2026.09.30 종료' },
 ];
 
-export default function MedicationList() {
+export default function MedicationList({ dependent = false }: { dependent?: boolean }) {
   const styles = useResponsiveStyles(baseStyles);
   const { medicineIds, schedules } = useMedications();
   const currentMedications: Medication[] = medicines.filter(item => medicineIds.includes(item.id)).map(item => ({
@@ -25,16 +25,17 @@ export default function MedicationList() {
     startDate: getMedicationPeriodLabel(schedules, item.id),
   }));
   const [selectedTab, setSelectedTab] = useState<MedicationTab>('current');
-  const medications = selectedTab === 'current' ? currentMedications : pastMedications;
+  const records = dependent ? [] : pastMedications;
+  const medications = selectedTab === 'current' ? currentMedications : records;
 
   return (
     <View style={styles.container}>
-      <MedicationListHeader />
-      <MedicationSummary currentCount={currentMedications.length} cautionCount={currentMedications.filter(medication => medication.caution).length} recordCount={pastMedications.length} />
+      <MedicationListHeader hideAdd={dependent} />
+      <MedicationSummary currentCount={currentMedications.length} cautionCount={currentMedications.filter(medication => medication.caution).length} recordCount={records.length} />
       <MedicationTabs selectedTab={selectedTab} onSelectTab={setSelectedTab} />
       <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
-        {medications.length === 0 && <Text style={{ textAlign: 'center', color: '#7B8494', paddingVertical: 40 }}>등록한 약이 없습니다. 검색에서 약을 추가해주세요.</Text>}
-        {medications.map((medication) => <MedicationItem key={medication.id} medication={medication} />)}
+        {medications.length === 0 && <Text style={{ textAlign: 'center', color: '#7B8494', paddingVertical: 40 }}>{selectedTab === 'past' ? '지난 복용 기록이 없습니다.' : '등록한 약이 없습니다.'}{!dependent && selectedTab === 'current' && ' 검색에서 약을 추가해주세요.'}</Text>}
+        {medications.map((medication) => <MedicationItem key={medication.id} medication={medication} readOnly={dependent} />)}
       </ScrollView>
     </View>
   );

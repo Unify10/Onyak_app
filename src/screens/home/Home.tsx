@@ -7,7 +7,7 @@ import HomeFamilyAccountList from '../../components/Home/HomeFamilyAccount/HomeF
 import PageTitle from '../../components/Home/PageTitle/PageTitle';
 import Text from '../../components/Typography/Text';
 
-export default function Home() {
+export default function Home({ dependentName }: { dependentName?: string }) {
   const styles = useResponsiveStyles(baseStyles);
   return (
     <ScrollView
@@ -16,11 +16,11 @@ export default function Home() {
       bounces={false}
       overScrollMode="never"
     >
-      <PageTitle />
-      <MedicinePhoto/>
+      <PageTitle dependentName={dependentName} />
+      {!dependentName && <MedicinePhoto />}
       <MedicineList/>
-      <ActiveMedicineList/>
-      <HomeFamilyAccountList/>
+      <ActiveMedicineList readOnly={!!dependentName} />
+      {!dependentName && <HomeFamilyAccountList />}
       <Text style={styles.footer}>좋은 하루 보내세요</Text>
     </ScrollView>
   );

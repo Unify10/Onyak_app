@@ -1,20 +1,24 @@
+import { useState } from 'react';
+import SignOutDialog from '../../components/Account/SignOutDialog';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import ProfileHero from '../../components/MyInfo/ProfileHero';
 import ProfileInfoTable from '../../components/MyInfo/ProfileInfoTable';
 import ProfileMenuRow from '../../components/MyInfo/ProfileMenuRow';
+import type { PersonalInfo } from '../../utils/personalInfo';
 import { useProfile } from '../../providers/ProfileProvider';
 
-type Props = { displayName: string; email: string; onSignOut: () => void };
-export default function MyInfo({ displayName, email, onSignOut }: Props) {
+type Props = { displayName: string; email: string; onSignOut: () => void; dependentProfile?: PersonalInfo };
+export default function MyInfo({ displayName, email, onSignOut, dependentProfile }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   const { profile } = useProfile();
-  function confirmSignOut() { Alert.alert('로그아웃', '온약에서 로그아웃할까요?', [{ text: '취소', style: 'cancel' }, { text: '로그아웃', onPress: onSignOut }]); }
+  const [showSignOut, setShowSignOut] = useState(false);
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <ProfileHero name={displayName} email={email} />
-      <ProfileInfoTable profile={profile} />
+      <ProfileInfoTable profile={dependentProfile ?? profile} />
+      {!dependentProfile && <>
       <View style={styles.menu}>
         <ProfileMenuRow label="가족 계정 관리" icon="people" onPress={() => router.push('/family')} />
         <ProfileMenuRow label="개인정보 변경" icon="person" onPress={() => router.push('/edit-profile')} />
@@ -27,10 +31,12 @@ export default function MyInfo({ displayName, email, onSignOut }: Props) {
         <ProfileMenuRow label="개인정보 처리방침" icon="shield-checkmark-outline" onPress={() => router.push('/information/privacy')} />
         <ProfileMenuRow label="앱 버전 정보" icon="information-circle-outline" onPress={() => router.push('/information/version')} last />
       </View>
+      </>}
       <View style={styles.menu}>
-        <ProfileMenuRow label="로그아웃" destructive logout onPress={confirmSignOut} />
-        <ProfileMenuRow label="계정 및 데이터 삭제" destructive onPress={() => router.push('/delete-account')} last />
+        <ProfileMenuRow label="로그아웃" last={!!dependentProfile} destructive logout onPress={() => setShowSignOut(true)} />
+        {!dependentProfile && <ProfileMenuRow label="계정 및 데이터 삭제" destructive onPress={() => router.push('/delete-account')} last /> }
       </View>
+      <SignOutDialog visible={showSignOut} onCancel={() => setShowSignOut(false)} onConfirm={() => { setShowSignOut(false); onSignOut(); }} />
     </ScrollView>
   );
 }

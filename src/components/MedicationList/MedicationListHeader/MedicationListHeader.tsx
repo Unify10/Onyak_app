@@ -4,14 +4,14 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { typography } from '../../../theme/tokens';
 
-export default function MedicationListHeader() {
+export default function MedicationListHeader({ hideAdd = false }: { hideAdd?: boolean }) {
   const styles = useResponsiveStyles(baseStyles);
   return (
     <View style={styles.header}>
       <Text style={styles.title}>복용목록</Text>
-      <Pressable accessibilityRole="button" accessibilityLabel="약 추가" onPress={() => router.push('/search')} style={styles.addButton}>
+      {!hideAdd && <Pressable accessibilityRole="button" accessibilityLabel="약 추가" onPress={() => router.push('/search')} style={styles.addButton}>
         <Text style={styles.addButtonText}>＋</Text>
-      </Pressable>
+      </Pressable>}
     </View>
   );
 }

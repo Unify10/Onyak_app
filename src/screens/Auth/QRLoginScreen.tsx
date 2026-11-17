@@ -96,7 +96,7 @@ export default function QRLoginScreen({
   }
 
   // 로그인 완료 화면
-  if (userName || (!isScanning && !scanError && !isLoading)) {
+  if (userName) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.completeScreen}>
@@ -492,8 +492,4 @@ const baseStyles = StyleSheet.create({
     fontWeight: '500',
   },
 
-    logoImage: {
-    width: 64,
-    height: 64,
-  },
 });

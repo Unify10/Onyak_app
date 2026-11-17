@@ -12,10 +12,10 @@ export type Medication = {
   caution?: boolean;
 };
 
-export default function MedicationItem({ medication }: { medication: Medication }) {
+export default function MedicationItem({ medication, readOnly = false }: { medication: Medication; readOnly?: boolean }) {
   const styles = useResponsiveStyles(baseStyles, compactStyles);
   return (
-    <Pressable accessibilityRole="button" style={styles.card} onPress={() => router.push({ pathname: '/medicine/[id]', params: { id: medication.id } })}>
+    <Pressable disabled={readOnly} accessibilityRole={readOnly ? undefined : "button"} style={styles.card} onPress={() => router.push({ pathname: '/medicine/[id]', params: { id: medication.id } })}>
       <View style={[styles.medicineImage, medicineImageLayout]} accessibilityRole="image" accessibilityLabel={`${medication.name} 이미지 영역`}><Text style={styles.imagePlaceholder}>약 이미지</Text></View>
       <View style={styles.details}>
         <View style={styles.nameRow}>
@@ -25,7 +25,7 @@ export default function MedicationItem({ medication }: { medication: Medication 
         <Text style={styles.schedule}>{medication.schedule}</Text>
         <Text style={styles.date}>{medication.startDate}</Text>
       </View>
-      <Text style={styles.chevron}>›</Text>
+      {!readOnly && <Text style={styles.chevron}>›</Text>}
     </Pressable>
   );
 }

@@ -16,6 +16,8 @@ function readPersistedAuthState(): Partial<PersistedAuthState> {
 
 type AuthContextValue = {
   isAuthenticated: boolean;
+  dependentId: string | null;
+  signInDependent: (id: string) => void;
   displayName: string;
   email: string;
   contactNumber: string;
@@ -30,6 +32,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [dependentId, setDependentId] = useState<string | null>(null);
   const [initialAuth] = useState(readPersistedAuthState);
   const [isAuthenticated, setIsAuthenticated] = useState(initialAuth.isAuthenticated ?? false);
   const [displayName, setDisplayName] = useState(initialAuth.displayName ?? '김민지');
@@ -49,6 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthContextValue>(() => ({
     isAuthenticated,
+    dependentId,
+    signInDependent: id => {
+      setIsAuthenticated(false);
+      setDependentId(id);
+    },
     displayName,
     email,
     contactNumber,
@@ -57,12 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (accountEmail?.trim()) setEmail(accountEmail.trim());
       setIsAuthenticated(true);
     },
-    signOut: () => setIsAuthenticated(false),
+    signOut: () => {
+      setDependentId(null);
+      setIsAuthenticated(false);
+    },
     updateDisplayName: setDisplayName,
     updateContactNumber: setContactNumber,
     updateEmail: setEmail,
     updatePassword: setPassword,
-  }), [contactNumber, displayName, email, isAuthenticated]);
+  }), [dependentId, contactNumber, displayName, email, isAuthenticated]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
