@@ -1,3 +1,4 @@
+import ConfirmationDialog from '../../components/Dialogs/ConfirmationDialog';
 import RoundBackButton from '../../components/Navigation/RoundBackButton';
 import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
@@ -16,6 +17,7 @@ export default function MedicineDetailScreen({ medicine }: { medicine: Medicine 
   const { medicineIds, schedules, toggleMedicine, saveMedicationSchedule } = useMedications();
   const isRegistered = medicineIds.includes(medicine.id);
   const { families, saveFamilyMedication } = useFamilies();
+  const [confirmingRemoval, setConfirmingRemoval] = useState(false);
   const [savingFor, setSavingFor] = useState<'self' | 'family' | null>(null);
   const [familyId, setFamilyId] = useState<string | null>(null);
   const selectedFamily = families.find(family => family.id === familyId);
@@ -41,6 +43,8 @@ export default function MedicineDetailScreen({ medicine }: { medicine: Medicine 
   }
 
   function removeMedication() {
+    setConfirmingRemoval(false);
+    if (!isRegistered) return;
     toggleMedicine(medicine.id);
     router.replace('/(tabs)/medication-list');
   }
@@ -68,11 +72,20 @@ export default function MedicineDetailScreen({ medicine }: { medicine: Medicine 
           <Text style={styles.familyButtonText}>가족 계정에 약 추가</Text>
         </Pressable>
         {isRegistered && (
-          <Pressable accessibilityRole="button" style={styles.removeButton} onPress={removeMedication}>
+          <Pressable accessibilityRole="button" style={styles.removeButton} onPress={() => setConfirmingRemoval(true)}>
             <Text style={styles.removeButtonText}>복용 목록에서 제거</Text>
           </Pressable>
         )}
       </ScrollView>
+      {confirmingRemoval && (
+        <ConfirmationDialog
+          visible
+          title={`${medicine.name}을(를) 복용 목록에서 제거할까요?`}
+          confirmLabel="제거"
+          onCancel={() => setConfirmingRemoval(false)}
+          onConfirm={removeMedication}
+        />
+      )}
       <Modal transparent visible={savingFor !== null} animationType="fade" onRequestClose={closeSchedule}>
         <View style={styles.modalBackdrop}>
           <Pressable accessibilityRole="button" accessibilityLabel="약 일정 설정 닫기" style={StyleSheet.absoluteFill} onPress={closeSchedule} />
