@@ -8,6 +8,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import MedicationListHeader from '../../components/MedicationList/MedicationListHeader/MedicationListHeader';
 import MedicationSummary from '../../components/MedicationList/MedicationSummary/MedicationSummary';
 import MedicationTabs, { MedicationTab } from '../../components/MedicationList/MedicationTabs/MedicationTabs';
+import CurrentMedicationCard from '../../components/MedicationList/CurrentMedicationCard';
 import MedicationItem, { Medication } from '../../components/MedicationList/MedicationListContent/MedicationItem';
 
 const pastMedications: Medication[] = [
@@ -18,7 +19,8 @@ const pastMedications: Medication[] = [
 export default function MedicationList({ dependent = false }: { dependent?: boolean }) {
   const styles = useResponsiveStyles(baseStyles);
   const { medicineIds, schedules } = useMedications();
-  const currentMedications: Medication[] = medicines.filter(item => medicineIds.includes(item.id)).map(item => ({
+  const registeredMedicines = medicines.filter(item => medicineIds.includes(item.id));
+  const currentMedications: Medication[] = registeredMedicines.map(item => ({
     id: item.id,
     name: item.name,
     schedule: getMedicationScheduleLabel(schedules, item.id),
@@ -32,10 +34,16 @@ export default function MedicationList({ dependent = false }: { dependent?: bool
     <View style={styles.container}>
       <MedicationListHeader hideAdd={dependent} />
       <MedicationSummary currentCount={currentMedications.length} cautionCount={currentMedications.filter(medication => medication.caution).length} recordCount={records.length} />
-      <MedicationTabs selectedTab={selectedTab} onSelectTab={setSelectedTab} />
+      <MedicationTabs selectedTab={selectedTab} onSelectTab={setSelectedTab} showCard={dependent} />
       <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
-        {medications.length === 0 && <Text style={{ textAlign: 'center', color: '#7B8494', paddingVertical: 40 }}>{selectedTab === 'past' ? '지난 복용 기록이 없습니다.' : '등록한 약이 없습니다.'}{!dependent && selectedTab === 'current' && ' 검색에서 약을 추가해주세요.'}</Text>}
-        {medications.map((medication) => <MedicationItem key={medication.id} medication={medication} readOnly={dependent} />)}
+        {selectedTab === 'card' ? (
+          <CurrentMedicationCard medicines={registeredMedicines} schedules={schedules} />
+        ) : (
+          <>
+            {medications.length === 0 && <Text style={styles.empty}>{selectedTab === 'past' ? '지난 복용 기록이 없습니다.' : '등록한 약이 없습니다.'}{!dependent && selectedTab === 'current' && ' 검색에서 약을 추가해주세요.'}</Text>}
+            {medications.map((medication) => <MedicationItem key={medication.id} medication={medication} readOnly={dependent} />)}
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -44,4 +52,5 @@ export default function MedicationList({ dependent = false }: { dependent?: bool
 const baseStyles = StyleSheet.create({
   container: { flex: 1, width: '100%', backgroundColor: '#FFFFFF' },
   listContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24, gap: 16 },
+  empty: { textAlign: 'center', color: '#7B8494', paddingVertical: 40 },
 });
