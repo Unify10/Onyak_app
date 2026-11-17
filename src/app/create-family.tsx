@@ -8,7 +8,7 @@ import FamilyDetailsScreen from '../screens/Family/CreateFamily/FamilyDetailsScr
 import { emptyPersonalInfo } from '../utils/personalInfo';
 
 export default function CreateFamilyRoute() {
-  const { addFamily } = useFamilies();
+  const { addFamily, families } = useFamilies();
   const { isAuthenticated, dependentId } = useAuth();
   const [step, setStep] = useState<'details' | 'invitation'>('details');
   const [details, setDetails] = useState({ ...emptyPersonalInfo });
@@ -17,7 +17,7 @@ export default function CreateFamilyRoute() {
   function back() { if (router.canGoBack()) router.back(); else router.replace('/family'); }
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      {step === 'details' ? <FamilyDetailsScreen value={details} onChange={setDetails} onBack={back} onNext={() => setStep('invitation')} /> : <CreateFamilyScreen onBack={() => setStep('details')} onComplete={invitation => { addFamily(details, invitation); router.replace('/family'); }} />}
+      {step === 'details' ? <FamilyDetailsScreen value={details} onChange={setDetails} onBack={back} onNext={() => setStep('invitation')} /> : <CreateFamilyScreen existingCodes={families.map(family => family.code)} onBack={() => setStep('details')} onComplete={invitation => { addFamily(details, invitation); router.replace('/family'); }} />}
     </SafeAreaView>
   );
 }
