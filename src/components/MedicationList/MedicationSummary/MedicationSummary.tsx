@@ -3,18 +3,19 @@ import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { StyleSheet, View } from 'react-native';
 
 const summaries = [
-  { count: '3개', label: '복용 중' },
-  { count: '1개', label: '복용 주의', highlighted: true },
-  { count: '2개', label: '복용 기록' },
-];
+  { key: 'current', label: '복용 중', highlighted: false },
+  { key: 'caution', label: '복용 주의', highlighted: true },
+  { key: 'records', label: '복용 기록', highlighted: false },
+] as const;
 
-export default function MedicationSummary({ currentCount = 3 }: { currentCount?: number }) {
+export default function MedicationSummary({ currentCount = 0, cautionCount = 0, recordCount = 0 }: { currentCount?: number; cautionCount?: number; recordCount?: number }) {
   const styles = useResponsiveStyles(baseStyles);
+  const counts = { current: currentCount, caution: cautionCount, records: recordCount };
   return (
     <View style={styles.summary}>
-      {summaries.map(({ count, label, highlighted }) => (
-        <View key={label} style={[styles.card, highlighted && styles.highlightedCard]}>
-          <Text style={styles.count}>{label === '복용 중' ? `${currentCount}개` : count}</Text>
+      {summaries.map(({ key, label, highlighted }) => (
+        <View key={key} style={[styles.card, highlighted && styles.highlightedCard]}>
+          <Text style={styles.count}>{counts[key]}개</Text>
           <Text style={styles.label}>{label}</Text>
         </View>
       ))}

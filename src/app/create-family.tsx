@@ -9,14 +9,15 @@ import { emptyPersonalInfo } from '../utils/personalInfo';
 
 export default function CreateFamilyRoute() {
   const { addFamily } = useFamilies();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, dependentId } = useAuth();
   const [step, setStep] = useState<'details' | 'invitation'>('details');
   const [details, setDetails] = useState({ ...emptyPersonalInfo });
+  if (dependentId) return <Redirect href="/dependent" />;
   if (!isAuthenticated) return <Redirect href="/login" />;
   function back() { if (router.canGoBack()) router.back(); else router.replace('/family'); }
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      {step === 'details' ? <FamilyDetailsScreen value={details} onChange={setDetails} onBack={back} onNext={() => setStep('invitation')} /> : <CreateFamilyScreen onBack={() => setStep('details')} onComplete={invitation => { addFamily(details, invitation.expiresAt); router.replace('/family'); }} />}
+      {step === 'details' ? <FamilyDetailsScreen value={details} onChange={setDetails} onBack={back} onNext={() => setStep('invitation')} /> : <CreateFamilyScreen onBack={() => setStep('details')} onComplete={invitation => { addFamily(details, invitation); router.replace('/family'); }} />}
     </SafeAreaView>
   );
 }

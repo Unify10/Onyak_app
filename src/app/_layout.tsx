@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '../providers/AuthProvider';
 import { SearchHistoryProvider } from '../providers/SearchHistoryProvider';
+import { NotificationProvider } from '../providers/NotificationProvider';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -22,6 +23,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
+        <NotificationProvider>
         <SearchHistoryProvider>
           <MedicationProvider>
           <ProfileProvider>
@@ -40,6 +42,7 @@ export default function RootLayout() {
           </ProfileProvider>
           </MedicationProvider>
         </SearchHistoryProvider>
+        </NotificationProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

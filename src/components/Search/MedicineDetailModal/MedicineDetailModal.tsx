@@ -23,7 +23,6 @@ export default function MedicineDetailModal({ medicine, onClose }: Props) {
           </View>
           <View style={styles.notice}>
             <Ionicons name="information-circle-outline" size={22} color="#9B6D13" />
-            <AppText style={styles.noticeText}>표시된 제품명은 화면 예시입니다. 의약품 정보는 식약처 API 연결 후 확인할 수 있습니다.</AppText>
           </View>
           <InfoRow icon="medkit-outline" title="효능·효과" />
           <InfoRow icon="time-outline" title="용법·용량" />

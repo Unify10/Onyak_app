@@ -9,7 +9,7 @@ import LabelCameraModal from '../../components/Search/LabelCameraModal/LabelCame
 import SearchHeader from '../../components/Search/SearchHeader/SearchHeader';
 import SearchHistoryList from '../../components/Search/SearchHistoryList/SearchHistoryList';
 import SearchInput from '../../components/Search/SearchInput/SearchInput';
-import SearchResults from '../../components/Search/SearchResults/SearchResults';
+import SearchResults, { SearchPagination } from '../../components/Search/SearchResults/SearchResults';
 import SelectedImageCard from '../../components/Search/SelectedImageCard/SelectedImageCard';
 import { medicines } from '../../components/Search/medicineData';
 import type { CaptureAction, Medicine, SearchHistoryEntry } from '../../components/Search/types';
@@ -155,7 +155,8 @@ export default function SearchScreen({
     <View style={styles.safe}>
       <SearchHeader focused={searchFocused} onBack={closeSearchInput} />
       <ScrollView
-        contentContainerStyle={styles.content}
+        style={styles.resultsScroll}
+        contentContainerStyle={[styles.content, !searchFocused && pageCount > 1 && styles.contentWithPagination]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -180,9 +181,6 @@ export default function SearchScreen({
             <SearchResults
               query={query}
               medicines={visibleMedicines}
-              page={resultPage}
-              pageCount={pageCount}
-              onPageChange={setResultPage}
               onSelectMedicine={selectMedicine}
             />
           </>
@@ -194,11 +192,19 @@ export default function SearchScreen({
         onPickImage={() => void pickImage()}
         onImageCaptured={setCapturedImage}
       />
+      {!searchFocused && pageCount > 1 && (
+        <View style={styles.paginationDock}>
+          <SearchPagination page={resultPage} pageCount={pageCount} onPageChange={setResultPage} />
+        </View>
+      )}
     </View>
   );
 }
 
 const baseStyles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  resultsScroll: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 26 },
+  contentWithPagination: { paddingBottom: 8 },
+  paginationDock: { minHeight: 56, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB', backgroundColor: '#FFFFFF', justifyContent: 'center' },
 });

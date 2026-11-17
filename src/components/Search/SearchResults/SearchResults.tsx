@@ -8,13 +8,10 @@ import type { Medicine } from '../types';
 type Props = {
   query: string;
   medicines: Medicine[];
-  page: number;
-  pageCount: number;
-  onPageChange: (page: number) => void;
   onSelectMedicine: (medicine: Medicine) => void;
 };
 
-export default function SearchResults({ query, medicines, page, pageCount, onPageChange, onSelectMedicine }: Props) {
+export default function SearchResults({ query, medicines, onSelectMedicine }: Props) {
   const styles = useResponsiveStyles(baseStyles, compactStyles);
   return (
     <View>
@@ -32,21 +29,25 @@ export default function SearchResults({ query, medicines, page, pageCount, onPag
           <Ionicons name="chevron-forward" size={22} color="#C5CBD3" />
         </Pressable>
       )) : <EmptyState />}
-      {pageCount > 1 && (
-        <View style={styles.pagination}>
-          <Pressable style={styles.pageArrow} disabled={page === 1} onPress={() => onPageChange(Math.max(1, page - 1))} accessibilityRole="button" accessibilityLabel="이전 페이지">
-            <Ionicons name="chevron-back" size={20} color={page === 1 ? '#C8CDD4' : '#171C26'} />
-          </Pressable>
-          {Array.from({ length: pageCount }, (_, index) => index + 1).map(pageNumber => (
-            <Pressable key={pageNumber} style={[styles.pageNumber, pageNumber === page && styles.pageNumberSelected]} onPress={() => onPageChange(pageNumber)} accessibilityRole="button" accessibilityState={{ selected: pageNumber === page }} accessibilityLabel={`페이지 ${pageNumber}`}>
-              <AppText style={[styles.pageNumberText, pageNumber === page && styles.pageNumberTextSelected]}>{pageNumber}</AppText>
-            </Pressable>
-          ))}
-          <Pressable style={styles.pageArrow} disabled={page === pageCount} onPress={() => onPageChange(Math.min(pageCount, page + 1))} accessibilityRole="button" accessibilityLabel="다음 페이지">
-            <Ionicons name="chevron-forward" size={20} color={page === pageCount ? '#C8CDD4' : '#171C26'} />
-          </Pressable>
-        </View>
-      )}
+    </View>
+  );
+}
+
+export function SearchPagination({ page, pageCount, onPageChange }: { page: number; pageCount: number; onPageChange: (page: number) => void }) {
+  const styles = useResponsiveStyles(baseStyles, compactStyles);
+  return (
+    <View style={styles.pagination}>
+      <Pressable style={styles.pageArrow} disabled={page === 1} onPress={() => onPageChange(Math.max(1, page - 1))} accessibilityRole="button" accessibilityLabel="이전 페이지">
+        <Ionicons name="chevron-back" size={20} color={page === 1 ? '#C8CDD4' : '#171C26'} />
+      </Pressable>
+      {Array.from({ length: pageCount }, (_, index) => index + 1).map(pageNumber => (
+        <Pressable key={pageNumber} style={[styles.pageNumber, pageNumber === page && styles.pageNumberSelected]} onPress={() => onPageChange(pageNumber)} accessibilityRole="button" accessibilityState={{ selected: pageNumber === page }} accessibilityLabel={`페이지 ${pageNumber}`}>
+          <AppText style={[styles.pageNumberText, pageNumber === page && styles.pageNumberTextSelected]}>{pageNumber}</AppText>
+        </Pressable>
+      ))}
+      <Pressable style={styles.pageArrow} disabled={page === pageCount} onPress={() => onPageChange(Math.min(pageCount, page + 1))} accessibilityRole="button" accessibilityLabel="다음 페이지">
+        <Ionicons name="chevron-forward" size={20} color={page === pageCount ? '#C8CDD4' : '#171C26'} />
+      </Pressable>
     </View>
   );
 }

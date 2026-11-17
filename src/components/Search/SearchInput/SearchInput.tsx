@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import TextInput from '../../Typography/TextInput';
 import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -13,13 +14,15 @@ type Props = {
 
 export default function SearchInput({ value, onChange, onFocus, onSubmit, onClear }: Props) {
   const styles = useResponsiveStyles(baseStyles);
+  const [focused, setFocused] = useState(false);
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, focused && styles.focused]}>
       <Ionicons name="search-outline" size={24} color="#9AA3B1" />
       <TextInput
         value={value}
         onChangeText={onChange}
-        onFocus={onFocus}
+        onFocus={() => { setFocused(true); onFocus(); }}
+        onBlur={() => setFocused(false)}
         onSubmitEditing={onSubmit}
         placeholder="약 이름, 성분명으로 검색"
         placeholderTextColor="#9AA3B1"
@@ -39,5 +42,6 @@ export default function SearchInput({ value, onChange, onFocus, onSubmit, onClea
 
 const baseStyles = StyleSheet.create({
   container: { minHeight: 58, flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#D9DDE3', borderRadius: 15, paddingHorizontal: 14, marginBottom: 18 },
+  focused: { borderColor: '#000000' },
   input: { flex: 1, color: '#171C26', fontFamily: 'Pretendard', fontSize: 20, marginLeft: 10, paddingVertical: 10 },
 });

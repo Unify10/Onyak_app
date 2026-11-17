@@ -660,7 +660,7 @@ const baseStyles = StyleSheet.create({
     height: 42,
     borderWidth: 1,
     borderColor: '#D8DDE3',
-    borderRadius: 21,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -739,9 +739,9 @@ const baseStyles = StyleSheet.create({
   },
   placeholder: { color: '#A8A8A8' },
   emailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  emailInput: { flex: 1 },
+  emailInput: { flex: 1, minWidth: 0 },
   codeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  codeInput: { flex: 1 },
+  codeInput: { flex: 1, minWidth: 0 },
   passwordInputRow: {
     position: 'relative',
     justifyContent: 'center',
@@ -758,8 +758,9 @@ const baseStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   verifyButton: {
-    height: 48,
-    paddingHorizontal: 10,
+    minHeight: 48,
+    flexShrink: 0,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: '#D8DDE3',
     borderRadius: 10,
@@ -770,7 +771,7 @@ const baseStyles = StyleSheet.create({
   smallButtonText: {
     color: '#222222',
     fontFamily: 'Pretendard',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
   },
   helperText: {

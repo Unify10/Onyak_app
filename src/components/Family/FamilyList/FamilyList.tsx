@@ -6,12 +6,12 @@ import { useFamilies } from '../../../providers/FamilyProvider';
 
 export default function FamilyList() {
   const styles = useResponsiveStyles(baseStyles);
-  const { families } = useFamilies();
+  const { families, removeFamily } = useFamilies();
   return (
     <View style={styles.container}>
       <View style={styles.header}><Text style={styles.title}>가족</Text><Text style={styles.count}>{families.length}명</Text></View>
       <View style={styles.list}>
-        {families.length === 0 ? <View style={styles.empty}><Text style={styles.emptyTitle}>등록된 가족이 없습니다.</Text><Text style={styles.emptyDescription}>가족 계정을 추가해주세요.</Text></View> : families.map(family => <FamilyItem key={family.id} familyItemName={family.details.name} familyItemEmail="테스트 계정 · 연동 대기" />)}
+        {families.length === 0 ? <View style={styles.empty}><Text style={styles.emptyTitle}>등록된 가족이 없습니다.</Text><Text style={styles.emptyDescription}>가족 계정을 추가해주세요.</Text></View> : families.map(family => <FamilyItem key={family.id} family={family} onDelete={removeFamily} />)}
       </View>
     </View>
   );

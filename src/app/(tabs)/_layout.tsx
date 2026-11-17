@@ -5,7 +5,8 @@ import BottomTabBar from '../../components/BottomTabBar/BottomTabBar';
 import { useAuth } from '../../providers/AuthProvider';
 
 export default function TabsLayout() {
-  const { isAuthenticated } = useAuth();
+  const { dependentId, isAuthenticated } = useAuth();
+  if (dependentId) return <Redirect href="/dependent" />;
   if (!isAuthenticated) return <Redirect href="/login" />;
 
   return (

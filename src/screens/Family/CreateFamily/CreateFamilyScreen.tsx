@@ -62,12 +62,11 @@ export default function CreateFamilyScreen({ onBack, onComplete }: { onBack: () 
           <Pressable accessibilityRole="button" style={styles.outlineButton} onPress={regenerate}><Text style={styles.buttonLabel}>연동 코드 재생성</Text></Pressable>
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: showQr, disabled: secondsLeft === 0 }} disabled={secondsLeft === 0} style={[styles.outlineButton, secondsLeft === 0 && styles.disabled]} onPress={() => setShowQr(current => !current)}><Text style={styles.buttonLabel}>{showQr ? 'QR 닫기' : 'QR 생성'}</Text></Pressable>
           {showQr && secondsLeft > 0 && (
-            <View style={styles.qr} accessibilityLabel="테스트용 가족 연동 QR 코드">
+            <View style={styles.qr} accessibilityLabel="가족 연동 QR 코드">
               <QRCode value={JSON.stringify({ type: 'onyak-demo-family', code: invitation.code, expiresAt: invitation.expiresAt })} size={180} quietZone={12} />
               <Text style={styles.qrLabel}>피보호자 기기에서 QR 코드를 스캔해주세요.</Text>
             </View>
           )}
-          <Text style={styles.demoNote}>화면 테스트용 코드입니다. 실제 계정 연동은 아직 연결되지 않았습니다.</Text>
         </View>
       </ScrollView>
       <View style={styles.footer}>
@@ -80,7 +79,7 @@ export default function CreateFamilyScreen({ onBack, onComplete }: { onBack: () 
 const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { minHeight: 72, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },
-  back: { width: 38, height: 38, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  back: { width: 38, height: 38, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: '50%', alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 18, lineHeight: 26, fontWeight: '500', color: '#111111' },
   headerSpacer: { width: 38 },
   content: { flexGrow: 1, width: '100%', maxWidth: 640, alignSelf: 'center' },

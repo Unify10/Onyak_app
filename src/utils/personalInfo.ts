@@ -6,9 +6,10 @@ export type PersonalInfo = {
   height: string;
   weight: string;
   pregnant: boolean;
+  pregnancyStatusProvided: boolean;
 };
 
-export const emptyPersonalInfo: PersonalInfo = { name: '', birthDate: '', age: '', gender: '선택 안함', height: '', weight: '', pregnant: false };
+export const emptyPersonalInfo: PersonalInfo = { name: '', birthDate: '', age: '', gender: '선택 안함', height: '', weight: '', pregnant: false, pregnancyStatusProvided: false };
 
 export function isValidBirthDate(value: string, now = Date.now()) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -17,11 +18,29 @@ export function isValidBirthDate(value: string, now = Date.now()) {
   return year >= 1900 && date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day && date.getTime() <= now;
 }
 
+export function calculateAge(value: string, today = new Date()) {
+  if (!isValidBirthDate(value, today.getTime())) return '';
+  const [year, month, day] = value.split('-').map(Number);
+  let age = today.getFullYear() - year;
+  if (today.getMonth() + 1 < month || (today.getMonth() + 1 === month && today.getDate() < day)) age -= 1;
+  return String(age);
+}
+
 export function validatePersonalInfo(value: PersonalInfo, requireBirthDate = false) {
   if (!value.name.trim()) return '이름을 입력해주세요.';
   if ((requireBirthDate || value.birthDate) && !isValidBirthDate(value.birthDate)) return '생년월일을 YYYY-MM-DD 형식의 올바른 날짜로 입력해주세요.';
   if (value.age && (!/^\d{1,3}$/.test(value.age) || Number(value.age) > 150)) return '연령을 0부터 150 사이의 정수로 입력해주세요.';
   if (value.height && (!Number.isFinite(Number(value.height)) || Number(value.height) <= 0 || Number(value.height) > 300)) return '신장을 0보다 크고 300 이하인 숫자로 입력해주세요.';
   if (value.weight && (!Number.isFinite(Number(value.weight)) || Number(value.weight) <= 0 || Number(value.weight) > 700)) return '몸무게를 0보다 크고 700 이하인 숫자로 입력해주세요.';
+  return '';
+}
+
+export function validateFamilyInfo(value: PersonalInfo) {
+  if (!value.name.trim()) return '이름을 입력해주세요.';
+  if (!/^(0|[1-9]\d{0,2})$/.test(value.age) || Number(value.age) > 150) return '연령을 0부터 150 사이의 정수로 입력해주세요.';
+  if (value.gender === '선택 안함') return '성별을 선택해주세요.';
+  if (!value.height || !Number.isFinite(Number(value.height)) || Number(value.height) <= 0 || Number(value.height) > 300) return '신장을 0보다 크고 300 이하인 숫자로 입력해주세요.';
+  if (!value.weight || !Number.isFinite(Number(value.weight)) || Number(value.weight) <= 0 || Number(value.weight) > 700) return '몸무게를 0보다 크고 700 이하인 숫자로 입력해주세요.';
+  if (value.gender !== '남성' && !value.pregnancyStatusProvided) return '임신 여부를 선택해주세요.';
   return '';
 }

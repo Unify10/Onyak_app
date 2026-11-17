@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function BirthDateField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+export default function BirthDateField({ value, onChange, label = '생년월일' }: { value: string; onChange: (value: string) => void; label?: string }) {
   const styles = useResponsiveStyles(baseStyles);
   const [visible, setVisible] = useState(false);
   const [month, setMonth] = useState({ year: 2000, month: 0 });
@@ -23,8 +23,8 @@ export default function BirthDateField({ value, onChange }: { value: string; onC
   return (
     <>
       <View style={styles.inputRow}>
-        <TextInput accessibilityLabel="생년월일" placeholder="예시) 2010-01-11" placeholderTextColor="#9CA3AF" value={value} onChangeText={onChange} style={styles.input} maxLength={10} keyboardType="numbers-and-punctuation" />
-        <Pressable style={styles.calendarButton} accessibilityRole="button" accessibilityLabel="생년월일 달력 열기" onPress={openCalendar}><Ionicons name="calendar-outline" size={22} color="#8B929D" /></Pressable>
+        <TextInput accessibilityLabel={label} placeholder="YYYY-MM-DD" placeholderTextColor="#9CA3AF" value={value} onChangeText={onChange} style={styles.input} maxLength={10} keyboardType="numbers-and-punctuation" />
+        <Pressable style={styles.calendarButton} accessibilityRole="button" accessibilityLabel={`${label} 달력 열기`} onPress={openCalendar}><Ionicons name="calendar-outline" size={22} color="#8B929D" /></Pressable>
       </View>
       <Modal transparent visible={visible} animationType="fade" onRequestClose={() => setVisible(false)}>
         <View style={styles.backdrop}>

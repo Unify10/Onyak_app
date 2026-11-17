@@ -35,6 +35,7 @@ export default function LoginScreen({
 }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   // 입력값과 화면 상태
+  const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -86,12 +87,15 @@ export default function LoginScreen({
           <View
             style={[
               styles.inputBox,
+              focusedField === 'email' && styles.inputBoxFocused,
               emailError ? styles.inputBoxError : null,
             ]}
           >
             <TextInput
               style={styles.input}
               value={email}
+              onFocus={() => setFocusedField('email')}
+              onBlur={() => setFocusedField(current => current === 'email' ? null : current)}
               onChangeText={(value) => {
                 setEmail(value);
                 setEmailError('');
@@ -110,12 +114,15 @@ export default function LoginScreen({
           <View
             style={[
               styles.inputBox,
+              focusedField === 'password' && styles.inputBoxFocused,
               passwordError ? styles.inputBoxError : null,
             ]}
           >
             <TextInput
               style={styles.input}
               value={password}
+              onFocus={() => setFocusedField('password')}
+              onBlur={() => setFocusedField(current => current === 'password' ? null : current)}
               onChangeText={(value) => {
                 setPassword(value);
                 setPasswordError('');
@@ -156,7 +163,7 @@ export default function LoginScreen({
               accessibilityRole="checkbox"
               accessibilityState={{ checked: keepLogin }}
             >
-              <View style={[styles.checkbox, keepLogin && styles.checkboxOn]}>
+              <View style={[styles.keepLoginIndicator, keepLogin && styles.checkboxOn]}>
                 {keepLogin && (
                   <Ionicons name="checkmark" size={12} color="#FFFFFF" />
                 )}
@@ -293,6 +300,7 @@ const baseStyles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
   },
+  inputBoxFocused: { borderColor: '#000000' },
   inputBoxError: {
     borderColor: '#E5484D',
   },
@@ -321,7 +329,7 @@ const baseStyles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  checkbox: {
+  keepLoginIndicator: {
     width: 16,
     height: 16,
     borderWidth: 1,

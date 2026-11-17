@@ -5,7 +5,7 @@ import { useMedications } from '../../../providers/MedicationProvider';
 import { medicines } from '../../Search/medicineData';
 import ActiveMedicineItem from './ActiveMedicineItem';
 
-export default function ActiveMedicineList() {
+export default function ActiveMedicineList({ readOnly = false }: { readOnly?: boolean }) {
   const styles = useResponsiveStyles(baseStyles);
   const { medicineIds } = useMedications();
   const activeMedicines = medicines.filter(medicine => medicineIds.includes(medicine.id));
@@ -17,9 +17,9 @@ export default function ActiveMedicineList() {
       </View>
       {activeMedicines.length ? (
         <ScrollView horizontal nestedScrollEnabled directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={styles.list}>
-          {activeMedicines.map(medicine => <ActiveMedicineItem key={medicine.id} medicineId={medicine.id} activeMedicineTitle={medicine.name} activeMedicineInfo={medicine.category} />)}
+          {activeMedicines.map(medicine => <ActiveMedicineItem key={medicine.id} readOnly={readOnly} medicineId={medicine.id} activeMedicineTitle={medicine.name} activeMedicineInfo={medicine.category} />)}
         </ScrollView>
-      ) : <Text style={styles.empty}>복용 중인 약·영양제가 없습니다. 검색에서 추가해주세요.</Text>}
+      ) : <Text style={styles.empty}>복용 중인 약·영양제가 없습니다.{!readOnly && ' 검색에서 추가해주세요.'}</Text>}
     </View>
   );
 }
