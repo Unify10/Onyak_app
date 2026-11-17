@@ -7,3 +7,15 @@ export const medicines: Medicine[] = [
   { id: '4', name: '비타민D 2000IU', ingredient: '비타민D', kind: '비타민 보충', category: '영양제' },
   { id: '5', name: '오메가3', ingredient: 'EPA 및 DHA 함유 유지', kind: '건강기능식품', category: '영양제' },
 ];
+
+if (__DEV__) {
+  // 실제 약품과 혼동하지 않도록 가상 항목에서만 경고를 검증합니다.
+  medicines.push({
+    id: 'demo-contraindication',
+    name: '금기 경고 테스트용 가상 약',
+    ingredient: '테스트 데이터',
+    kind: '만 12세 이하 또는 임신 중 경고 테스트',
+    category: '일반의약품',
+    contraindications: { ageRanges: [{ throughAge: 12 }], pregnancy: true },
+  });
+}

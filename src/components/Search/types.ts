@@ -1,3 +1,5 @@
+import type { MedicationContraindications } from '../../utils/medicationCaution';
+
 export type MedicineCategory = '일반의약품' | '영양제';
 export type CaptureAction = 'label' | 'gallery';
 
@@ -7,6 +9,7 @@ export type Medicine = {
   ingredient: string;
   kind: string;
   category: MedicineCategory;
+  contraindications?: MedicationContraindications;
 };
 
 export type SearchHistoryEntry = {

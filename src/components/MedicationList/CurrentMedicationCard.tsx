@@ -1,3 +1,4 @@
+import MedicationCautionBadge from './MedicationCautionBadge';
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Text from '../Typography/Text';
@@ -8,9 +9,9 @@ import {
   type MedicationSchedule,
 } from '../../utils/medicationSchedule';
 
-type Props = { medicines: Medicine[]; schedules: MedicationSchedule[] };
+type Props = { medicines: Medicine[]; schedules: MedicationSchedule[]; cautionIds: ReadonlySet<string> };
 
-export default function CurrentMedicationCard({ medicines, schedules }: Props) {
+export default function CurrentMedicationCard({ medicines, schedules, cautionIds }: Props) {
   const today = getLocalDateKey(new Date());
   const entries = medicines.flatMap(medicine => {
     const registered = schedules.filter(schedule => schedule.medicineId === medicine.id);
@@ -30,7 +31,7 @@ export default function CurrentMedicationCard({ medicines, schedules }: Props) {
       </View>
       {entries.length === 0 && <Text style={styles.empty}>현재 복용 중인 약·영양제가 없어요.</Text>}
       {entries.map(({ medicine, schedules }) => (
-        <View key={medicine.id} style={styles.row}>
+        <View key={medicine.id} style={[styles.row, cautionIds.has(medicine.id) && styles.cautionRow]}>
           <View style={[styles.icon, medicine.category === '영양제' && styles.supplementIcon]}>
             <Ionicons
               name={medicine.category === '영양제' ? 'leaf-outline' : 'medkit-outline'}
@@ -40,7 +41,10 @@ export default function CurrentMedicationCard({ medicines, schedules }: Props) {
             />
           </View>
           <View style={styles.details}>
-            <Text style={styles.name}>{medicine.name}</Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name}>{medicine.name}</Text>
+              {cautionIds.has(medicine.id) && <MedicationCautionBadge />}
+            </View>
             <Text style={styles.category}>{medicine.category}</Text>
             {schedules.length > 0 ? (
               <View style={styles.schedules}>
@@ -67,6 +71,8 @@ const styles = StyleSheet.create({
   title: { color: '#173E39', fontSize: 20, fontWeight: '700' },
   count: { color: '#245B55', fontSize: 15, fontWeight: '700' },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 16, paddingVertical: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#DDE6E4' },
+  cautionRow: { borderWidth: 1, borderColor: '#D92D20', borderRadius: 12, marginHorizontal: 8, marginVertical: 4 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
   icon: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#E4F2EE', alignItems: 'center', justifyContent: 'center' },
   supplementIcon: { backgroundColor: '#FBF2D9' },
   details: { flex: 1, minWidth: 0, gap: 4 },

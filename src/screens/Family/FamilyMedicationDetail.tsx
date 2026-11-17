@@ -1,3 +1,5 @@
+import MedicationCautionBadge from '../../components/MedicationList/MedicationCautionBadge';
+import { needsMedicationCaution } from '../../utils/medicationCaution';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -29,10 +31,14 @@ export default function FamilyMedicationDetail() {
   const schedules = family.medicationSchedules ?? [];
   const medicineIds = [...new Set(schedules.map(schedule => schedule.medicineId))];
   const todayKey = getLocalDateKey(new Date());
-  const activeCount = new Set(schedules.filter(schedule =>
+  const activeIds = new Set(schedules.filter(schedule =>
     (!schedule.startDate || schedule.startDate <= todayKey) &&
     (!schedule.endDate || schedule.endDate >= todayKey),
-  ).map(schedule => schedule.medicineId)).size;
+  ).map(schedule => schedule.medicineId));
+  const cautionIds = new Set(medicines.filter(medicine =>
+    medicineIds.includes(medicine.id) && needsMedicationCaution(medicine.contraindications, family.details),
+  ).map(medicine => medicine.id));
+  const cautionCount = [...activeIds].filter(id => cautionIds.has(id)).length;
   const selectedDoses = getTodayDoses(medicineIds, schedules, selectedDate);
 
   function moveMonth(delta: number) { setMonth(current => new Date(current.getFullYear(), current.getMonth() + delta, 1)); }
@@ -46,8 +52,8 @@ export default function FamilyMedicationDetail() {
     <Text style={styles.profile}>{family.details.gender} · 만 {family.details.age}세 · {family.details.height}cm · {family.details.weight}kg{family.details.pregnancyStatusProvided && family.details.pregnant ? ' · 임신 중' : ''}</Text>
 
     <View style={styles.summary}>
-      <View style={styles.summaryCard}><Text style={styles.count}>{activeCount}개</Text><Text style={styles.summaryLabel}>복용 중</Text></View>
-      <View style={[styles.summaryCard, styles.cautionCard]}><Text style={styles.count}>0개</Text><Text style={styles.summaryLabel}>복용 주의</Text></View>
+      <View style={styles.summaryCard}><Text style={styles.count}>{activeIds.size}개</Text><Text style={styles.summaryLabel}>복용 중</Text></View>
+      <View style={[styles.summaryCard, styles.cautionCard]}><Text style={styles.count}>{cautionCount}개</Text><Text style={styles.summaryLabel}>복용 주의</Text></View>
     </View>
 
     <View style={styles.calendarCard}>
@@ -70,8 +76,11 @@ export default function FamilyMedicationDetail() {
     <View style={styles.daySection}>
       <Text style={styles.dayTitle}>{selectedDate.getMonth() + 1}월 {selectedDate.getDate()}일 복용</Text>
       {selectedDoses.length ? selectedDoses.map(dose => (
-        <View key={dose.doseId} style={styles.dose}>
-          <Text style={styles.doseName}>{medicines.find(medicine => medicine.id === dose.medicineId)?.name ?? '등록된 약'}</Text>
+        <View key={dose.doseId} style={[styles.dose, cautionIds.has(dose.medicineId) && styles.cautionDose]}>
+          <View style={styles.doseHeading}>
+            <Text style={styles.doseName}>{medicines.find(medicine => medicine.id === dose.medicineId)?.name ?? '등록된 약'}</Text>
+            {cautionIds.has(dose.medicineId) && <MedicationCautionBadge />}
+          </View>
           <Text style={styles.doseTime}>{dose.timeOfDay} · {dose.time}</Text>
         </View>
       )) : (
@@ -90,6 +99,8 @@ const baseStyles = StyleSheet.create({
   summary: { flexDirection: 'row', gap: 12, marginBottom: 22 }, summaryCard: { flex: 1, minHeight: 98, borderRadius: 16, borderWidth: 1, borderColor: '#E1E4E8', alignItems: 'center', justifyContent: 'center', gap: 3 }, cautionCard: { borderColor: '#FF8A80' }, count: { color: '#111111', fontSize: 24 }, summaryLabel: { color: '#7B8494', fontSize: 14 },
   calendarCard: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 16, padding: 14 }, calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }, monthArrow: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }, monthTitle: { fontSize: 18, fontWeight: '600', color: '#111111' }, calendarGrid: { flexDirection: 'row', flexWrap: 'wrap' }, weekday: { width: '14.2857%', height: 40, textAlign: 'center', textAlignVertical: 'center', fontSize: 14, fontWeight: '600', color: '#475467' }, dayCell: { width: '14.2857%', height: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 24 }, dayText: { color: '#344054', fontSize: 16 }, sunday: { color: '#F0788B' }, saturday: { color: '#77B7E8' }, selectedDay: { backgroundColor: '#111111' }, selectedDayText: { color: '#FFFFFF' },
   dose: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, gap: 4 },
+  cautionDose: { borderColor: '#D92D20' },
+  doseHeading: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
   doseName: { color: '#111111', fontSize: 16, fontWeight: '600' },
   doseTime: { color: '#667085', fontSize: 14 },
   daySection: { marginTop: 24, gap: 12 }, dayTitle: { fontSize: 18, fontWeight: '600', color: '#111111' }, emptyMedication: { minHeight: 94, borderRadius: 14, backgroundColor: '#F8F9FB', alignItems: 'center', justifyContent: 'center', gap: 7 }, emptyMedicationText: { color: '#7B8494', fontSize: 14 }, empty: { padding: 24, color: '#667085' },
