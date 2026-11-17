@@ -11,12 +11,12 @@ import {
   isValidDateKey,
   type DoseTimeOfDay,
   type MedicationSchedule,
+  type MedicationScheduleInput,
 } from '../../utils/medicationSchedule';
 
-type DoseTimeInput = { timeOfDay: DoseTimeOfDay; time: string };
 type Props = {
   initialSchedules: MedicationSchedule[];
-  onSave: (schedule: { startDate: string; durationDays: number; doses: DoseTimeInput[] }) => void;
+  onSave: (schedule: MedicationScheduleInput) => void;
   onCancel: () => void;
 };
 

@@ -1,22 +1,28 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { exampleMedicationSchedules, exampleMedicineIds } from '../data/medicationExamples';
-import { addDaysToDateKey, getTodayDoses, type DoseTimeOfDay, type MedicationSchedule } from '../utils/medicationSchedule';
-
-type DoseTimeInput = { timeOfDay: DoseTimeOfDay; time: string };
+import { createMedicationSchedules, getTodayDoses, type MedicationScheduleInput, type MedicationSchedule } from '../utils/medicationSchedule';
 
 type MedicationContextValue = {
   medicineIds: string[];
   toggleMedicine: (id: string) => void;
   schedules: MedicationSchedule[];
-  saveMedicationSchedule: (medicineId: string, startDate: string, durationDays: number, doses: DoseTimeInput[]) => void;
+  saveMedicationSchedule: (medicineId: string, startDate: string, durationDays: number, doses: MedicationScheduleInput['doses']) => void;
   todayDoses: (ReturnType<typeof getTodayDoses>[number] & { completed: boolean })[];
   toggleDose: (doseId: string) => void;
 };
 const MedicationContext = createContext<MedicationContextValue | null>(null);
 
-export function MedicationProvider({ children, includeExamples = true }: { children: ReactNode; includeExamples?: boolean }) {
-  const [medicineIds, setMedicineIds] = useState<string[]>(includeExamples ? exampleMedicineIds : []);
-  const [schedules, setSchedules] = useState<MedicationSchedule[]>(includeExamples ? exampleMedicationSchedules : []);
+type MedicationProviderProps = {
+  children: ReactNode;
+  includeExamples?: boolean;
+  familySchedules?: MedicationSchedule[];
+};
+
+export function MedicationProvider({ children, includeExamples = true, familySchedules }: MedicationProviderProps) {
+  const [personalMedicineIds, setMedicineIds] = useState<string[]>(includeExamples ? exampleMedicineIds : []);
+  const [personalSchedules, setSchedules] = useState<MedicationSchedule[]>(includeExamples ? exampleMedicationSchedules : []);
+  const schedules = familySchedules ?? personalSchedules;
+  const medicineIds = familySchedules ? [...new Set(familySchedules.map(schedule => schedule.medicineId))] : personalMedicineIds;
   const [completedDoseIds, setCompletedDoseIds] = useState<string[]>([]);
   const [today, setToday] = useState(() => new Date());
   useEffect(() => {
@@ -28,6 +34,7 @@ export function MedicationProvider({ children, includeExamples = true }: { child
   const todayDoses = getTodayDoses(medicineIds, schedules, today)
     .map(dose => ({ ...dose, completed: completedDoseIds.includes(dose.doseId) }));
   function toggleMedicine(id: string) {
+    if (familySchedules) return;
     if (medicineIds.includes(id)) {
       setMedicineIds(current => current.filter(item => item !== id));
       setSchedules(current => current.filter(schedule => schedule.medicineId !== id));
@@ -35,18 +42,9 @@ export function MedicationProvider({ children, includeExamples = true }: { child
       setMedicineIds(current => [...current, id]);
     }
   }
-  function saveMedicationSchedule(medicineId: string, startDate: string, durationDays: number, doses: DoseTimeInput[]) {
-    const endDate = addDaysToDateKey(startDate, durationDays - 1);
-    const createdAt = Date.now();
-    const nextSchedules = doses.map((dose, index) => ({
-      id: `${medicineId}-${createdAt}-${index}`,
-      medicineId,
-      daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
-      timeOfDay: dose.timeOfDay,
-      time: dose.time,
-      startDate,
-      endDate,
-    }));
+  function saveMedicationSchedule(medicineId: string, startDate: string, durationDays: number, doses: MedicationScheduleInput['doses']) {
+    if (familySchedules) return;
+    const nextSchedules = createMedicationSchedules(medicineId, { startDate, durationDays, doses });
     setMedicineIds(current => current.includes(medicineId) ? current : [...current, medicineId]);
     setSchedules(current => [...current.filter(schedule => schedule.medicineId !== medicineId), ...nextSchedules]);
   }

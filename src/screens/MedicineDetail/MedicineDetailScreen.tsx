@@ -8,17 +8,35 @@ import MedicineInfoAccordion from '../../components/MedicineDetail/MedicineInfoA
 import MedicationScheduleForm from '../../components/MedicineDetail/MedicationScheduleForm';
 import type { Medicine } from '../../components/Search/types';
 import { useMedications } from '../../providers/MedicationProvider';
-import type { DoseTimeOfDay } from '../../utils/medicationSchedule';
+import { useFamilies } from '../../providers/FamilyProvider';
+import type { MedicationScheduleInput } from '../../utils/medicationSchedule';
 
 export default function MedicineDetailScreen({ medicine }: { medicine: Medicine }) {
   const styles = useResponsiveStyles(baseStyles);
   const { medicineIds, schedules, toggleMedicine, saveMedicationSchedule } = useMedications();
   const isRegistered = medicineIds.includes(medicine.id);
-  const [showScheduleForm, setShowScheduleForm] = useState(false);
-  const medicineSchedules = schedules.filter(schedule => schedule.medicineId === medicine.id);
+  const { families, saveFamilyMedication } = useFamilies();
+  const [savingFor, setSavingFor] = useState<'self' | 'family' | null>(null);
+  const [familyId, setFamilyId] = useState<string | null>(null);
+  const selectedFamily = families.find(family => family.id === familyId);
+  const selectedSchedules = savingFor === 'family' ? selectedFamily?.medicationSchedules ?? [] : schedules;
+  const medicineSchedules = selectedSchedules.filter(schedule => schedule.medicineId === medicine.id);
 
-  function saveSchedule(schedule: { startDate: string; durationDays: number; doses: { timeOfDay: DoseTimeOfDay; time: string }[] }) {
+  function closeSchedule() {
+    setSavingFor(null);
+    setFamilyId(null);
+  }
+
+  function saveSchedule(schedule: MedicationScheduleInput) {
+    if (savingFor === 'family') {
+      if (!selectedFamily) return;
+      saveFamilyMedication(selectedFamily.id, medicine.id, schedule);
+      closeSchedule();
+      router.replace({ pathname: '/family/[id]', params: { id: selectedFamily.id, date: schedule.startDate } });
+      return;
+    }
     saveMedicationSchedule(medicine.id, schedule.startDate, schedule.durationDays, schedule.doses);
+    closeSchedule();
     router.replace('/(tabs)/medication-list');
   }
 
@@ -41,23 +59,54 @@ export default function MedicineDetailScreen({ medicine }: { medicine: Medicine 
           <Text style={styles.name}>{medicine.name}</Text>
         </View>
         <MedicineInfoAccordion />
-        {!showScheduleForm && (
-          <Pressable accessibilityRole="button" style={styles.button} onPress={() => setShowScheduleForm(true)}>
+        {!savingFor && (
+          <Pressable accessibilityRole="button" style={styles.button} onPress={() => setSavingFor('self')}>
             <Text style={styles.buttonText}>{isRegistered ? '복용 일정 수정' : '복용 목록에 추가'}</Text>
           </Pressable>
         )}
+        <Pressable accessibilityRole="button" style={styles.familyButton} onPress={() => setSavingFor('family')}>
+          <Text style={styles.familyButtonText}>가족 계정에 약 추가</Text>
+        </Pressable>
         {isRegistered && (
           <Pressable accessibilityRole="button" style={styles.removeButton} onPress={removeMedication}>
             <Text style={styles.removeButtonText}>복용 목록에서 제거</Text>
           </Pressable>
         )}
       </ScrollView>
-      <Modal transparent visible={showScheduleForm} animationType="fade" onRequestClose={() => setShowScheduleForm(false)}>
+      <Modal transparent visible={savingFor !== null} animationType="fade" onRequestClose={closeSchedule}>
         <View style={styles.modalBackdrop}>
-          <Pressable accessibilityRole="button" accessibilityLabel="약 일정 설정 닫기" style={StyleSheet.absoluteFill} onPress={() => setShowScheduleForm(false)} />
+          <Pressable accessibilityRole="button" accessibilityLabel="약 일정 설정 닫기" style={StyleSheet.absoluteFill} onPress={closeSchedule} />
           <View style={styles.modalCard}>
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-              <MedicationScheduleForm initialSchedules={medicineSchedules} onSave={saveSchedule} onCancel={() => setShowScheduleForm(false)} />
+              {savingFor === 'family' && !selectedFamily ? (
+                <View style={styles.familyPicker}>
+                  <Text accessibilityRole="header" style={styles.familyTitle}>약을 추가할 가족 선택</Text>
+                  {families.length ? families.map(family => {
+                    const isAdded = family.medicationSchedules?.some(schedule => schedule.medicineId === medicine.id);
+                    return (
+                      <Pressable key={family.id} accessibilityRole="button" style={styles.familyOption} onPress={() => setFamilyId(family.id)}>
+                        <Text style={styles.familyButtonText}>{family.details.name}</Text>
+                        {isAdded && <Text style={styles.removeButtonText}>등록됨 · 일정 수정</Text>}
+                      </Pressable>
+                    );
+                  }) : (
+                    <>
+                      <Text>등록된 가족 계정이 없어요.</Text>
+                      <Pressable accessibilityRole="button" style={styles.familyButton} onPress={() => { closeSchedule(); router.push('/create-family'); }}>
+                        <Text style={styles.familyButtonText}>가족 계정 생성</Text>
+                      </Pressable>
+                    </>
+                  )}
+                  <Pressable accessibilityRole="button" style={styles.removeButton} onPress={closeSchedule}>
+                    <Text style={styles.removeButtonText}>취소</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <>
+                  {selectedFamily && <Text style={styles.familyFormTitle}>{selectedFamily.details.name}님의 복용 일정</Text>}
+                  <MedicationScheduleForm key={selectedFamily?.id ?? 'self'} initialSchedules={medicineSchedules} onSave={saveSchedule} onCancel={closeSchedule} />
+                </>
+              )}
             </ScrollView>
           </View>
         </View>
@@ -76,6 +125,12 @@ const baseStyles = StyleSheet.create({
   name: { fontSize: 20, lineHeight: 28, color: '#111111', textAlign: 'center', marginTop: 12 },
   button: { minHeight: 52, borderRadius: 12, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', marginTop: 34, padding: 14 },
   buttonText: { fontSize: 16, lineHeight: 24, color: '#FFFFFF' },
+  familyButton: { minHeight: 48, marginTop: 12, padding: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 12 },
+  familyButtonText: { color: '#111111', fontSize: 16, fontWeight: '600' },
+  familyPicker: { padding: 20, gap: 10 },
+  familyTitle: { fontSize: 19, fontWeight: '600', color: '#111111' },
+  familyOption: { minHeight: 48, padding: 12, gap: 4, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 12 },
+  familyFormTitle: { paddingHorizontal: 20, paddingTop: 18, fontSize: 16, fontWeight: '600', color: '#111111' },
   removeButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
   removeButtonText: { fontSize: 14, lineHeight: 20, color: '#7B8494' },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 16 },

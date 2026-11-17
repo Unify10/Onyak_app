@@ -1,3 +1,4 @@
+import { useFamilies } from '../../providers/FamilyProvider';
 import { Redirect, Slot } from 'expo-router';
 import { useAuth } from '../../providers/AuthProvider';
 import { useDependentProfile } from '../../hooks/useDependentProfile';
@@ -10,12 +11,14 @@ import { getTestDependent } from '../../utils/familyInvitation';
 
 export default function DependentLayout() {
   const { dependentId, isAuthenticated } = useAuth();
+  const { families } = useFamilies();
+  const family = families.find(item => item.id === dependentId);
   const profile = useDependentProfile();
   const testDependent = getTestDependent();
   if (!profile) return <Redirect href={isAuthenticated ? '/(tabs)' : '/login'} />;
 
   return (
-    <MedicationProvider key={dependentId} includeExamples={testDependent?.id === dependentId}>
+    <MedicationProvider key={dependentId} includeExamples={testDependent?.id === dependentId} familySchedules={family ? family.medicationSchedules ?? [] : undefined}>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top']}>
         <View style={{ flex: 1 }}><Slot /></View>
         <BottomTabBar dependent />
