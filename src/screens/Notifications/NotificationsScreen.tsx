@@ -12,7 +12,7 @@ import { useNotifications } from '../../providers/NotificationProvider';
 export default function NotificationsScreen() {
   const styles = useResponsiveStyles(baseStyles);
   const [filter, setFilter] = useState<'all' | 'medication' | 'sos'>('all');
-  const { markAllRead } = useNotifications();
+  const { markAllRead, sosRequests } = useNotifications();
   useEffect(() => { markAllRead(); }, [markAllRead]);
   return (
     <View style={styles.screen}>
@@ -29,7 +29,8 @@ export default function NotificationsScreen() {
       </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {notificationExamples.map(group => {
-          const items = group.items.filter(item => filter === 'all' || item.type === filter);
+          const entries = group.label === '오늘' ? [...sosRequests, ...group.items] : group.items;
+          const items = entries.filter(item => filter === 'all' || item.type === filter);
           if (!items.length) return null;
           return <View key={group.label} style={styles.group}>
             <Text style={styles.groupTitle}>{group.label}</Text>
