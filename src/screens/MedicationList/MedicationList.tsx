@@ -42,7 +42,7 @@ export default function MedicationList({ dependent = false, dependentProfile }: 
       <MedicationTabs selectedTab={selectedTab} onSelectTab={setSelectedTab} showCard={dependent} />
       <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
         {selectedTab === 'card' ? (
-          <CurrentMedicationCard medicines={registeredMedicines} schedules={schedules} cautionIds={cautionIds} />
+          <CurrentMedicationCard name={dependentProfile?.name} medicines={registeredMedicines} schedules={schedules} cautionIds={cautionIds} />
         ) : (
           <>
             {medications.length === 0 && <Text style={styles.empty}>{selectedTab === 'past' ? '지난 복용 기록이 없습니다.' : '등록한 약이 없습니다.'}{!dependent && selectedTab === 'current' && ' 검색에서 약을 추가해주세요.'}</Text>}
