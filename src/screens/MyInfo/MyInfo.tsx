@@ -22,7 +22,7 @@ export default function MyInfo({ displayName, email, onSignOut, dependentProfile
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       {profile ? (
         <Suspense fallback={<ProfileOverviewSkeleton />}>
-          <ProfileOverview name={displayName} email={email} profile={profile} />
+          <ProfileOverview name={displayName} email={email} profile={profile} showBirthDate={!dependentProfile} />
         </Suspense>
       ) : profileRequest.state.status === 'error' ? (
         <View style={styles.profileError}>

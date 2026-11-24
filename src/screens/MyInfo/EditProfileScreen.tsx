@@ -1,5 +1,6 @@
 import RoundBackButton from '../../components/Navigation/RoundBackButton';
 import Text from '../../components/Typography/Text';
+import { useSaveBodyProfile } from '../../hooks/useSaveBodyProfile';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -35,11 +36,25 @@ export default function EditProfileScreen() {
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [passwordVisibility, setPasswordVisibility] = useState({ current: false, next: false, confirmation: false });
   const [error, setError] = useState('');
-  function save() {
+  const { saveBody, saving, saveError, clearSaveError } = useSaveBodyProfile();
+
+  async function save() {
+    if (saving) return;
+    clearSaveError();
+    const bodyDraft = {
+      ...draft,
+      name: draft.name.trim() || '사용자',
+      age: calculateAge(draft.birthDate),
+      height: draft.height.trim().replace(',', '.'),
+      weight: draft.weight.trim().replace(',', '.'),
+    };
     const changingPassword = activeTab === 'personal' && !!(currentPassword || newPassword || passwordConfirmation);
     let message = activeTab === 'personal'
       ? validatePersonalInfo({ ...draft, age: '', height: '', weight: '' })
-      : validatePersonalInfo({ ...draft, name: draft.name || '사용자', age: calculateAge(draft.birthDate) }, true);
+      : validatePersonalInfo(bodyDraft);
+    if (!message && activeTab === 'body' && Number(bodyDraft.weight) > 300) {
+      message = '몸무게를 300kg 이하로 입력해 주세요.';
+    }
     if (activeTab === 'personal') {
       if (!message && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailDraft.trim())) message = '올바른 이메일 주소를 입력해주세요.';
       const phoneDigits = phone.replace(/\D/g, '');
@@ -51,8 +66,10 @@ export default function EditProfileScreen() {
     }
     setError(message);
     if (message) return;
-    saveProfile({ ...draft, name: draft.name.trim(), ...(activeTab === 'body' ? { age: calculateAge(draft.birthDate) } : {}) });
-    if (activeTab === 'personal') {
+    if (activeTab === 'body') {
+      if (!(await saveBody(bodyDraft))) return;
+    } else {
+      saveProfile({ ...draft, name: draft.name.trim() });
       updateDisplayName(draft.name.trim());
       updateContactNumber(formatPhoneNumber(phone));
       updateEmail(emailDraft.trim());
@@ -65,7 +82,7 @@ export default function EditProfileScreen() {
       <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerSpacer}>
-          <RoundBackButton onPress={() => router.replace('/my-info')} accessibilityLabel="내 정보로 돌아가기" />
+          <RoundBackButton onPress={() => { if (!saving) router.replace('/my-info'); }} accessibilityLabel="내 정보로 돌아가기" />
         </View>
         <Text style={styles.headerTitle}>{activeTab === 'body' ? '신체정보 변경' : '개인정보 변경'}</Text>
         <View style={styles.headerSpacer} />
@@ -84,10 +101,12 @@ export default function EditProfileScreen() {
           </View>
         </> : <>
           <Text style={styles.sectionTitle}>신체정보</Text>
-          <PersonalInfoFields section="body" spacious value={draft} onChange={next => { setDraft(next); setError(''); }} />
+          <PersonalInfoFields section="body" spacious value={draft} onChange={next => { setDraft(next); setError(''); clearSaveError(); }} />
         </>}
-        {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-        <Pressable onPress={save} accessibilityRole="button" style={styles.saveButton}><Text style={styles.saveButtonText}>수정 완료</Text></Pressable>
+        {error || saveError ? <Text accessibilityRole="alert" style={styles.error}>{error || saveError}</Text> : null}
+        <Pressable onPress={() => void save()} disabled={saving} accessibilityRole="button" accessibilityState={{ busy: saving }} style={styles.saveButton}>
+          <Text style={styles.saveButtonText}>{saving ? '저장 중' : '수정 완료'}</Text>
+        </Pressable>
       </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>

@@ -1,4 +1,4 @@
-type Options = { body?: object; signal?: AbortSignal; accessToken?: string; privateRequest?: boolean };
+type Options = { method?: 'PATCH'; body?: object; signal?: AbortSignal; accessToken?: string; privateRequest?: boolean };
 
 type ApiEnvelope<T> = {
   success: boolean;
@@ -33,7 +33,7 @@ export async function requestApi<T>(path: string, options: Options = {}): Promis
 
   try {
     const response = await fetch(`${baseUrl}${path}`, {
-      method: options.body ? 'POST' : 'GET',
+      method: options.method ?? (options.body ? 'POST' : 'GET'),
       headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
       signal: controller.signal,

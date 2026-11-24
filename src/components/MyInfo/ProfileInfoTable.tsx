@@ -2,18 +2,22 @@ import Text from '../Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { isValidBirthDate, type PersonalInfo } from '../../utils/personalInfo';
+import { calculateAge, isValidBirthDate, type PersonalInfo } from '../../utils/personalInfo';
 
-export default function ProfileInfoTable({ profile }: { profile: PersonalInfo }) {
+type Props = { profile: PersonalInfo; showBirthDate?: boolean };
+
+export default function ProfileInfoTable({ profile, showBirthDate = false }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   const [today] = useState(() => new Date());
-  let age = profile.age ? `만 ${Number(profile.age)}세` : '미입력';
-  if (!profile.age && isValidBirthDate(profile.birthDate, today.getTime())) {
-    const birthday = new Date(`${profile.birthDate}T00:00:00`);
-    const hadBirthday = today.getMonth() > birthday.getMonth() || (today.getMonth() === birthday.getMonth() && today.getDate() >= birthday.getDate());
-    age = `만 ${today.getFullYear() - birthday.getFullYear() - (hadBirthday ? 0 : 1)}세`;
-  }
-  const rows = [ ['성별', profile.gender], ['연령', age], ['신장', profile.height ? `${profile.height} cm` : '미입력'], ['몸무게', profile.weight ? `${profile.weight} kg` : '미입력'], ['임신 여부', profile.pregnant ? '임신 중' : profile.pregnancyStatusProvided || profile.gender === '남성' ? '해당 없음' : '미입력'] ];
+  const age = profile.age || calculateAge(profile.birthDate, today);
+  const rows = [
+    ['성별', profile.gender],
+    ['연령', age ? `만 ${Number(age)}세` : '미입력'],
+    ...(showBirthDate && isValidBirthDate(profile.birthDate, today.getTime()) ? [['생년월일', profile.birthDate]] : []),
+    ['신장', profile.height ? `${profile.height} cm` : '미입력'],
+    ['몸무게', profile.weight ? `${profile.weight} kg` : '미입력'],
+    ['임신 여부', profile.pregnant ? '임신 중' : profile.pregnancyStatusProvided || profile.gender === '남성' ? '해당 없음' : '미입력'],
+  ];
   return <View style={styles.table}>{rows.map(([label, value], index) => <View key={label} style={[styles.row, index > 0 && styles.border]}><Text style={styles.label}>{label}</Text><Text style={styles.value}>{value}</Text></View>)}</View>;
 }
 const baseStyles = StyleSheet.create({

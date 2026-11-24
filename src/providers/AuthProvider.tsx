@@ -1,11 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { logout, refreshSession, type AccountSession } from '../api/auth';
 import { ApiError } from '../api/client';
-import { getAccountProfile, type AccountProfile } from '../api/profile';
+import { getAccountProfile, patchAccountBody, type AccountBody, type AccountProfile } from '../api/profile';
 import { readAccountSession, writeAccountSession } from '../utils/accountSessionStorage';
 
 type AuthContextValue = {
   isAuthenticated: boolean;
+  accountId: number | null;
   dependentId: string | null;
   signInDependent: (id: string) => void;
   displayName: string;
@@ -14,6 +15,7 @@ type AuthContextValue = {
   signIn: (session: AccountSession, keepLogin: boolean) => void;
   signOut: () => void;
   loadProfile: (signal: AbortSignal) => Promise<AccountProfile>;
+  updateBody: (body: AccountBody, signal: AbortSignal) => Promise<AccountBody>;
   withSession: <T>(request: (accessToken: string) => Promise<T>, signal: AbortSignal) => Promise<T>;
   updateDisplayName: (name: string) => void;
   updateContactNumber: (number: string) => void;
@@ -25,7 +27,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children, loadingFallback = null }: { children: ReactNode; loadingFallback?: ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [accountId, setAccountId] = useState<number | null>(null);
   const [dependentId, setDependentId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -33,6 +35,8 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
   const [, setPassword] = useState('');
   const currentSession = useRef<AccountSession | null>(null);
   const keepSession = useRef(false);
+  const confirmedBody = useRef<AccountBody | null>(null);
+  const sessionGeneration = useRef(0);
   const pendingWrite = useRef<Promise<void>>(Promise.resolve());
   const pendingRefresh = useRef<{ session: AccountSession; request: Promise<AccountSession> } | null>(null);
 
@@ -48,7 +52,7 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
       keepSession.current = true;
       setDisplayName(session.name);
       setEmail(session.email);
-      setIsAuthenticated(true);
+      setAccountId(session.user_id);
     }).catch(() => {}).finally(() => {
       if (active) setReady(true);
     });
@@ -59,9 +63,11 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
   const clearSession = useCallback(() => {
     const session = currentSession.current;
     currentSession.current = null;
+    confirmedBody.current = null;
+    sessionGeneration.current += 1;
     keepSession.current = false;
     persist(null);
-    setIsAuthenticated(false);
+    setAccountId(null);
     setDisplayName('');
     setEmail('');
     setContactNumber('');
@@ -76,6 +82,8 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
   }, [clearSession]);
 
   function signIn(session: AccountSession, keepLogin: boolean) {
+    confirmedBody.current = null;
+    sessionGeneration.current += 1;
     currentSession.current = session;
     keepSession.current = keepLogin;
     persist(keepLogin ? session : null);
@@ -83,7 +91,7 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
     setDisplayName(session.name);
     setEmail(session.email);
     setContactNumber('');
-    setIsAuthenticated(true);
+    setAccountId(session.user_id);
   }
 
   const renewSession = useCallback((session: AccountSession) => {
@@ -116,19 +124,20 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
     signal: AbortSignal,
   ) => {
     const session = currentSession.current;
+    const generation = sessionGeneration.current;
     if (!session) throw new Error('다시 로그인해 주세요.');
 
     let result: T;
     try {
       result = await request(session.access_token);
     } catch (error) {
-      if (signal.aborted || !(error instanceof ApiError) || error.status !== 401) throw error;
+      if (signal.aborted || generation !== sessionGeneration.current || !(error instanceof ApiError) || error.status !== 401) throw error;
       const next = await renewSession(session);
       if (signal.aborted) throw new Error('요청이 취소됐어요.');
       result = await request(next.access_token);
     }
 
-    if (signal.aborted || currentSession.current?.user_id !== session.user_id) {
+    if (signal.aborted || generation !== sessionGeneration.current) {
       throw new Error('요청이 취소됐어요.');
     }
     return result;
@@ -142,13 +151,26 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
     setDisplayName(profile.name);
     setEmail(profile.email);
     setContactNumber(profile.phone ?? '');
-    return profile;
+    return {
+      ...profile,
+      // 조회 응답에서 빠진 필드는 현재 세션에서 서버가 저장한 값으로 채웁니다.
+      birth_date: profile.birth_date === undefined ? confirmedBody.current?.birth_date : profile.birth_date,
+      height: profile.height === undefined ? confirmedBody.current?.height : profile.height,
+    };
+  }, [withSession]);
+
+  const updateBody = useCallback(async (body: AccountBody, signal: AbortSignal) => {
+    const saved = await withSession(token => patchAccountBody(body, token, signal), signal);
+    if (!saved || typeof saved !== 'object') throw new Error('서버에서 저장된 신체정보를 받지 못했어요.');
+    confirmedBody.current = saved;
+    return saved;
   }, [withSession]);
 
   if (!ready) return <>{loadingFallback}</>;
 
   const value: AuthContextValue = {
-    isAuthenticated,
+    isAuthenticated: accountId !== null,
+    accountId,
     dependentId,
     signInDependent: id => {
       clearSession();
@@ -160,6 +182,7 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
     signIn,
     signOut,
     loadProfile,
+    updateBody,
     withSession,
     updateDisplayName: setDisplayName,
     updateContactNumber: setContactNumber,
