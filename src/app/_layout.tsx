@@ -8,9 +8,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '../providers/AuthProvider';
 import { SearchHistoryProvider } from '../providers/SearchHistoryProvider';
 import { NotificationProvider } from '../providers/NotificationProvider';
+import DetailSkeleton from '../components/Skeleton/DetailSkeleton';
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Pretendard: require('../../assets/fonts/Pretendard-Regular.otf'),
     'Pretendard-Medium': require('../../assets/fonts/Pretendard-Medium.otf'),
     'Pretendard-SemiBold': require('../../assets/fonts/Pretendard-SemiBold.otf'),
@@ -18,11 +19,12 @@ export default function RootLayout() {
     'Pretendard-ExtraBold': require('../../assets/fonts/Pretendard-ExtraBold.otf'),
   });
 
-  if (!fontsLoaded) return null;
+  const loading = <DetailSkeleton kind="app" label="앱 불러오는 중" />;
+  if (!fontsLoaded && !fontError) return loading;
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
+      <AuthProvider loadingFallback={loading}>
         <NotificationProvider>
         <SearchHistoryProvider>
           <MedicationProvider>

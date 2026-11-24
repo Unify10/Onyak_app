@@ -180,7 +180,7 @@ export default function SearchScreen({
         ) : (
           <>
             <CaptureActionPanel onPress={() => void openCamera()} />
-            {selectedImage && <SelectedImageCard uri={selectedImage} onRemove={() => setSelectedImage(null)} />}
+            {selectedImage && <SelectedImageCard key={selectedImage} uri={selectedImage} onRemove={() => setSelectedImage(null)} />}
             <Suspense fallback={<SearchResultsSkeleton />}>
               <SearchResults
                 query={query}

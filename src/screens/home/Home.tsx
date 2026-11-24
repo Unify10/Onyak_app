@@ -4,12 +4,14 @@ import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { StyleSheet, ScrollView } from 'react-native';
 import MedicinePhoto from '../../components/Home/MedicinePhoto/MedicinePhoto';
 import TodayMedicineListSkeleton from '../../components/Home/TodayMedicineList/TodayMedicineListSkeleton';
-import ActiveMedicineList from '../../components/Home/ActiveMedicineList/ActiveMedicineList';
-import HomeFamilyAccountList from '../../components/Home/HomeFamilyAccount/HomeFamilyAccountList';
+import ListSkeleton from '../../components/Skeleton/ListSkeleton';
 import PageTitle from '../../components/Home/PageTitle/PageTitle';
 import Text from '../../components/Typography/Text';
 
 const TodayMedicineList = lazy(() => import('../../components/Home/TodayMedicineList/TodayMedicineList'));
+
+const ActiveMedicineList = lazy(() => import('../../components/Home/ActiveMedicineList/ActiveMedicineList'));
+const HomeFamilyAccountList = lazy(() => import('../../components/Home/HomeFamilyAccount/HomeFamilyAccountList'));
 
 export default function Home({ dependentName }: { dependentName?: string }) {
   const styles = useResponsiveStyles(baseStyles);
@@ -25,9 +27,15 @@ export default function Home({ dependentName }: { dependentName?: string }) {
       <Suspense fallback={<TodayMedicineListSkeleton />}>
         <TodayMedicineList />
       </Suspense>
-      <ActiveMedicineList readOnly={!!dependentName} />
+      <Suspense fallback={<ListSkeleton title="복용 중인 약·영양제" label="복용 중인 약과 영양제 불러오는 중" layout="cards" />}>
+        <ActiveMedicineList readOnly={!!dependentName} />
+      </Suspense>
       {dependentName && <SosSlider name={dependentName} />}
-      {!dependentName && <HomeFamilyAccountList />}
+      {!dependentName && (
+        <Suspense fallback={<ListSkeleton title="가족 계정" label="가족 계정 불러오는 중" layout="avatars" />}>
+          <HomeFamilyAccountList />
+        </Suspense>
+      )}
       <Text style={styles.footer}>좋은 하루 보내세요</Text>
     </ScrollView>
   );
