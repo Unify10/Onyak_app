@@ -33,25 +33,6 @@ export default function SearchResults({ query, medicines, onSelectMedicine }: Pr
   );
 }
 
-export function SearchPagination({ page, pageCount, onPageChange }: { page: number; pageCount: number; onPageChange: (page: number) => void }) {
-  const styles = useResponsiveStyles(baseStyles, compactStyles);
-  return (
-    <View style={styles.pagination}>
-      <Pressable style={styles.pageArrow} disabled={page === 1} onPress={() => onPageChange(Math.max(1, page - 1))} accessibilityRole="button" accessibilityLabel="이전 페이지">
-        <Ionicons name="chevron-back" size={20} color={page === 1 ? '#C8CDD4' : '#171C26'} />
-      </Pressable>
-      {Array.from({ length: pageCount }, (_, index) => index + 1).map(pageNumber => (
-        <Pressable key={pageNumber} style={[styles.pageNumber, pageNumber === page && styles.pageNumberSelected]} onPress={() => onPageChange(pageNumber)} accessibilityRole="button" accessibilityState={{ selected: pageNumber === page }} accessibilityLabel={`페이지 ${pageNumber}`}>
-          <AppText style={[styles.pageNumberText, pageNumber === page && styles.pageNumberTextSelected]}>{pageNumber}</AppText>
-        </Pressable>
-      ))}
-      <Pressable style={styles.pageArrow} disabled={page === pageCount} onPress={() => onPageChange(Math.min(pageCount, page + 1))} accessibilityRole="button" accessibilityLabel="다음 페이지">
-        <Ionicons name="chevron-forward" size={20} color={page === pageCount ? '#C8CDD4' : '#171C26'} />
-      </Pressable>
-    </View>
-  );
-}
-
 function EmptyState() {
   const styles = useResponsiveStyles(baseStyles, compactStyles);
   return (
@@ -72,12 +53,6 @@ const baseStyles = StyleSheet.create({
   info: { flex: 1, minWidth: 0, paddingVertical: 7 },
   name: { color: '#171C26', fontSize: 19, fontWeight: '600' },
   detail: { color: '#7E8795', fontSize: 16, lineHeight: 21, marginTop: 4 },
-  pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, marginBottom: 8, gap: 7 },
-  pageArrow: { width: 34, height: 36, alignItems: 'center', justifyContent: 'center' },
-  pageNumber: { width: 34, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  pageNumberSelected: { backgroundColor: '#F2F4F7' },
-  pageNumberText: { color: '#7E8795', fontSize: 17 },
-  pageNumberTextSelected: { color: '#667085', fontWeight: '700' },
   empty: { minHeight: 150, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E8EAED', borderRadius: 16, padding: 20 },
   emptyTitle: { color: '#171C26', fontSize: 18, fontWeight: '600', textAlign: 'center', marginTop: 10 },
   emptyDescription: { color: '#7E8795', fontSize: 16, textAlign: 'center', lineHeight: 23, marginTop: 6 },

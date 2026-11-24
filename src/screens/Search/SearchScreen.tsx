@@ -1,6 +1,6 @@
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Keyboard, ScrollView, StyleSheet, View } from 'react-native';
 import { useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,10 +9,13 @@ import LabelCameraModal from '../../components/Search/LabelCameraModal/LabelCame
 import SearchHeader from '../../components/Search/SearchHeader/SearchHeader';
 import SearchHistoryList from '../../components/Search/SearchHistoryList/SearchHistoryList';
 import SearchInput from '../../components/Search/SearchInput/SearchInput';
-import SearchResults, { SearchPagination } from '../../components/Search/SearchResults/SearchResults';
+import SearchPagination from '../../components/Search/SearchResults/SearchPagination';
+import SearchResultsSkeleton from '../../components/Search/SearchResults/SearchResultsSkeleton';
 import SelectedImageCard from '../../components/Search/SelectedImageCard/SelectedImageCard';
 import { medicines } from '../../components/Search/medicineData';
 import type { CaptureAction, Medicine, SearchHistoryEntry } from '../../components/Search/types';
+
+const SearchResults = lazy(() => import('../../components/Search/SearchResults/SearchResults'));
 
 export type { CaptureAction, SearchHistoryEntry } from '../../components/Search/types';
 
@@ -178,11 +181,13 @@ export default function SearchScreen({
           <>
             <CaptureActionPanel onPress={() => void openCamera()} />
             {selectedImage && <SelectedImageCard uri={selectedImage} onRemove={() => setSelectedImage(null)} />}
-            <SearchResults
-              query={query}
-              medicines={visibleMedicines}
-              onSelectMedicine={selectMedicine}
-            />
+            <Suspense fallback={<SearchResultsSkeleton />}>
+              <SearchResults
+                query={query}
+                medicines={visibleMedicines}
+                onSelectMedicine={selectMedicine}
+              />
+            </Suspense>
           </>
         )}
       </ScrollView>

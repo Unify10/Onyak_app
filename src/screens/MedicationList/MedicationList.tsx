@@ -5,13 +5,16 @@ import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { medicines } from '../../components/Search/medicineData';
 import { useMedications } from '../../providers/MedicationProvider';
 import { getMedicationPeriodLabel, getMedicationScheduleLabel } from '../../utils/medicationSchedule';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import MedicationListHeader from '../../components/MedicationList/MedicationListHeader/MedicationListHeader';
 import MedicationSummary from '../../components/MedicationList/MedicationSummary/MedicationSummary';
 import MedicationTabs, { MedicationTab } from '../../components/MedicationList/MedicationTabs/MedicationTabs';
-import CurrentMedicationCard from '../../components/MedicationList/CurrentMedicationCard';
-import MedicationItem, { Medication } from '../../components/MedicationList/MedicationListContent/MedicationItem';
+import type { Medication } from '../../components/MedicationList/MedicationListContent/MedicationItem';
+import MedicationListSkeleton from '../../components/MedicationList/MedicationListContent/MedicationListSkeleton';
+
+const CurrentMedicationCard = lazy(() => import('../../components/MedicationList/CurrentMedicationCard'));
+const MedicationItem = lazy(() => import('../../components/MedicationList/MedicationListContent/MedicationItem'));
 
 const pastMedications: Medication[] = [
   { id: '4', name: '비타민D 2000IU', schedule: '지난 복용 기록', startDate: '2026.10.12 종료' },
@@ -41,14 +44,16 @@ export default function MedicationList({ dependent = false, dependentProfile }: 
       <MedicationSummary currentCount={currentMedications.length} cautionCount={cautions.length} recordCount={records.length} />
       <MedicationTabs selectedTab={selectedTab} onSelectTab={setSelectedTab} showCard={dependent} />
       <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
-        {selectedTab === 'card' ? (
-          <CurrentMedicationCard name={dependentProfile?.name} medicines={registeredMedicines} schedules={schedules} cautionIds={cautionIds} />
-        ) : (
-          <>
-            {medications.length === 0 && <Text style={styles.empty}>{selectedTab === 'past' ? '지난 복용 기록이 없습니다.' : '등록한 약이 없습니다.'}{!dependent && selectedTab === 'current' && ' 검색에서 약을 추가해주세요.'}</Text>}
-            {medications.map((medication) => <MedicationItem key={medication.id} medication={medication} readOnly={dependent} />)}
-          </>
-        )}
+        <Suspense fallback={<MedicationListSkeleton showCard={selectedTab === 'card'} />}>
+          {selectedTab === 'card' ? (
+            <CurrentMedicationCard name={dependentProfile?.name} medicines={registeredMedicines} schedules={schedules} cautionIds={cautionIds} />
+          ) : (
+            <>
+              {medications.length === 0 && <Text style={styles.empty}>{selectedTab === 'past' ? '지난 복용 기록이 없습니다.' : '등록한 약이 없습니다.'}{!dependent && selectedTab === 'current' && ' 검색에서 약을 추가해주세요.'}</Text>}
+              {medications.map((medication) => <MedicationItem key={medication.id} medication={medication} readOnly={dependent} />)}
+            </>
+          )}
+        </Suspense>
       </ScrollView>
     </View>
   );

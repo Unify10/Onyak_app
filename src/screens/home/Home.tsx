@@ -1,12 +1,15 @@
+import { lazy, Suspense } from 'react';
 import SosSlider from '../../components/Home/SosSlider';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { StyleSheet, ScrollView } from 'react-native';
 import MedicinePhoto from '../../components/Home/MedicinePhoto/MedicinePhoto';
-import MedicineList from '../../components/Home/TodayMedicineList/TodayMedicineList';
+import TodayMedicineListSkeleton from '../../components/Home/TodayMedicineList/TodayMedicineListSkeleton';
 import ActiveMedicineList from '../../components/Home/ActiveMedicineList/ActiveMedicineList';
 import HomeFamilyAccountList from '../../components/Home/HomeFamilyAccount/HomeFamilyAccountList';
 import PageTitle from '../../components/Home/PageTitle/PageTitle';
 import Text from '../../components/Typography/Text';
+
+const TodayMedicineList = lazy(() => import('../../components/Home/TodayMedicineList/TodayMedicineList'));
 
 export default function Home({ dependentName }: { dependentName?: string }) {
   const styles = useResponsiveStyles(baseStyles);
@@ -19,7 +22,9 @@ export default function Home({ dependentName }: { dependentName?: string }) {
     >
       <PageTitle dependentName={dependentName} />
       {!dependentName && <MedicinePhoto />}
-      <MedicineList/>
+      <Suspense fallback={<TodayMedicineListSkeleton />}>
+        <TodayMedicineList />
+      </Suspense>
       <ActiveMedicineList readOnly={!!dependentName} />
       {dependentName && <SosSlider name={dependentName} />}
       {!dependentName && <HomeFamilyAccountList />}

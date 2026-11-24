@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import SignOutDialog from '../../components/Account/SignOutDialog';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import ProfileHero from '../../components/MyInfo/ProfileHero';
-import ProfileInfoTable from '../../components/MyInfo/ProfileInfoTable';
+import ProfileOverviewSkeleton from '../../components/MyInfo/ProfileOverviewSkeleton';
 import ProfileMenuRow from '../../components/MyInfo/ProfileMenuRow';
 import type { PersonalInfo } from '../../utils/personalInfo';
 import { useProfile } from '../../providers/ProfileProvider';
+
+const ProfileOverview = lazy(() => import('../../components/MyInfo/ProfileOverview'));
 
 type Props = { displayName: string; email: string; onSignOut: () => void; dependentProfile?: PersonalInfo };
 export default function MyInfo({ displayName, email, onSignOut, dependentProfile }: Props) {
@@ -16,8 +17,9 @@ export default function MyInfo({ displayName, email, onSignOut, dependentProfile
   const [showSignOut, setShowSignOut] = useState(false);
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <ProfileHero name={displayName} email={email} />
-      <ProfileInfoTable profile={dependentProfile ?? profile} />
+      <Suspense fallback={<ProfileOverviewSkeleton />}>
+        <ProfileOverview name={displayName} email={email} profile={dependentProfile ?? profile} />
+      </Suspense>
       {!dependentProfile && <>
       <View style={styles.menu}>
         <ProfileMenuRow label="가족 계정 관리" icon="people" onPress={() => router.push('/family')} />
