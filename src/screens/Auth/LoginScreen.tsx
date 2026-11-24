@@ -2,7 +2,7 @@ import Text from '../../components/Typography/Text';
 import TextInput from '../../components/Typography/TextInput';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 // ───────────── 불러오기 ─────────────
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Pressable, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,7 +15,7 @@ type Props = {
   onPressLinkedCode?: () => void;
   onPressQRLogin?: () => void;
   onPressFindPassword?: () => void;
-  onLoginSuccess?: (email: string) => void;
+  onLogin: (email: string, password: string, keepLogin: boolean, signal: AbortSignal) => Promise<void>;
 };
 
 // 아직 연결되지 않은 기능 버튼에서 공통으로 쓰는 안내 알림
@@ -31,7 +31,7 @@ export default function LoginScreen({
   onPressLinkedCode,
   onPressQRLogin,
   onPressFindPassword,
-  onLoginSuccess,
+  onLogin: signIn,
 }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   // 입력값과 화면 상태
@@ -45,20 +45,41 @@ export default function LoginScreen({
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // 로그인 처리
-  function onLogin() {
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const [loginError, setLoginError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const request = useRef<AbortController | null>(null);
+
+  useEffect(() => () => request.current?.abort(), []);
+
+  async function onLogin() {
+    if (request.current) return;
+    const normalizedEmail = email.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
     const passwordOk = password.length > 0;
 
     setEmailError(emailOk ? '' : '이메일이 올바르지 않습니다.');
     setPasswordError(passwordOk ? '' : '비밀번호가 올바르지 않습니다.');
-
+    setLoginError('');
     if (!emailOk || !passwordOk) return;
 
-    // 데모 동작: 입력 형식만 확인한 뒤 메인 화면으로 이동합니다.
-    // 실제 사용 전에는 서버 인증 성공 시점에 이 콜백을 호출해야 합니다.
-    onLoginSuccess?.(email.trim());
+    const controller = new AbortController();
+    request.current = controller;
+    setIsSubmitting(true);
+    try {
+      await signIn(normalizedEmail, password, keepLogin, controller.signal);
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        setLoginError(error instanceof Error ? error.message : '로그인에 실패했어요.');
+      }
+    } finally {
+      request.current = null;
+      if (!controller.signal.aborted) setIsSubmitting(false);
+    }
   }
+
+  const formError = loginError || (emailError && passwordError
+    ? '이메일과 비밀번호를 확인해 주세요.'
+    : emailError || passwordError);
 
   // 화면 렌더링: 로고, 입력란, 계정 메뉴 순서
   return (
@@ -99,6 +120,7 @@ export default function LoginScreen({
               onChangeText={(value) => {
                 setEmail(value);
                 setEmailError('');
+                setLoginError('');
               }}
               placeholder="이메일을 입력해주세요."
               placeholderTextColor="#B0B0B0"
@@ -107,7 +129,6 @@ export default function LoginScreen({
               autoCorrect={false}
             />
           </View>
-          {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
 
           {/* ───────────── 비밀번호 입력 ───────────── */}
           <Text style={[styles.label, styles.passwordLabel]}>비밀번호</Text>
@@ -126,6 +147,7 @@ export default function LoginScreen({
               onChangeText={(value) => {
                 setPassword(value);
                 setPasswordError('');
+                setLoginError('');
               }}
               placeholder="비밀번호를 입력해주세요."
               placeholderTextColor="#B0B0B0"
@@ -150,9 +172,6 @@ export default function LoginScreen({
               />
             </Pressable>
           </View>
-          {passwordError ? (
-            <Text style={styles.error}>{passwordError}</Text>
-          ) : null}
 
           {/* ───────────── 로그인 유지 / 비밀번호 찾기 ───────────── */}
           <View style={styles.optionRow}>
@@ -182,8 +201,16 @@ export default function LoginScreen({
           </View>
 
           {/* ───────────── 로그인 버튼 ───────────── */}
-          <Pressable style={styles.primaryBtn} onPress={onLogin}>
-            <Text style={styles.primaryText}>로그인</Text>
+          <View style={styles.errorSlot} accessibilityLiveRegion="polite">
+            <Text aria-hidden style={[styles.error, styles.errorSpacer]}>{'\u00a0\n\u00a0'}</Text>
+            {formError ? (
+              <View style={[StyleSheet.absoluteFill, styles.errorOverlay]}>
+                <Text numberOfLines={2} style={styles.error} accessibilityLabel={formError}>{formError}</Text>
+              </View>
+            ) : null}
+          </View>
+          <Pressable accessibilityRole="button" style={styles.primaryBtn} onPress={() => void onLogin()} disabled={isSubmitting}>
+            <Text style={styles.primaryText}>{isSubmitting ? '로그인 중' : '로그인'}</Text>
           </Pressable>
 
           {/* ───────────── 구글 로그인 ───────────── */}
@@ -310,16 +337,25 @@ const baseStyles = StyleSheet.create({
     color: '#000000',
     fontSize: 15,
   },
+  errorSlot: {
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  errorSpacer: {
+    opacity: 0,
+  },
+  errorOverlay: {
+    justifyContent: 'flex-end',
+  },
   error: {
-    marginTop: 6,
     color: '#E5484D',
-    fontSize: 11,
+    fontSize: 12,
+    lineHeight: 18,
   },
 
   // 로그인 유지 / 비밀번호 찾기
   optionRow: {
     marginTop: 14,
-    marginBottom: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

@@ -1,9 +1,13 @@
 import Text from '../../components/Typography/Text';
 import TextInput from '../../components/Typography/TextInput';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { useEffect, useState } from 'react';
-import { Alert, Animated, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+import { signup } from '../../api/auth';
+import { useEmailVerification } from '../../hooks/useEmailVerification';
+import { isValidBirthDate } from '../../utils/personalInfo';
 
 type Props = {
   onPressBack?: () => void;
@@ -14,7 +18,6 @@ type PickerType = 'height' | 'weight' | null;
 type TextSelection = { start: number; end: number };
 
 const LAST_INPUT_STEP = 3;
-const CODE_LENGTH = 6;
 const HEIGHT_OPTIONS = Array.from({ length: 131 }, (_, index) => index + 100);
 const WEIGHT_OPTIONS = Array.from({ length: 151 }, (_, index) => index + 30);
 
@@ -23,10 +26,10 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
   const [step, setStep] = useState(1);
 
   const [email, setEmail] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [isVerificationSent, setIsVerificationSent] = useState(false);
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [verificationMessage, setVerificationMessage] = useState('');
+  const verification = useEmailVerification(email);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [signupError, setSignupError] = useState('');
+  const signupRequest = useRef<AbortController | null>(null);
 
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -45,7 +48,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
   const [phone, setPhone] = useState('');
 
   // 신체 정보는 모두 선택 입력이며, 비워 둔 채 다음 단계로 넘어갈 수 있습니다.
-  const [age, setAge] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [birthDateError, setBirthDateError] = useState('');
   const [gender, setGender] = useState('');
   const [pregnancyStatus, setPregnancyStatus] = useState('');
   const [height, setHeight] = useState('');
@@ -65,9 +69,9 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
     }).start();
   }, [step, stepTransition]);
 
-  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  useEffect(() => () => signupRequest.current?.abort(), []);
   const hasMinPasswordLength =
-  password.length >= 8 &&
+  password.length >= 8 && password.length <= 64 &&
   /[A-Za-z]/.test(password) &&
   /\d/.test(password) &&
   /[^A-Za-z0-9]/.test(password);
@@ -77,71 +81,82 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
   // 단계별 필수 입력을 확인해 다음 버튼 활성 상태를 정합니다.
   const canGoNext =
     step === 1
-      ? isValidEmail &&
-        isVerificationSent &&
-        isEmailVerified &&
+      ? verification.verified && !verification.pending &&
         hasMinPasswordLength &&
         hasPasswordMatch
       : step === 2
-        ? name.trim().length > 0 && phone.replace(/\D/g, '').length >= 10
+        ? name.trim().length > 0 && /^01[0-9][0-9]{7,8}$/.test(phone.replace(/\D/g, ''))
       : true;
 
-  function goToNextStep() {
-    if (!canGoNext) return;
-
+  async function goToNextStep() {
+    if (!canGoNext || signupRequest.current) return;
     if (step < LAST_INPUT_STEP) {
-      setStep((current) => current + 1);
-    } else if (step === LAST_INPUT_STEP) {
-      setStep(4);
-    } else {
+      setStep(current => current + 1);
+      return;
+    }
+    if (step > LAST_INPUT_STEP) {
       onComplete?.();
+      return;
+    }
+    if (birthDate && !isValidBirthDate(birthDate)) {
+      setBirthDateError('생년월일을 YYYY-MM-DD 형식으로 입력해 주세요.');
+      return;
+    }
+
+    const controller = new AbortController();
+    signupRequest.current = controller;
+    setIsSubmitting(true);
+    setSignupError('');
+    try {
+      await signup({
+        email: email.trim(),
+        password,
+        password_confirm: passwordConfirm,
+        name: name.trim(),
+        phone: phone.replace(/\D/g, ''),
+        birth_date: birthDate || undefined,
+        height: height ? Number(height) : undefined,
+        weight: weight ? Number(weight) : undefined,
+        gender: gender === '여성' ? 'F' : gender === '남성' ? 'M' : undefined,
+        is_pregnant: gender === '남성' ? undefined
+          : pregnancyStatus === '임신 중' ? true
+          : pregnancyStatus === '해당 없음' ? false
+          : undefined,
+      }, controller.signal);
+      if (!controller.signal.aborted) setStep(4);
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        setSignupError(error instanceof Error ? error.message : '회원가입에 실패했어요.');
+      }
+    } finally {
+      signupRequest.current = null;
+      if (!controller.signal.aborted) setIsSubmitting(false);
     }
   }
 
   function goToPreviousStep() {
+    if (signupRequest.current) return;
     if (activePicker) {
       setActivePicker(null);
       return;
     }
-
     if (step > 1 && step <= LAST_INPUT_STEP) {
-      setStep((current) => current - 1);
+      setSignupError('');
+      setStep(current => current - 1);
       return;
     }
-
     onPressBack?.();
-  }
-
-  // 테스트용: 이메일 형식이 맞으면 인증번호 입력칸을 표시합니다.
-  function sendVerificationCode() {
-    if (!isValidEmail) {
-      Alert.alert('이메일 확인', '올바른 이메일 주소를 먼저 입력해주세요.');
-      return;
-    }
-
-    setIsVerificationSent(true);
-    setIsEmailVerified(false);
-    setVerificationCode('');
-    setVerificationMessage('테스트용 입력창입니다. 실제 메일은 발송되지 않습니다.');
-  }
-
-  // 테스트용: 숫자 6자리를 입력하면 인증 완료로 표시합니다.
-  function verifyVerificationCode() {
-    if (verificationCode.length !== CODE_LENGTH) {
-      setVerificationMessage('인증번호 6자리를 입력해주세요.');
-      return;
-    }
-
-    setIsEmailVerified(true);
-    setVerificationMessage('이메일 인증이 완료되었습니다.');
   }
 
   function handleEmailChange(value: string) {
     setEmail(value);
-    setIsVerificationSent(false);
-    setIsEmailVerified(false);
-    setVerificationCode('');
-    setVerificationMessage('');
+    verification.reset();
+  }
+
+  function handleBirthDateChange(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 8);
+    setBirthDate([digits.slice(0, 4), digits.slice(4, 6), digits.slice(6)].filter(Boolean).join('-'));
+    setBirthDateError('');
   }
 
   // 전화번호에 하이픈을 자동으로 넣습니다.
@@ -299,6 +314,15 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
 
   function renderStep() {
     if (step === 1) {
+      const verificationMessage = verification.message && (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[styles.helperText, styles.verificationMessage, verification.message.error ? styles.errorText : styles.successText]}
+        >
+          {verification.message.text}
+        </Text>
+      );
+
       return (
         <>
           <Text style={styles.sectionTitle}>계정 정보</Text>
@@ -310,6 +334,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
                 style={[styles.input, styles.emailInput]}
                 value={email}
                 onChangeText={handleEmailChange}
+                editable={!verification.pending}
                 placeholder="이메일을 입력해주세요."
                 placeholderTextColor="#A8A8A8"
                 keyboardType="email-address"
@@ -318,54 +343,43 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
               />
               <Pressable
                 style={styles.verifyButton}
-                onPress={sendVerificationCode}
+                onPress={() => void verification.submit('send')}
+                disabled={Boolean(verification.pending)}
               >
                 <Text style={styles.smallButtonText}>
-                  {isVerificationSent ? '재발송' : '인증번호 발송'}
+                  {verification.pending === 'send' ? '발송 중' : verification.sent ? '재발송' : '인증번호 발송'}
                 </Text>
               </Pressable>
             </View>
+            {!verification.sent && verificationMessage}
           </View>
 
-          {isVerificationSent && (
-            <View style={styles.field}>
+          {verification.sent && (
+            <View style={[styles.field, verification.message && styles.verificationFieldWithMessage]}>
               <Text style={styles.label}>인증번호</Text>
               <View style={styles.codeRow}>
                 <TextInput
                   style={[styles.input, styles.codeInput]}
-                  value={verificationCode}
-                  onChangeText={(value) => {
-                    setVerificationCode(
-                      value.replace(/\D/g, '').slice(0, CODE_LENGTH),
-                    );
-                    setIsEmailVerified(false);
-                    setVerificationMessage('');
-                  }}
-                  placeholder="인증번호 입력"
+                  value={verification.code}
+                  onChangeText={verification.changeCode}
+                  editable={!verification.pending}
+                  placeholder="인증코드 입력"
                   placeholderTextColor="#A8A8A8"
-                  keyboardType="number-pad"
-                  maxLength={CODE_LENGTH}
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  autoComplete="one-time-code"
                 />
 
                 {/* 인증 완료 상태에서도 버튼 배경은 계속 흰색입니다. */}
                 <Pressable
                   style={styles.verifyButton}
-                  onPress={verifyVerificationCode}
+                  onPress={() => void verification.submit('verify')}
+                  disabled={Boolean(verification.pending) || verification.verified}
                 >
-                  <Text style={styles.smallButtonText}>확인</Text>
+                  <Text style={styles.smallButtonText}>{verification.pending === 'verify' ? '확인 중' : '확인'}</Text>
                 </Pressable>
               </View>
-
-              {!!verificationMessage && (
-                <Text
-                  style={[
-                    styles.helperText,
-                    isEmailVerified ? styles.successText : styles.errorText,
-                  ]}
-                >
-                  {verificationMessage}
-                </Text>
-              )}
+              {verificationMessage}
             </View>
           )}
 
@@ -381,7 +395,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
             onSelectionChange: setPasswordSelection,
             helperMessage:
               password.length > 0 && !hasMinPasswordLength
-                ? '비밀번호는 영문, 숫자, 특수문자 포함 8자 이상 입력해주세요.'
+                ? '비밀번호는 영문, 숫자, 특수문자를 포함해 8~64자로 입력해 주세요.'
                 : undefined,
           })}
 
@@ -439,16 +453,17 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
           </Text>
 
           <View style={styles.field}>
-            <Text style={styles.label}>나이</Text>
+            <Text style={styles.label}>생년월일</Text>
             <TextInput
               style={styles.input}
-              value={age}
-              onChangeText={(value) => setAge(value.replace(/\D/g, '').slice(0, 3))}
-              placeholder="나이를 입력해주세요."
+              value={birthDate}
+              onChangeText={handleBirthDateChange}
+              placeholder="YYYY-MM-DD"
               placeholderTextColor="#A8A8A8"
               keyboardType="number-pad"
-              maxLength={3}
+              maxLength={10}
             />
+            {birthDateError ? <Text style={[styles.helperText, styles.errorText]}>{birthDateError}</Text> : null}
           </View>
 
           <View style={styles.field}>
@@ -464,7 +479,10 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
                       styles.genderButton,
                       selected && styles.genderButtonSelected,
                     ]}
-                    onPress={() => setGender(item)}
+                    onPress={() => {
+                      setGender(item);
+                      if (item === '남성') setPregnancyStatus('');
+                    }}
                   >
                     <Text
                       style={[
@@ -494,6 +512,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
                       selected && styles.genderButtonSelected,
                     ]}
                     onPress={() => setPregnancyStatus(item)}
+                    disabled={gender === '남성'}
                   >
                     <Text
                       style={[
@@ -614,18 +633,19 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
         </Animated.View>
 
         <View style={styles.bottomArea}>
+          {signupError ? <Text accessibilityLiveRegion="polite" style={[styles.helperText, styles.errorText]}>{signupError}</Text> : null}
           <Pressable
             style={[
               styles.nextButton,
-              canGoNext ? styles.nextButtonEnabled : styles.nextButtonDisabled,
+              canGoNext && !isSubmitting ? styles.nextButtonEnabled : styles.nextButtonDisabled,
             ]}
-            onPress={goToNextStep}
-            disabled={!canGoNext}
+            onPress={() => void goToNextStep()}
+            disabled={!canGoNext || isSubmitting}
           >
             <Text style={styles.nextButtonText}>
-              {isCompleteStep
+              {isSubmitting ? '가입 중' : isCompleteStep
                 ? '로그인으로 돌아가기'
-                : step === 3 && !age && !gender && !pregnancyStatus && !height && !weight
+                : step === 3 && !birthDate && !gender && !pregnancyStatus && !height && !weight
                   ? '건너뛰기'
                   : '다음'}
             </Text>
@@ -774,6 +794,8 @@ const baseStyles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
+  verificationFieldWithMessage: { marginBottom: 8 },
+  verificationMessage: { marginTop: 8 },
   helperText: {
     marginTop: 2,
     fontFamily: 'Pretendard',

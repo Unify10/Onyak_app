@@ -1,25 +1,37 @@
 import { lazy, Suspense, useState } from 'react';
 import SignOutDialog from '../../components/Account/SignOutDialog';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import ProfileOverviewSkeleton from '../../components/MyInfo/ProfileOverviewSkeleton';
 import ProfileMenuRow from '../../components/MyInfo/ProfileMenuRow';
 import type { PersonalInfo } from '../../utils/personalInfo';
-import { useProfile } from '../../providers/ProfileProvider';
+import Text from '../../components/Typography/Text';
+import { useAccountProfile } from '../../hooks/useAccountProfile';
+import { colors, typography } from '../../theme/tokens';
 
 const ProfileOverview = lazy(() => import('../../components/MyInfo/ProfileOverview'));
 
 type Props = { displayName: string; email: string; onSignOut: () => void; dependentProfile?: PersonalInfo };
 export default function MyInfo({ displayName, email, onSignOut, dependentProfile }: Props) {
   const styles = useResponsiveStyles(baseStyles);
-  const { profile } = useProfile();
+  const profileRequest = useAccountProfile(!dependentProfile);
+  const profile = dependentProfile ?? (profileRequest.state.status === 'ready' ? profileRequest.state.profile : null);
   const [showSignOut, setShowSignOut] = useState(false);
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <Suspense fallback={<ProfileOverviewSkeleton />}>
-        <ProfileOverview name={displayName} email={email} profile={dependentProfile ?? profile} />
-      </Suspense>
+      {profile ? (
+        <Suspense fallback={<ProfileOverviewSkeleton />}>
+          <ProfileOverview name={displayName} email={email} profile={profile} />
+        </Suspense>
+      ) : profileRequest.state.status === 'error' ? (
+        <View style={styles.profileError}>
+          <Text accessibilityLiveRegion="polite" style={styles.errorMessage}>{profileRequest.state.message}</Text>
+          <Pressable accessibilityRole="button" style={styles.retry} onPress={profileRequest.retry}>
+            <Text style={styles.retryLabel}>다시 시도</Text>
+          </Pressable>
+        </View>
+      ) : <ProfileOverviewSkeleton />}
       {!dependentProfile && <>
       <View style={styles.menu}>
         <ProfileMenuRow label="가족 계정 관리" icon="people" onPress={() => router.push('/family')} />
@@ -45,5 +57,9 @@ export default function MyInfo({ displayName, email, onSignOut, dependentProfile
 const baseStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   content: { width: '100%', alignSelf: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 },
+  profileError: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 16, gap: 8 },
+  errorMessage: { ...typography.body },
+  retry: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start', paddingHorizontal: 8 },
+  retryLabel: { ...typography.caption, color: colors.ink, fontWeight: '600' },
   menu: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 14, marginTop: 26, overflow: 'hidden' },
 });
