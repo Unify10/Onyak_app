@@ -1,19 +1,45 @@
+import { getNotifications, NOTIFICATION_PAGE_SIZE } from '../../api/notifications';
+import QueryError from '../../components/Feedback/QueryError';
+import type { NotificationEntry } from '../../components/Notifications/NotificationCard';
+import { useProtectedQuery } from '../../hooks/useProtectedQuery';
+import { getLocalDateKey } from '../../utils/medicationSchedule';
 import Text from '../../components/Typography/Text';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import NotificationCard from '../../components/Notifications/NotificationCard';
+import ListSkeleton from '../../components/Skeleton/ListSkeleton';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { typography } from '../../theme/tokens';
-import { notificationExamples } from './notificationExamples';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useNotifications } from '../../providers/NotificationProvider';
+
+const NotificationCard = lazy(() => import('../../components/Notifications/NotificationCard'));
 
 export default function NotificationsScreen() {
   const styles = useResponsiveStyles(baseStyles);
   const [filter, setFilter] = useState<'all' | 'medication' | 'sos'>('all');
-  const { markAllRead, sosRequests } = useNotifications();
+  const [page, setPage] = useState(0);
+  const query = useCallback((token: string, signal: AbortSignal) => getNotifications(token, signal, page), [page]);
+  const { state, retry } = useProtectedQuery(query);
+  const { markAllRead } = useNotifications();
   useEffect(() => { markAllRead(); }, [markAllRead]);
+  const groups = new Map<string, NotificationEntry[]>();
+  const notifications = state.status === 'ready' ? state.data : [];
+  const today = getLocalDateKey(new Date());
+  for (const item of notifications) {
+    const type = item.type === 'SOS' ? 'sos' : item.type === 'MED_REMINDER' ? 'medication' : 'warning';
+    if (filter !== 'all' && type !== filter) continue;
+
+    const date = new Date(item.created_at);
+    const dateLabel = Number.isNaN(date.getTime()) ? '날짜 미상'
+      : getLocalDateKey(date) === today ? '오늘'
+      : date.toLocaleDateString('ko-KR');
+    const title = type === 'sos' ? 'SOS 긴급 알림' : type === 'medication' ? '복용 알림' : '주의 알림';
+    const group = groups.get(dateLabel) ?? [];
+    group.push({ id: String(item.id), type, title, body: item.message });
+    groups.set(dateLabel, group);
+  }
+
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -28,15 +54,37 @@ export default function NotificationsScreen() {
         ))}
       </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {notificationExamples.map(group => {
-          const entries = group.label === '오늘' ? [...sosRequests, ...group.items] : group.items;
-          const items = entries.filter(item => filter === 'all' || item.type === filter);
-          if (!items.length) return null;
-          return <View key={group.label} style={styles.group}>
-            <Text style={styles.groupTitle}>{group.label}</Text>
-            <View style={styles.list}>{items.map(notification => <NotificationCard key={notification.id} notification={notification} />)}</View>
-          </View>;
-        })}
+        {state.status === 'loading' && <ListSkeleton label="알림 내역 불러오는 중" />}
+        {state.status === 'error' && <QueryError message={state.message} onRetry={retry} />}
+        {state.status === 'ready' && (
+          <Suspense fallback={<ListSkeleton label="알림 내역 불러오는 중" />}>
+            <View style={styles.groups}>
+              {groups.size === 0 && <Text style={styles.empty}>표시할 알림이 없어요.</Text>}
+              {[...groups].map(([label, notifications]) => (
+                <View key={label} style={styles.group}>
+                  <Text style={styles.groupTitle}>{label}</Text>
+                  <View style={styles.list}>
+                    {notifications.map(notification => <NotificationCard key={notification.id} notification={notification} />)}
+                  </View>
+                </View>
+              ))}
+              {(page > 0 || notifications.length === NOTIFICATION_PAGE_SIZE) && (
+                <View style={styles.pagination}>
+                  {page > 0 && (
+                    <Pressable accessibilityRole="button" style={styles.pageControl} onPress={() => setPage(page - 1)}>
+                      <Text style={styles.filterText}>이전 알림</Text>
+                    </Pressable>
+                  )}
+                  {notifications.length === NOTIFICATION_PAGE_SIZE && (
+                    <Pressable accessibilityRole="button" style={styles.pageControl} onPress={() => setPage(page + 1)}>
+                      <Text style={styles.filterText}>다음 알림</Text>
+                    </Pressable>
+                  )}
+                </View>
+              )}
+            </View>
+          </Suspense>
+        )}
       </ScrollView>
     </View>
   );
@@ -51,6 +99,10 @@ const baseStyles = StyleSheet.create({
   activeFilterButton: { borderColor: '#111111', backgroundColor: '#111111' },
   filterText: { color: '#4B5563', fontSize: 13, fontWeight: '600' },
   activeFilterText: { color: '#FFFFFF' },
-  content: { paddingHorizontal: 20, paddingBottom: 28, gap: 24 },
+  content: { paddingHorizontal: 20, paddingBottom: 28 },
+  groups: { gap: 24 },
+  empty: { color: '#6B7280', paddingVertical: 24, textAlign: 'center' },
+  pagination: { flexDirection: 'row', justifyContent: 'center', gap: 12 },
+  pageControl: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
   group: { gap: 10 }, groupTitle: { color: '#6B7280', fontSize: 16, lineHeight: 24 }, list: { gap: 14 },
 });

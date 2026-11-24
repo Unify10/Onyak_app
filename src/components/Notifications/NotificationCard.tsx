@@ -3,13 +3,13 @@ import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 
-export type NotificationEntry = { id: string; type: 'medication' | 'sos'; title: string; body: string };
+export type NotificationEntry = { id: string; type: 'medication' | 'sos' | 'warning'; title: string; body: string };
 export default function NotificationCard({ notification }: { notification: NotificationEntry }) {
   const styles = useResponsiveStyles(baseStyles);
   const isSos = notification.type === 'sos';
   return (
     <View style={[styles.card, isSos && styles.sosCard]}>
-      <View style={[styles.iconBadge, isSos && styles.sosIconBadge]}><Ionicons name={isSos ? 'alert-circle' : 'notifications-outline'} size={styles.icon.width} color={isSos ? '#D92D20' : '#111111'} /></View>
+      <View style={[styles.iconBadge, isSos && styles.sosIconBadge]}><Ionicons name={isSos ? 'alert-circle' : notification.type === 'warning' ? 'warning-outline' : 'notifications-outline'} size={styles.icon.width} color={isSos ? '#D92D20' : '#111111'} /></View>
       <View style={styles.text}><View style={styles.titleRow}><Text style={[styles.title, isSos && styles.sosTitle]}>{notification.title}</Text>{isSos && <View style={styles.sosLabel}><Text style={styles.sosLabelText}>긴급</Text></View>}</View><Text style={styles.body}>{notification.body}</Text></View>
     </View>
   );
