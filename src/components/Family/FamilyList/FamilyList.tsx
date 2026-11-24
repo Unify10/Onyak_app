@@ -1,3 +1,8 @@
+import { getFamilyList } from '../../../api/family';
+import { useProtectedQuery } from '../../../hooks/useProtectedQuery';
+import QueryError from '../../Feedback/QueryError';
+import ListSkeleton from '../../Skeleton/ListSkeleton';
+import ServerFamilyItem from './ServerFamilyItem';
 import Text from '../../Typography/Text';
 import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { StyleSheet, View } from 'react-native';
@@ -7,15 +12,30 @@ import { useFamilies } from '../../../providers/FamilyProvider';
 export default function FamilyList() {
   const styles = useResponsiveStyles(baseStyles);
   const { families, removeFamily } = useFamilies();
+  const { state, retry } = useProtectedQuery(getFamilyList);
+  const remoteFamilies = state.status === 'ready' ? state.data : [];
   return (
     <View style={styles.container}>
-      <View style={styles.header}><Text style={styles.title}>가족</Text><Text style={styles.count}>{families.length}명</Text></View>
+      <View style={styles.header}>
+        <Text style={styles.title}>가족</Text>
+        {state.status === 'ready' && <Text style={styles.count}>{families.length + remoteFamilies.length}명</Text>}
+      </View>
       <View style={styles.list}>
-        {families.length === 0 ? <View style={styles.empty}><Text style={styles.emptyTitle}>등록된 가족이 없습니다.</Text><Text style={styles.emptyDescription}>가족 계정을 추가해주세요.</Text></View> : families.map(family => <FamilyItem key={family.id} family={family} onDelete={removeFamily} />)}
+        {state.status === 'loading' && <ListSkeleton label="가족 목록 불러오는 중" />}
+        {state.status === 'error' && <QueryError message={state.message} onRetry={retry} />}
+        {remoteFamilies.map(family => <ServerFamilyItem key={family.ward_id} family={family} />)}
+        {families.map(family => <FamilyItem key={family.id} family={family} onDelete={removeFamily} />)}
+        {state.status === 'ready' && families.length === 0 && remoteFamilies.length === 0 && (
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>등록된 가족이 없습니다.</Text>
+            <Text style={styles.emptyDescription}>가족 계정을 추가해주세요.</Text>
+          </View>
+        )}
       </View>
     </View>
   );
 }
+
 const baseStyles = StyleSheet.create({
   container: { width: '100%', gap: 12 }, header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 20, color: '#111111' }, count: { fontSize: 14, color: '#6B7280' }, list: { gap: 10 },
