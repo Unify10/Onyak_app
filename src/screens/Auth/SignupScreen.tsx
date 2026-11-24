@@ -7,19 +7,16 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { signup } from '../../api/auth';
 import { useEmailVerification } from '../../hooks/useEmailVerification';
-import { isValidBirthDate } from '../../utils/personalInfo';
+import { emptyPersonalInfo, isValidBirthDate, validatePersonalInfo } from '../../utils/personalInfo';
 
 type Props = {
   onPressBack?: () => void;
   onComplete?: () => void;
 };
 
-type PickerType = 'height' | 'weight' | null;
 type TextSelection = { start: number; end: number };
 
 const LAST_INPUT_STEP = 3;
-const HEIGHT_OPTIONS = Array.from({ length: 131 }, (_, index) => index + 100);
-const WEIGHT_OPTIONS = Array.from({ length: 151 }, (_, index) => index + 30);
 
 export default function SignupScreen({ onPressBack, onComplete }: Props) {
   const styles = useResponsiveStyles(baseStyles);
@@ -54,7 +51,6 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
   const [pregnancyStatus, setPregnancyStatus] = useState('');
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
-  const [activePicker, setActivePicker] = useState<PickerType>(null);
 
   // 단계가 바뀔 때 입력 화면이 부드럽게 나타나도록 애니메이션 값을 둡니다.
   const [stepTransition] = useState(() => new Animated.Value(1));
@@ -103,6 +99,14 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
       return;
     }
 
+    const heightValue = height.trim().replace(',', '.');
+    const weightValue = weight.trim().replace(',', '.');
+    const bodyError = validatePersonalInfo({ ...emptyPersonalInfo, name, height: heightValue, weight: weightValue });
+    if (bodyError) {
+      setSignupError(bodyError);
+      return;
+    }
+
     const controller = new AbortController();
     signupRequest.current = controller;
     setIsSubmitting(true);
@@ -115,8 +119,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
         name: name.trim(),
         phone: phone.replace(/\D/g, ''),
         birth_date: birthDate || undefined,
-        height: height ? Number(height) : undefined,
-        weight: weight ? Number(weight) : undefined,
+        height: heightValue ? Number(heightValue) : undefined,
+        weight: weightValue ? Number(weightValue) : undefined,
         gender: gender === '여성' ? 'F' : gender === '남성' ? 'M' : undefined,
         is_pregnant: gender === '남성' ? undefined
           : pregnancyStatus === '임신 중' ? true
@@ -136,10 +140,6 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
 
   function goToPreviousStep() {
     if (signupRequest.current) return;
-    if (activePicker) {
-      setActivePicker(null);
-      return;
-    }
     if (step > 1 && step <= LAST_INPUT_STEP) {
       setSignupError('');
       setStep(current => current - 1);
@@ -182,7 +182,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
     value: string;
     onChangeText: (value: string) => void;
     placeholder: string;
-    keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'numeric';
+    keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'numeric' | 'decimal-pad';
     maxLength?: number;
   }) {
     return (
@@ -271,43 +271,6 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
             {helperMessage}
           </Text>
         )}
-      </View>
-    );
-  }
-
-  function renderNumberPicker(
-    type: Exclude<PickerType, null>,
-    options: number[],
-    selectedValue: string,
-    unit: string,
-  ) {
-    return (
-      <View style={styles.numberPicker}>
-        <ScrollView
-          style={styles.numberPickerList}
-          nestedScrollEnabled
-          showsVerticalScrollIndicator={false}
-        >
-          {options.map((value) => (
-            <Pressable
-              key={value}
-              style={[
-                styles.numberOption,
-                selectedValue === String(value) && styles.numberOptionSelected,
-              ]}
-              onPress={() => {
-                if (type === 'height') setHeight(String(value));
-                else setWeight(String(value));
-
-                setActivePicker(null);
-              }}
-            >
-              <Text style={styles.numberOptionText}>
-                {value} {unit}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
       </View>
     );
   }
@@ -445,6 +408,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
     }
 
     if (step === 3) {
+      const pregnancyDisabled = gender === '남성';
+
       return (
         <>
           <Text style={styles.sectionTitle}>신체 정보 (선택)</Text>
@@ -499,7 +464,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>임신 여부</Text>
+            <Text style={[styles.label, pregnancyDisabled && styles.pregnancyTextDisabled]}>임신 여부</Text>
             <View style={styles.genderRow}>
               {['임신 중', '해당 없음', '응답 안 함'].map((item) => {
                 const selected = pregnancyStatus === item;
@@ -510,14 +475,18 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
                     style={[
                       styles.pregnancyButton,
                       selected && styles.genderButtonSelected,
+                      pregnancyDisabled && styles.pregnancyButtonDisabled,
                     ]}
                     onPress={() => setPregnancyStatus(item)}
-                    disabled={gender === '남성'}
+                    disabled={pregnancyDisabled}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: pregnancyDisabled, selected }}
                   >
                     <Text
                       style={[
                         styles.genderText,
                         selected && styles.genderTextSelected,
+                        pregnancyDisabled && styles.pregnancyTextDisabled,
                       ]}
                     >
                       {item}
@@ -528,33 +497,29 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
             </View>
           </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>신장 (cm)</Text>
-            <Pressable
-              style={styles.input}
-              onPress={() => setActivePicker('height')}
-            >
-              <Text style={[styles.inputText, !height && styles.placeholder]}>
-                {height ? `${height} cm` : '선택해주세요.'}
-              </Text>
-            </Pressable>
-            {activePicker === 'height' &&
-              renderNumberPicker('height', HEIGHT_OPTIONS, height, 'cm')}
-          </View>
+          {renderField({
+            label: '신장 (cm)',
+            value: height,
+            onChangeText: value => {
+              setHeight(value);
+              setSignupError('');
+            },
+            placeholder: '예: 170.5',
+            keyboardType: 'decimal-pad',
+            maxLength: 6,
+          })}
 
-          <View style={styles.field}>
-            <Text style={styles.label}>몸무게 (kg)</Text>
-            <Pressable
-              style={styles.input}
-              onPress={() => setActivePicker('weight')}
-            >
-              <Text style={[styles.inputText, !weight && styles.placeholder]}>
-                {weight ? `${weight} kg` : '선택해주세요.'}
-              </Text>
-            </Pressable>
-            {activePicker === 'weight' &&
-              renderNumberPicker('weight', WEIGHT_OPTIONS, weight, 'kg')}
-          </View>
+          {renderField({
+            label: '몸무게 (kg)',
+            value: weight,
+            onChangeText: value => {
+              setWeight(value);
+              setSignupError('');
+            },
+            placeholder: '예: 65.5',
+            keyboardType: 'decimal-pad',
+            maxLength: 6,
+          })}
         </>
       );
     }
@@ -578,7 +543,12 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={goToPreviousStep}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="뒤로가기"
+            style={styles.backButton}
+            onPress={goToPreviousStep}
+          >
             <Text style={styles.backButtonText}>‹</Text>
           </Pressable>
           <Text style={styles.headerTitle}>회원가입</Text>
@@ -752,12 +722,6 @@ const baseStyles = StyleSheet.create({
     fontFamily: 'Pretendard',
     fontSize: 20,
   },
-  inputText: {
-    color: '#222222',
-    fontFamily: 'Pretendard',
-    fontSize: 20,
-  },
-  placeholder: { color: '#A8A8A8' },
   emailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   emailInput: { flex: 1, minWidth: 0 },
   codeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -835,29 +799,11 @@ const baseStyles = StyleSheet.create({
     fontSize: 16,
   },
   genderTextSelected: { color: '#FFFFFF' },
-  numberPicker: {
-    marginTop: 6,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#E2E2E2',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+  pregnancyButtonDisabled: {
+    backgroundColor: '#F2F4F7',
+    borderColor: '#E5E7EB',
   },
-  numberPickerList: { height: 160 },
-  numberOption: {
-    minHeight: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  numberOptionSelected: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: 8,
-  },
-  numberOptionText: {
-    color: '#555555',
-    fontFamily: 'Pretendard',
-    fontSize: 18,
-  },
+  pregnancyTextDisabled: { color: '#6B7280' },
   completeContent: {
     flexGrow: 1,
     justifyContent: 'center',
