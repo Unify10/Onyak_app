@@ -1,3 +1,4 @@
+import type { DrugInformation } from '../../api/drugs';
 import ConfirmationDialog from '../../components/Dialogs/ConfirmationDialog';
 import RoundBackButton from '../../components/Navigation/RoundBackButton';
 import Text from '../../components/Typography/Text';
@@ -8,13 +9,13 @@ import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import MedicineInfoAccordion from '../../components/MedicineDetail/MedicineInfoAccordion';
 import MedicationScheduleForm from '../../components/MedicineDetail/MedicationScheduleForm';
 import type { Medicine } from '../../components/Search/types';
-import { useMedications } from '../../providers/MedicationProvider';
+import { useMedications } from '../../providers/MedicationContext';
 import { useFamilies } from '../../providers/FamilyProvider';
 import type { MedicationScheduleInput } from '../../utils/medicationSchedule';
 
-export default function MedicineDetailScreen({ medicine }: { medicine: Medicine }) {
+export default function MedicineDetailScreen({ medicine, information }: { medicine: Medicine; information?: DrugInformation }) {
   const styles = useResponsiveStyles(baseStyles);
-  const { medicineIds, schedules, toggleMedicine, saveMedicationSchedule } = useMedications();
+  const { medicineIds, schedules, toggleMedicine, saveMedicationSchedule, rememberMedicine } = useMedications();
   const isRegistered = medicineIds.includes(medicine.id);
   const { families, saveFamilyMedication } = useFamilies();
   const [confirmingRemoval, setConfirmingRemoval] = useState(false);
@@ -32,11 +33,13 @@ export default function MedicineDetailScreen({ medicine }: { medicine: Medicine 
   function saveSchedule(schedule: MedicationScheduleInput) {
     if (savingFor === 'family') {
       if (!selectedFamily) return;
+      rememberMedicine(medicine);
       saveFamilyMedication(selectedFamily.id, medicine.id, schedule);
       closeSchedule();
       router.replace({ pathname: '/family/[id]', params: { id: selectedFamily.id, date: schedule.startDate } });
       return;
     }
+    rememberMedicine(medicine);
     saveMedicationSchedule(medicine.id, schedule.startDate, schedule.durationDays, schedule.doses);
     closeSchedule();
     router.replace('/(tabs)/medication-list');
@@ -62,7 +65,7 @@ export default function MedicineDetailScreen({ medicine }: { medicine: Medicine 
           <View style={styles.image}><Text style={styles.imageText}>약 이미지</Text></View>
           <Text style={styles.name}>{medicine.name}</Text>
         </View>
-        <MedicineInfoAccordion />
+        <MedicineInfoAccordion information={information} />
         {!savingFor && (
           <Pressable accessibilityRole="button" style={styles.button} onPress={() => setSavingFor('self')}>
             <Text style={styles.buttonText}>{isRegistered ? '복용 일정 수정' : '복용 목록에 추가'}</Text>

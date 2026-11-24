@@ -1,18 +1,18 @@
+import type { DrugInformation } from '../../api/drugs';
 import Text from '../Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const sections = [
-  { title: '약의 효능', description: '약의 효능 설명' },
-  { title: '복용 방법', description: '복용 방법 설명' },
-  { title: '주의사항', description: '주의사항 설명' },
-];
-
-export default function MedicineInfoAccordion() {
+export default function MedicineInfoAccordion({ information }: { information?: DrugInformation }) {
   const styles = useResponsiveStyles(baseStyles);
   const [expanded, setExpanded] = useState<string | null>('약의 효능');
+  const sections = [
+    { title: '약의 효능', description: information?.efficacy },
+    { title: '복용 방법', description: information?.usage },
+    { title: '주의사항', description: information?.caution },
+  ];
   return (
     <View style={styles.container}>
       {sections.map((section, index) => {
@@ -28,7 +28,7 @@ export default function MedicineInfoAccordion() {
               <Text style={styles.title}>{section.title}</Text>
               <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color="#C8CDD5" />
             </Pressable>
-            {isExpanded && <View style={styles.description}><Text style={styles.descriptionText}>{section.description}</Text></View>}
+            {isExpanded && <View style={styles.description}><Text style={styles.descriptionText}>{section.description?.trim() || '등록된 정보가 없어요.'}</Text></View>}
           </View>
         );
       })}

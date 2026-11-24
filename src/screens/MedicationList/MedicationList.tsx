@@ -2,8 +2,7 @@ import { needsMedicationCaution } from '../../utils/medicationCaution';
 import type { PersonalInfo } from '../../utils/personalInfo';
 import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { medicines } from '../../components/Search/medicineData';
-import { useMedications } from '../../providers/MedicationProvider';
+import { useMedications } from '../../providers/MedicationContext';
 import { getMedicationPeriodLabel, getMedicationScheduleLabel } from '../../utils/medicationSchedule';
 import { lazy, Suspense, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -23,7 +22,7 @@ const pastMedications: Medication[] = [
 
 export default function MedicationList({ dependent = false, dependentProfile }: { dependent?: boolean; dependentProfile?: PersonalInfo }) {
   const styles = useResponsiveStyles(baseStyles);
-  const { medicineIds, schedules } = useMedications();
+  const { medicineIds, medicines, schedules } = useMedications();
   const registeredMedicines = medicines.filter(item => medicineIds.includes(item.id));
   const currentMedications: Medication[] = registeredMedicines.map(item => ({
     caution: needsMedicationCaution(item.contraindications, dependentProfile),

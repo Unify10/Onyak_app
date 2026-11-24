@@ -1,13 +1,12 @@
 import Text from '../../Typography/Text';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
-import { useMedications } from '../../../providers/MedicationProvider';
-import { medicines } from '../../Search/medicineData';
+import { useMedications } from '../../../providers/MedicationContext';
 import ActiveMedicineItem from './ActiveMedicineItem';
 
 export default function ActiveMedicineList({ readOnly = false }: { readOnly?: boolean }) {
   const styles = useResponsiveStyles(baseStyles);
-  const { medicineIds } = useMedications();
+  const { medicineIds, medicines } = useMedications();
   const activeMedicines = medicines.filter(medicine => medicineIds.includes(medicine.id));
   return (
     <View style={styles.container}>

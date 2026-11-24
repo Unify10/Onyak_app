@@ -1,16 +1,9 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useContext, useEffect, useState, type ReactNode } from 'react';
+import { medicines as exampleMedicines } from '../components/Search/medicineData';
+import type { Medicine } from '../components/Search/types';
+import { MedicationContext } from './MedicationContext';
 import { exampleMedicationSchedules, exampleMedicineIds } from '../data/medicationExamples';
 import { createMedicationSchedules, getTodayDoses, type MedicationScheduleInput, type MedicationSchedule } from '../utils/medicationSchedule';
-
-type MedicationContextValue = {
-  medicineIds: string[];
-  toggleMedicine: (id: string) => void;
-  schedules: MedicationSchedule[];
-  saveMedicationSchedule: (medicineId: string, startDate: string, durationDays: number, doses: MedicationScheduleInput['doses']) => void;
-  todayDoses: (ReturnType<typeof getTodayDoses>[number] & { completed: boolean })[];
-  toggleDose: (doseId: string) => void;
-};
-const MedicationContext = createContext<MedicationContextValue | null>(null);
 
 type MedicationProviderProps = {
   children: ReactNode;
@@ -19,6 +12,16 @@ type MedicationProviderProps = {
 };
 
 export function MedicationProvider({ children, includeExamples = true, familySchedules }: MedicationProviderProps) {
+  const parent = useContext(MedicationContext);
+  const [remoteMedicines, setRemoteMedicines] = useState<Medicine[]>([]);
+  const medicines = parent?.medicines ?? [...exampleMedicines, ...remoteMedicines];
+  function rememberMedicine(medicine: Medicine) {
+    if (parent) {
+      parent.rememberMedicine(medicine);
+    } else if (medicine.id.startsWith('drug-')) {
+      setRemoteMedicines(current => [...current.filter(item => item.id !== medicine.id), medicine]);
+    }
+  }
   const [personalMedicineIds, setMedicineIds] = useState<string[]>(includeExamples ? exampleMedicineIds : []);
   const [personalSchedules, setSchedules] = useState<MedicationSchedule[]>(includeExamples ? exampleMedicationSchedules : []);
   const schedules = familySchedules ?? personalSchedules;
@@ -52,11 +55,5 @@ export function MedicationProvider({ children, includeExamples = true, familySch
     if (!todayDoses.some(dose => dose.doseId === doseId)) return;
     setCompletedDoseIds(current => current.includes(doseId) ? current.filter(id => id !== doseId) : [...current, doseId]);
   }
-  return <MedicationContext.Provider value={{ medicineIds, toggleMedicine, schedules, saveMedicationSchedule, todayDoses, toggleDose }}>{children}</MedicationContext.Provider>;
-}
-
-export function useMedications() {
-  const value = useContext(MedicationContext);
-  if (!value) throw new Error('복용 목록 제공자가 필요합니다.');
-  return value;
+  return <MedicationContext.Provider value={{ medicineIds, medicines, rememberMedicine, toggleMedicine, schedules, saveMedicationSchedule, todayDoses, toggleDose }}>{children}</MedicationContext.Provider>;
 }

@@ -1,7 +1,6 @@
 import Text from '../../Typography/Text';
 import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
-import { useMedications } from '../../../providers/MedicationProvider';
-import { medicines } from '../../Search/medicineData';
+import { useMedications } from '../../../providers/MedicationContext';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import TodayMedicineItem from './TodayMedicineItem';
 import { compactTodayMedicineListStyles, todayMedicineListStyles } from './todayMedicineListStyles';
@@ -9,7 +8,7 @@ import { useEffect, useState } from 'react';
 
 export default function TodayMedicineList() {
   const styles = useResponsiveStyles(baseStyles, compactTodayMedicineListStyles);
-  const { todayDoses, toggleDose } = useMedications();
+  const { todayDoses, toggleDose, medicines } = useMedications();
   const [now, setNow] = useState(() => new Date());
   const [doseAwaitingConfirmation, setDoseAwaitingConfirmation] = useState<string | null>(null);
   useEffect(() => { const timer = setInterval(() => setNow(new Date()), 60_000); return () => clearInterval(timer); }, []);

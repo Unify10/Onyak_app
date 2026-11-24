@@ -24,7 +24,7 @@ export default function SearchResults({ query, medicines, onSelectMedicine }: Pr
           </View>
           <View style={styles.info}>
             <AppText style={styles.name}>{medicine.name}</AppText>
-            <AppText style={styles.detail}>{medicine.ingredient} · {medicine.kind}</AppText>
+            {(medicine.ingredient || medicine.kind) && <AppText style={styles.detail}>{[medicine.ingredient, medicine.kind].filter(Boolean).join(' · ')}</AppText>}
           </View>
           <Ionicons name="chevron-forward" size={22} color="#C5CBD3" />
         </Pressable>

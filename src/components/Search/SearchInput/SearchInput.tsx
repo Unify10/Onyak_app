@@ -17,7 +17,9 @@ export default function SearchInput({ value, onChange, onFocus, onSubmit, onClea
   const [focused, setFocused] = useState(false);
   return (
     <View style={[styles.container, focused && styles.focused]}>
-      <Ionicons name="search-outline" size={24} color="#9AA3B1" />
+      <Pressable accessibilityRole="button" accessibilityLabel="약 검색" onPress={onSubmit} hitSlop={8}>
+        <Ionicons name="search-outline" size={24} color="#9AA3B1" />
+      </Pressable>
       <TextInput
         value={value}
         onChangeText={onChange}
@@ -28,6 +30,7 @@ export default function SearchInput({ value, onChange, onFocus, onSubmit, onClea
         placeholderTextColor="#9AA3B1"
         style={styles.input}
         returnKeyType="search"
+        maxLength={100}
         autoCapitalize="none"
         autoCorrect={false}
       />

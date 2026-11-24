@@ -6,7 +6,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { medicines } from '../../components/Search/medicineData';
+import { useMedications } from '../../providers/MedicationContext';
 import { getLocalDateKey, getTodayDoses, isValidDateKey } from '../../utils/medicationSchedule';
 import { useFamilies } from '../../providers/FamilyProvider';
 
@@ -17,6 +17,7 @@ export default function FamilyMedicationDetail() {
   const styles = useResponsiveStyles(baseStyles);
   const { id, date } = useLocalSearchParams<{ id: string; date?: string }>();
   const { families } = useFamilies();
+  const { medicines } = useMedications();
   const family = families.find(item => item.id === id);
   const [selectedDate, setSelectedDate] = useState(() => date && isValidDateKey(date) ? new Date(`${date}T00:00:00`) : new Date());
   const [month, setMonth] = useState(selectedDate);

@@ -1,6 +1,6 @@
 import type { MedicationContraindications } from '../../utils/medicationCaution';
 
-export type MedicineCategory = '일반의약품' | '영양제';
+export type MedicineCategory = '일반의약품' | '영양제' | '의약품';
 export type CaptureAction = 'label' | 'gallery';
 
 export type Medicine = {

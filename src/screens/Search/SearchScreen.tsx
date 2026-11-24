@@ -1,6 +1,9 @@
+import { searchDrugs } from '../../api/drugs';
+import QueryError from '../../components/Feedback/QueryError';
+import { useProtectedQuery } from '../../hooks/useProtectedQuery';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { router } from 'expo-router';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard, ScrollView, StyleSheet, View } from 'react-native';
 import { useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
@@ -12,7 +15,7 @@ import SearchInput from '../../components/Search/SearchInput/SearchInput';
 import SearchPagination from '../../components/Search/SearchResults/SearchPagination';
 import SearchResultsSkeleton from '../../components/Search/SearchResults/SearchResultsSkeleton';
 import SelectedImageCard from '../../components/Search/SelectedImageCard/SelectedImageCard';
-import { medicines } from '../../components/Search/medicineData';
+import AppText from '../../components/Search/AppText/AppText';
 import type { CaptureAction, Medicine, SearchHistoryEntry } from '../../components/Search/types';
 
 const SearchResults = lazy(() => import('../../components/Search/SearchResults/SearchResults'));
@@ -47,21 +50,17 @@ export default function SearchScreen({
   const styles = useResponsiveStyles(baseStyles);
   const handledCaptureRequest = useRef<string | null>(null);
   const [query, setQuery] = useState(initialQuery ?? '');
+  const [submittedQuery, setSubmittedQuery] = useState(initialQuery?.trim() ?? '');
   const [searchFocused, setSearchFocused] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [resultPage, setResultPage] = useState(1);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
-  const filteredMedicines = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
-    return medicines.filter(medicine =>
-      !normalizedQuery || [medicine.name, medicine.ingredient]
-        .join(' ')
-        .toLocaleLowerCase()
-        .includes(normalizedQuery),
-    );
-  }, [query]);
+  const canSearch = submittedQuery.length >= 2;
+  const requestSearch = useCallback((token: string, signal: AbortSignal) => searchDrugs(submittedQuery, token, signal), [submittedQuery]);
+  const { state: searchState, retry } = useProtectedQuery(requestSearch, canSearch);
+  const filteredMedicines = searchState.status === 'ready' ? searchState.data : [];
   const pageCount = Math.max(1, Math.ceil(filteredMedicines.length / 3));
   const visibleMedicines = filteredMedicines.slice((resultPage - 1) * 3, resultPage * 3);
 
@@ -73,6 +72,7 @@ export default function SearchScreen({
 
   function selectRecentSearch(entry: SearchHistoryEntry) {
     setQuery(entry.query);
+    setSubmittedQuery(entry.query.trim());
     setResultPage(1);
     saveSearch(entry.query, entry.category);
     setSearchFocused(false);
@@ -81,12 +81,11 @@ export default function SearchScreen({
 
   function updateQuery(value: string) {
     setQuery(value);
-    setResultPage(1);
+    if (!value.trim()) setSubmittedQuery('');
   }
 
   function selectMedicine(medicine: Medicine) {
-    setQuery(current => current.trim() || medicine.name);
-    saveSearch(query.trim() || medicine.name, medicine.category);
+    saveSearch(submittedQuery || medicine.name, medicine.category);
     router.push({ pathname: '/medicine/[id]', params: { id: medicine.id } });
   }
 
@@ -133,7 +132,11 @@ export default function SearchScreen({
   }, [pendingCaptureAction, captureRequestId, onCaptureActionHandled, pickImage, openCamera]);
 
   function submitSearch() {
-    saveSearch();
+    const term = query.trim();
+    if (term.length >= 2) saveSearch(term, '의약품');
+    if (canSearch && term === submittedQuery) retry();
+    setSubmittedQuery(term);
+    setResultPage(1);
     setSearchFocused(false);
     Keyboard.dismiss();
   }
@@ -181,13 +184,17 @@ export default function SearchScreen({
           <>
             <CaptureActionPanel onPress={() => void openCamera()} />
             {selectedImage && <SelectedImageCard key={selectedImage} uri={selectedImage} onRemove={() => setSelectedImage(null)} />}
-            <Suspense fallback={<SearchResultsSkeleton />}>
-              <SearchResults
-                query={query}
-                medicines={visibleMedicines}
-                onSelectMedicine={selectMedicine}
-              />
-            </Suspense>
+            {!canSearch ? (
+              <AppText style={styles.searchHint}>약 이름이나 성분명을 두 글자 이상 입력해 주세요.</AppText>
+            ) : searchState.status === 'loading' ? (
+              <SearchResultsSkeleton />
+            ) : searchState.status === 'error' ? (
+              <QueryError message={searchState.message} onRetry={retry} />
+            ) : (
+              <Suspense fallback={<SearchResultsSkeleton />}>
+                <SearchResults query={submittedQuery} medicines={visibleMedicines} onSelectMedicine={selectMedicine} />
+              </Suspense>
+            )}
           </>
         )}
       </ScrollView>
@@ -210,6 +217,7 @@ const baseStyles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   resultsScroll: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 26 },
+  searchHint: { color: '#667085', fontSize: 14, paddingVertical: 16 },
   contentWithPagination: { paddingBottom: 8 },
   paginationDock: { minHeight: 56, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB', backgroundColor: '#FFFFFF', justifyContent: 'center' },
 });
