@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { getFamilyList, type FamilySummary } from '../../api/family';
+import { useWardMedicationPrecheck } from '../../hooks/useWardMedicationPrecheck';
+import MedicationPrecheckResult from './MedicationPrecheckResult';
 import { useProtectedQuery } from '../../hooks/useProtectedQuery';
 import QueryError from '../Feedback/QueryError';
 import Text from '../Typography/Text';
 import MedicationScheduleForm, { type FamilyScheduleInput } from './MedicationScheduleForm';
 
 type Props = {
+  drugId: string;
   busy: boolean;
   saveError?: string;
   onCancel: () => void;
@@ -14,17 +17,14 @@ type Props = {
   onSave: (family: FamilySummary, schedule: FamilyScheduleInput) => void;
 };
 
-export default function FamilyMedicationRegistration({ busy, saveError, onCancel, onCreateFamily, onSave }: Props) {
+export default function FamilyMedicationRegistration({ drugId, busy, saveError, onCancel, onCreateFamily, onSave }: Props) {
   const [selected, setSelected] = useState<FamilySummary | null>(null);
   const { state, retry } = useProtectedQuery(getFamilyList);
 
   if (selected) {
     return (
-      <>
-        <Text style={styles.subject}>{selected.name}님의 복용 일정</Text>
-        <MedicationScheduleForm mode="family" busy={busy} saveError={saveError} onCancel={onCancel}
-          onSave={schedule => onSave(selected, schedule)} />
-      </>
+      <CheckedFamilyRegistration key={selected.ward_id} family={selected} drugId={drugId} busy={busy} saveError={saveError}
+        onCancel={onCancel} onSave={onSave} />
     );
   }
 
@@ -51,6 +51,24 @@ export default function FamilyMedicationRegistration({ busy, saveError, onCancel
         <Text style={styles.buttonText}>취소</Text>
       </Pressable>
     </View>
+  );
+}
+
+function CheckedFamilyRegistration({ family, drugId, busy, saveError, onCancel, onSave }: Omit<Props, 'onCreateFamily'> & { family: FamilySummary }) {
+  const { state, retry } = useWardMedicationPrecheck(family.ward_id, drugId);
+
+  return (
+    <>
+      <Text style={styles.subject}>{family.name}님의 복용 일정</Text>
+      <View style={styles.content}>
+        <Text accessibilityRole="header" style={styles.heading}>복용 전 점검</Text>
+        {state.status === 'loading' && <Text accessibilityLiveRegion="polite">복용 전 점검 중이에요.</Text>}
+        {state.status === 'error' && <QueryError message={state.message} onRetry={retry} />}
+        {state.status === 'ready' && <MedicationPrecheckResult result={state.data} onRetry={retry} />}
+      </View>
+      <MedicationScheduleForm mode="family" busy={busy} saveError={saveError} onCancel={onCancel}
+        saveDisabled={state.status === 'loading'} onSave={schedule => onSave(family, schedule)} />
+    </>
   );
 }
 

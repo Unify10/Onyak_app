@@ -1,7 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { getFamilyList, type FamilySummary } from '../../api/family';
-import { checkWardMedication } from '../../api/medicationSafety';
+import { useWardMedicationPrecheck } from '../../hooks/useWardMedicationPrecheck';
 import { useProtectedQuery } from '../../hooks/useProtectedQuery';
 import QueryError from '../Feedback/QueryError';
 import Text from '../Typography/Text';
@@ -45,11 +45,7 @@ export default function FamilyDrugPrecheck({ drugId, onClose }: Props) {
 }
 
 function FamilyCheck({ family, drugId }: { family: FamilySummary; drugId: string }) {
-  const query = useCallback(
-    (token: string, signal: AbortSignal) => checkWardMedication(family.ward_id, drugId, token, signal),
-    [family.ward_id, drugId],
-  );
-  const { state, retry } = useProtectedQuery(query);
+  const { state, retry } = useWardMedicationPrecheck(family.ward_id, drugId);
 
   return (
     <>

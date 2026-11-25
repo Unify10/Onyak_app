@@ -18,7 +18,7 @@ export type FamilyScheduleInput = { startDate: string; dosage: string; times: st
 
 type Props = { onCancel: () => void } & (
   | { mode?: 'local'; initialSchedules: MedicationSchedule[]; onSave: (schedule: MedicationScheduleInput) => void }
-  | { mode: 'family'; busy: boolean; saveError?: string; onSave: (schedule: FamilyScheduleInput) => void }
+  | { mode: 'family'; busy: boolean; saveDisabled?: boolean; saveError?: string; onSave: (schedule: FamilyScheduleInput) => void }
 );
 
 const timeOfDayOptions: DoseTimeOfDay[] = ['아침', '점심', '저녁', '취침 전'];
@@ -44,6 +44,7 @@ function getInitialDuration(schedules: MedicationSchedule[]) {
 export default function MedicationScheduleForm(props: Props) {
   const initialSchedules = props.mode === 'family' ? [] : props.initialSchedules;
   const busy = props.mode === 'family' && props.busy;
+  const saveDisabled = busy || (props.mode === 'family' && props.saveDisabled);
   const [dosage, setDosage] = useState('');
   const [startDate, setStartDate] = useState(initialSchedules[0]?.startDate ?? getLocalDateKey(new Date()));
   const [durationDays, setDurationDays] = useState(() => getInitialDuration(initialSchedules));
@@ -68,7 +69,7 @@ export default function MedicationScheduleForm(props: Props) {
   }
 
   function save() {
-    if (busy) return;
+    if (saveDisabled) return;
     if (!isStartDateValid) {
       setError('복용 시작일을 YYYY-MM-DD 형식으로 입력해 주세요.');
       return;
@@ -171,7 +172,7 @@ export default function MedicationScheduleForm(props: Props) {
         <Text accessibilityRole="alert" style={styles.error}>{error || (props.mode === 'family' && props.saveError)}</Text>
       )}
 
-      <Pressable accessibilityRole="button" accessibilityState={{ busy, disabled: busy }} disabled={busy} onPress={save} style={styles.saveButton}>
+      <Pressable accessibilityRole="button" accessibilityState={{ busy, disabled: saveDisabled }} disabled={saveDisabled} onPress={save} style={styles.saveButton}>
         <Text style={styles.saveButtonText}>{busy ? '저장 중…' : props.mode === 'family' ? '가족 계정에 약 추가' : '일정 저장'}</Text>
       </Pressable>
       <Pressable accessibilityRole="button" disabled={busy} onPress={props.onCancel} style={styles.cancelButton}>

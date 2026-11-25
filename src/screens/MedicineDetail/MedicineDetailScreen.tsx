@@ -147,6 +147,7 @@ export default function MedicineDetailScreen({ medicine, information }: { medici
                   <FamilyDrugPrecheck drugId={drugId} onClose={closeSchedule} />
                 ) : savingFor === 'family' && drugId ? (
                   <FamilyMedicationRegistration
+                    drugId={drugId}
                     busy={adding}
                     saveError={addError}
                     onCancel={closeSchedule}
