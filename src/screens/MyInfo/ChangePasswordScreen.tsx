@@ -5,22 +5,20 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../providers/AuthProvider';
+import { useSaveAccountProfile } from '../../hooks/useSaveAccountProfile';
+import { validatePasswordChange } from '../../utils/accountCredentials';
 
 export default function ChangePasswordScreen() {
   const styles = useResponsiveStyles(baseStyles);
-  const { updatePassword } = useAuth();
+  const { saveAccount, busy, error } = useSaveAccountProfile();
   const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
-  const [message, setMessage] = useState('');
-  const valid = password.length >= 8 && /[A-Za-z]/.test(password) && /\d/.test(password) && /[^A-Za-z0-9]/.test(password);
-  const canSubmit = !!currentPassword && valid && confirmation === password && password !== currentPassword;
-  function submit() {
+  const validation = validatePasswordChange(currentPassword, password, confirmation);
+  const canSubmit = !validation && !busy;
+  async function submit() {
     if (!canSubmit) return;
-    updatePassword(password);
-    setCurrentPassword(''); setPassword(''); setConfirmation('');
-    setMessage('비밀번호가 변경되었습니다.');
+    if (await saveAccount({ password, current_password: currentPassword })) router.replace('/login');
   }
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -29,13 +27,11 @@ export default function ChangePasswordScreen() {
         <View style={styles.notice}><Ionicons name="shield-half" size={22} /><Text style={styles.noticeText}>안전한 계정 유지를 위해{ '\n' }비밀번호를 주기적으로 변경해주세요.</Text></View>
         <PasswordField label="비밀번호" value={currentPassword} onChange={setCurrentPassword} placeholder="현재 비밀번호를 입력해주세요." />
         <PasswordField label="새로운 비밀번호" value={password} onChange={setPassword} placeholder="영문, 숫자, 특수문자 포함 8자 이상" />
-        {!!password && !valid && <Text style={styles.error}>비밀번호는 영문, 숫자, 특수문자를 포함한 8자 이상이어야 합니다.</Text>}
-        {!!password && password === currentPassword && <Text style={styles.error}>현재 비밀번호와 다른 비밀번호를 입력해주세요.</Text>}
         <PasswordField label="비밀번호 확인" value={confirmation} onChange={setConfirmation} placeholder="비밀번호를 한 번 더 입력해주세요." />
-        {!!confirmation && confirmation !== password && <Text style={styles.error}>비밀번호가 일치하지 않습니다.</Text>}
-        {message ? <Text accessibilityRole="alert" style={styles.message}>{message}</Text> : null}
+        {password && confirmation && validation ? <Text style={styles.error}>{validation}</Text> : null}
+        {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
       </ScrollView>
-      <View style={styles.footer}><Pressable accessibilityRole="button" disabled={!canSubmit} onPress={submit} style={[styles.button, !canSubmit && styles.disabled]}><Text style={styles.buttonText}>비밀번호 변경하기</Text></Pressable></View>
+      <View style={styles.footer}><Pressable accessibilityRole="button" disabled={!canSubmit} onPress={() => void submit()} style={[styles.button, !canSubmit && styles.disabled]}><Text style={styles.buttonText}>{busy ? '변경 중' : '비밀번호 변경하기'}</Text></Pressable></View>
     </KeyboardAvoidingView>
   );
 }
@@ -58,7 +54,6 @@ const baseStyles = StyleSheet.create({
   input: { flex: 1, minWidth: 0, fontSize: 15, paddingHorizontal: 16, paddingVertical: 14, color: '#111111' },
   eye: { minWidth: 44, minHeight: 48, justifyContent: 'center', alignItems: 'center' },
   error: { fontSize: 12, lineHeight: 18, color: '#D92D20', marginTop: 6 },
-  message: { color: '#4B5563', fontSize: 14, lineHeight: 22, marginTop: 24 },
   footer: { width: '100%', alignSelf: 'center', padding: 20 },
   button: { backgroundColor: '#000000', borderRadius: 12, minHeight: 50, justifyContent: 'center', alignItems: 'center' },
   disabled: { backgroundColor: '#9B9B9B' }, buttonText: { color: '#FFFFFF', fontSize: 16 },

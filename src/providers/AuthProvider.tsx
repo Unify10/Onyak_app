@@ -17,7 +17,6 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [contactNumber, setContactNumber] = useState('');
-  const [, setPassword] = useState('');
   const currentSession = useRef<AuthSession | null>(null);
   const keepSession = useRef(false);
   const confirmedBody = useRef<AccountBody | null>(null);
@@ -64,7 +63,6 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
     setDisplayName('');
     setEmail('');
     setContactNumber('');
-    setPassword('');
     return session;
   }, [persist]);
 
@@ -211,13 +209,10 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
     contactNumber,
     signIn,
     signOut,
+    clearLocalSession: clearSession,
     loadProfile,
     updateBody,
     withSession,
-    updateDisplayName: setDisplayName,
-    updateContactNumber: setContactNumber,
-    updateEmail: setEmail,
-    updatePassword: setPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

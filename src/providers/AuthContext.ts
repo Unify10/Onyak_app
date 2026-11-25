@@ -16,13 +16,10 @@ export type AuthContextValue = {
   contactNumber: string;
   signIn: (session: AccountSession, keepLogin: boolean) => void;
   signOut: () => void;
+  clearLocalSession: () => void;
   loadProfile: (signal: AbortSignal) => Promise<AccountProfile>;
   updateBody: (body: AccountBody, signal: AbortSignal) => Promise<AccountBody>;
   withSession: <T>(request: (accessToken: string) => Promise<T>, signal: AbortSignal) => Promise<T>;
-  updateDisplayName: (name: string) => void;
-  updateContactNumber: (number: string) => void;
-  updateEmail: (email: string) => void;
-  updatePassword: (password: string) => void;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
