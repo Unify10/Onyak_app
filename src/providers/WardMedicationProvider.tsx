@@ -4,6 +4,8 @@ import { checkFamilyMedication } from '../api/medications';
 import type { Medicine } from '../components/Search/types';
 import { useMedicationMutation } from '../hooks/useMedicationMutation';
 import { useProtectedQuery } from '../hooks/useProtectedQuery';
+import { useStoredMedicationData } from '../hooks/useStoredMedicationData';
+import { emptyCheckedDoses, readCheckedDoses } from '../utils/medicationStorage';
 import { useWardCalendar } from '../hooks/useWardCalendar';
 import { getMedicationServerClock } from '../utils/familyMedication';
 import { getLocalDateKey, getTodayDoses, type MedicationSchedule } from '../utils/medicationSchedule';
@@ -14,7 +16,7 @@ const everyDay = [0, 1, 2, 3, 4, 5, 6];
 
 export default function WardMedicationProvider({ wardId, children }: { wardId: string; children: ReactNode }) {
   const [clock, setClock] = useState(getMedicationServerClock);
-  const [checked, setChecked] = useState<{ date: string; ids: string[] }>();
+  const { data: checked, update: updateChecked } = useStoredMedicationData(`onyak.ward-checked.${wardId}`, emptyCheckedDoses, readCheckedDoses);
   const query = useCallback((token: string, signal: AbortSignal) => getFamilyMedications(wardId, token, signal), [wardId]);
   const { state, retry } = useProtectedQuery(query, true, 'dependent');
   const calendar = useWardCalendar(wardId, clock.date, 'dependent', clock.date.getTime());
@@ -48,7 +50,7 @@ export default function WardMedicationProvider({ wardId, children }: { wardId: s
   const todayRecord = calendar.state.status === 'ready' ? calendar.state.data.find(day => day.date === dateKey) : undefined;
   const todayDoses = getTodayDoses(medicineIds, schedules, clock.date).map(dose => ({
     ...dose,
-    completed: checked?.date === dateKey && checked.ids.includes(dose.doseId),
+    completed: checked.includes(dose.doseId),
   }));
 
   async function toggleDose(doseId: string) {
@@ -56,10 +58,7 @@ export default function WardMedicationProvider({ wardId, children }: { wardId: s
     if (!dose || dose.completed || dateKey !== getLocalDateKey(getMedicationServerClock().date)) return;
     const saved = await mutation.run((token, signal) => checkFamilyMedication(Number(dose.medicineId), dose.time, token, signal));
     if (!saved) return;
-    setChecked(current => ({
-      date: dateKey,
-      ids: [...(current?.date === dateKey ? current.ids : []), doseId],
-    }));
+    updateChecked(current => [...new Set([...current.filter(id => id.startsWith(dateKey + ':')), doseId])]);
     calendar.retry();
   }
 

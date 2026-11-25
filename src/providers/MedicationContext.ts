@@ -9,8 +9,9 @@ type MedicationContextValue = {
   medicines: Medicine[];
   rememberMedicine: (medicine: Medicine) => void;
   toggleMedicine: (id: string) => void;
+  clearPersonalMedications?: () => void;
   schedules: MedicationSchedule[];
-  saveMedicationSchedule: (medicineId: string, startDate: string, durationDays: number, doses: MedicationScheduleInput['doses']) => void;
+  saveMedicationSchedule: (medicineId: string, startDate: string, durationDays: number, doses: MedicationScheduleInput['doses'], medicine?: Medicine) => void;
   todayDoses: (ReturnType<typeof getTodayDoses>[number] & { completed: boolean })[];
   toggleDose: (doseId: string) => void;
   ward?: {

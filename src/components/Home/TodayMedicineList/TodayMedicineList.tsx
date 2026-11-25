@@ -82,7 +82,7 @@ export default function TodayMedicineList() {
         <Text style={styles.todayMedicineListHeaderTitle}>오늘의 복용</Text>
         <Text style={styles.todayMedicineListHeaderStatus}>{completionLabel}</Text>
       </View>
-      {ward && doses.length > 0 && <Text style={styles.wardNote}>완료 목록에는 이 화면에서 기록을 확인한 항목이 표시돼요.</Text>}
+      {ward && doses.length > 0 && <Text style={styles.wardNote}>완료 목록에는 이 기기에서 확인한 완료 항목이 표시돼요.</Text>}
       {ward?.todayRecordError && <QueryError message={ward.todayRecordError} onRetry={ward.retryTodayRecord} />}
       {ward?.checkError && <Text accessibilityRole="alert" style={styles.wardNote}>{ward.checkError}</Text>}
       <View style={styles.columns}>
@@ -99,7 +99,7 @@ export default function TodayMedicineList() {
           <View style={styles.paneHeader}><Text style={styles.paneTitle}>오늘 복용한 약</Text><Text style={styles.paneCount}>{completed.length}</Text></View>
           <ScrollView style={styles.paneList} contentContainerStyle={styles.paneContent} nestedScrollEnabled directionalLockEnabled showsVerticalScrollIndicator>
             {completed.map(dose => <TodayMedicineItem key={dose.doseId} title={dose.title} timeOfDay={dose.timeOfDay} time={dose.time} completed={dose.completed} disabled={Boolean(ward)} onToggle={() => toggleDose(dose.doseId)} />)}
-            {!completed.length && <Text style={styles.emptyText}>{ward ? '이 화면에서 확인한 완료 항목이 없습니다.' : '아직 복용한 약이 없습니다.'}</Text>}
+            {!completed.length && <Text style={styles.emptyText}>{ward ? '이 기기에서 확인한 완료 항목이 없습니다.' : '아직 복용한 약이 없습니다.'}</Text>}
           </ScrollView>
         </View>
       </View>

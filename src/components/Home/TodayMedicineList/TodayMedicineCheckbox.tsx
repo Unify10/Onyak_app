@@ -10,6 +10,7 @@ export default function TodayMedicineCheckbox({ checked, onToggle, label, disabl
       accessibilityRole="checkbox"
       accessibilityLabel={`${label} 복용 완료`}
       accessibilityState={{ checked, disabled }}
+      aria-checked={checked}
       disabled={disabled}
       hitSlop={6}
       style={[styles.checkboxBase, checked ? styles.checkboxChecked : styles.checkboxUnchecked]}

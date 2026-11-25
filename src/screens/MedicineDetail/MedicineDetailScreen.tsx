@@ -83,7 +83,7 @@ export default function MedicineDetailScreen({ medicine, information }: { medici
       return;
     }
     rememberMedicine(medicine);
-    saveMedicationSchedule(medicine.id, schedule.startDate, schedule.durationDays, schedule.doses);
+    saveMedicationSchedule(medicine.id, schedule.startDate, schedule.durationDays, schedule.doses, medicine);
     closeSchedule();
     router.replace('/(tabs)/medication-list');
   }
