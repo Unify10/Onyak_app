@@ -6,6 +6,7 @@ import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import DrugDurSection from '../../components/MedicineDetail/DrugDurSection';
 import MedicineInfoAccordion from '../../components/MedicineDetail/MedicineInfoAccordion';
 import MedicationScheduleForm from '../../components/MedicineDetail/MedicationScheduleForm';
 import type { Medicine } from '../../components/Search/types';
@@ -66,6 +67,7 @@ export default function MedicineDetailScreen({ medicine, information }: { medici
           <Text style={styles.name}>{medicine.name}</Text>
         </View>
         <MedicineInfoAccordion information={information} />
+        {medicine.id.startsWith('drug-') && <DrugDurSection drugId={medicine.id.slice(5)} />}
         {!savingFor && (
           <Pressable accessibilityRole="button" style={styles.button} onPress={() => setSavingFor('self')}>
             <Text style={styles.buttonText}>{isRegistered ? '복용 일정 수정' : '복용 목록에 추가'}</Text>

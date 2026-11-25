@@ -12,6 +12,10 @@ export default function MedicineInfoAccordion({ information }: { information?: D
     { title: '약의 효능', description: information?.efficacy },
     { title: '복용 방법', description: information?.usage },
     { title: '주의사항', description: information?.caution },
+    ...(information?.classification ? [{
+      title: '의약품 분류',
+      description: [information.classification, ...(information.classificationEvidence ?? [])].join('\n'),
+    }] : []),
   ];
   return (
     <View style={styles.container}>

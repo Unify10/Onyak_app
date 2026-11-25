@@ -5,11 +5,20 @@ import { CameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from '../AppText/AppText';
 
-type Props = { visible: boolean; onClose: () => void; onPickImage: () => void; onImageCaptured: (uri: string) => void };
+type Props = { visible: boolean; mode: 'label' | 'barcode'; onClose: () => void; onPickImage: () => void; onImageCaptured: (uri: string) => void; onBarcode: (code: string) => void };
 
-export default function LabelCameraModal({ visible, onClose, onPickImage, onImageCaptured }: Props) {
+export default function LabelCameraModal({ visible, mode, onClose, onPickImage, onImageCaptured, onBarcode }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   const cameraRef = useRef<CameraView>(null);
+
+  const barcodeMode = mode === 'barcode';
+  const scanHandled = useRef(false);
+
+  function handleBarcode(code: string) {
+    if (scanHandled.current || !/^\d{8,14}$/.test(code)) return;
+    scanHandled.current = true;
+    onBarcode(code);
+  }
 
   async function capturePhoto() {
     try {
@@ -27,20 +36,28 @@ export default function LabelCameraModal({ visible, onClose, onPickImage, onImag
           <Pressable style={styles.close} onPress={onClose} accessibilityRole="button" accessibilityLabel="카메라 닫기">
             <Ionicons name="close" size={27} color="#FFFFFF" />
           </Pressable>
-          <AppText style={styles.title}>처방전·약품 라벨 촬영</AppText>
+          <AppText style={styles.title}>{barcodeMode ? '약품 바코드 스캔' : '처방전·약품 라벨 촬영'}</AppText>
           <View style={styles.closePlaceholder} />
         </View>
         <View style={styles.preview}>
-          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
+          {visible && (
+            <CameraView
+              ref={cameraRef}
+              style={StyleSheet.absoluteFill}
+              facing="back"
+              barcodeScannerSettings={barcodeMode ? { barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'itf14', 'code128'] } : undefined}
+              onBarcodeScanned={barcodeMode ? ({ data }) => handleBarcode(data) : undefined}
+            />
+          )}
           <View pointerEvents="none" style={styles.frame}>
             <View style={[styles.corner, styles.topLeft]} />
             <View style={[styles.corner, styles.topRight]} />
             <View style={[styles.corner, styles.bottomLeft]} />
             <View style={[styles.corner, styles.bottomRight]} />
           </View>
-          <AppText style={styles.hint}>약품명과 글자가 잘 보이도록 맞춰 주세요</AppText>
+          <AppText style={styles.hint}>{barcodeMode ? '바코드를 사각형 안에 맞춰 주세요' : '약품명과 글자가 잘 보이도록 맞춰 주세요'}</AppText>
         </View>
-        <View style={styles.controls}>
+        {!barcodeMode && <View style={styles.controls}>
           <Pressable style={styles.sideButton} onPress={onPickImage} accessibilityRole="button" accessibilityLabel="갤러리에서 선택">
             <Ionicons name="images-outline" size={28} color="#FFFFFF" />
           </Pressable>
@@ -48,7 +65,7 @@ export default function LabelCameraModal({ visible, onClose, onPickImage, onImag
             <View style={styles.shutterInner} />
           </Pressable>
           <View style={styles.sideButton} />
-        </View>
+        </View>}
       </View>
     </Modal>
   );

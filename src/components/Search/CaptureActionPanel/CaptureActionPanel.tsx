@@ -3,9 +3,9 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from '../AppText/AppText';
 
-type Props = { onPress: () => void };
+type Props = { onPress: () => void; onGallery: () => void; onBarcode: () => void };
 
-export default function CaptureActionPanel({ onPress }: Props) {
+export default function CaptureActionPanel({ onPress, onGallery, onBarcode }: Props) {
   const styles = useResponsiveStyles(baseStyles, compactStyles);
   return (
     <View style={styles.panel}>
@@ -14,12 +14,18 @@ export default function CaptureActionPanel({ onPress }: Props) {
         <AppText style={styles.title}>라벨 촬영</AppText>
         <AppText style={styles.description}>처방전이나 약품 포장지를 촬영해요</AppText>
       </Pressable>
+      <View style={styles.shortcuts}>
+        <Pressable style={styles.shortcut} onPress={onGallery} accessibilityRole="button"><AppText>사진 선택</AppText></Pressable>
+        <Pressable style={styles.shortcut} onPress={onBarcode} accessibilityRole="button"><AppText>바코드 스캔</AppText></Pressable>
+      </View>
     </View>
   );
 }
 
 const baseStyles = StyleSheet.create({
   panel: { minHeight: 190, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderStyle: 'dashed', borderColor: '#D6DAE0', borderRadius: 20, padding: 20, marginBottom: 26 },
+  shortcuts: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
+  shortcut: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 14, borderWidth: 1, borderColor: '#D6DAE0', borderRadius: 12 },
   action: { minWidth: 220, minHeight: 140, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
   icon: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#171C26', alignItems: 'center', justifyContent: 'center', marginBottom: 13 },
   title: { color: '#171C26', fontSize: 20, fontWeight: '700' },

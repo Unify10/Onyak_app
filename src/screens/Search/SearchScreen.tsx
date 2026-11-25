@@ -1,4 +1,4 @@
-import { searchDrugs } from '../../api/drugs';
+import { lookupDrugBarcode, recognizeDrugImage, searchDrugs, type DrugCandidate, type DrugImage, type DrugImageAction } from '../../api/drugs';
 import QueryError from '../../components/Feedback/QueryError';
 import { useProtectedQuery } from '../../hooks/useProtectedQuery';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
@@ -15,6 +15,7 @@ import SearchInput from '../../components/Search/SearchInput/SearchInput';
 import SearchPagination from '../../components/Search/SearchResults/SearchPagination';
 import SearchResultsSkeleton from '../../components/Search/SearchResults/SearchResultsSkeleton';
 import SelectedImageCard from '../../components/Search/SelectedImageCard/SelectedImageCard';
+import DrugImageResults from '../../components/Search/DrugImageResults';
 import AppText from '../../components/Search/AppText/AppText';
 import type { CaptureAction, Medicine, SearchHistoryEntry } from '../../components/Search/types';
 
@@ -53,13 +54,24 @@ export default function SearchScreen({
   const [submittedQuery, setSubmittedQuery] = useState(initialQuery?.trim() ?? '');
   const [searchFocused, setSearchFocused] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [cameraMode, setCameraMode] = useState<'label' | 'barcode'>('label');
+  const [selectedImage, setSelectedImage] = useState<DrugImage | null>(null);
+  const [imageAction, setImageAction] = useState<DrugImageAction | null>(null);
+  const [barcode, setBarcode] = useState('');
   const [resultPage, setResultPage] = useState(1);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   const canSearch = submittedQuery.length >= 2;
   const requestSearch = useCallback((token: string, signal: AbortSignal) => searchDrugs(submittedQuery, token, signal), [submittedQuery]);
   const { state: searchState, retry } = useProtectedQuery(requestSearch, canSearch);
+  const requestImage = useCallback((token: string, signal: AbortSignal) => {
+    if (!selectedImage || !imageAction) throw new Error('분석할 사진을 선택해 주세요.');
+    return recognizeDrugImage(selectedImage, imageAction, {}, token, signal);
+  }, [selectedImage, imageAction]);
+  const { state: imageState, retry: retryImage } = useProtectedQuery(requestImage, Boolean(selectedImage && imageAction));
+  const requestBarcode = useCallback((token: string, signal: AbortSignal) => lookupDrugBarcode(barcode, token, signal), [barcode]);
+  const { state: barcodeState, retry: retryBarcode } = useProtectedQuery(requestBarcode, Boolean(barcode));
+
   const filteredMedicines = searchState.status === 'ready' ? searchState.data : [];
   const pageCount = Math.max(1, Math.ceil(filteredMedicines.length / 3));
   const visibleMedicines = filteredMedicines.slice((resultPage - 1) * 3, resultPage * 3);
@@ -89,7 +101,7 @@ export default function SearchScreen({
     router.push({ pathname: '/medicine/[id]', params: { id: medicine.id } });
   }
 
-  const openCamera = useCallback(async () => {
+  const openCamera = useCallback(async (mode: 'label' | 'barcode' = 'label') => {
     Keyboard.dismiss();
     try {
       const permission = await (cameraPermission?.granted
@@ -100,6 +112,7 @@ export default function SearchScreen({
         Alert.alert('카메라 권한 필요', '라벨 촬영을 위해 카메라 권한을 허용해 주세요.');
         return;
       }
+      setCameraMode(mode);
       setCameraVisible(true);
     } catch {
       onCaptureClosed();
@@ -115,7 +128,12 @@ export default function SearchScreen({
         allowsEditing: true,
         quality: 0.9,
       });
-      if (!result.canceled && result.assets[0]) setSelectedImage(result.assets[0].uri);
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        setImageAction(null);
+        setBarcode('');
+        setSelectedImage({ uri: asset.uri, name: asset.fileName, mimeType: asset.mimeType, size: asset.fileSize, file: asset.file });
+      }
     } catch {
       Alert.alert('사진을 불러오지 못했어요', '기기 사진 보관함에 다시 접근해 주세요.');
     } finally {
@@ -132,7 +150,8 @@ export default function SearchScreen({
   }, [pendingCaptureAction, captureRequestId, onCaptureActionHandled, pickImage, openCamera]);
 
   function submitSearch() {
-    const term = query.trim();
+    const term = query.trim().slice(0, 100);
+    setBarcode('');
     if (term.length >= 2) saveSearch(term, '의약품');
     if (canSearch && term === submittedQuery) retry();
     setSubmittedQuery(term);
@@ -152,9 +171,34 @@ export default function SearchScreen({
   }
 
   function setCapturedImage(uri: string) {
-    setSelectedImage(uri);
+    setImageAction(null);
+    setBarcode('');
+    setSelectedImage({ uri, name: 'label.jpg', mimeType: 'image/jpeg' });
     setCameraVisible(false);
     onCaptureClosed();
+  }
+
+  function selectImageCandidate(candidate: DrugCandidate) {
+    if (candidate.drugId) {
+      saveSearch(candidate.name);
+      router.push({ pathname: '/medicine/[id]', params: { id: `drug-${candidate.drugId}` } });
+      return;
+    }
+    const name = candidate.name.slice(0, 100);
+    setSelectedImage(null);
+    setImageAction(null);
+    setQuery(name);
+    setSubmittedQuery(name);
+    setResultPage(1);
+    saveSearch(name);
+  }
+
+  function handleBarcode(code: string) {
+    setSelectedImage(null);
+    setImageAction(null);
+    if (barcode === code) retryBarcode();
+    setBarcode(code);
+    closeCamera();
   }
 
   return (
@@ -182,9 +226,32 @@ export default function SearchScreen({
           />
         ) : (
           <>
-            <CaptureActionPanel onPress={() => void openCamera()} />
-            {selectedImage && <SelectedImageCard key={selectedImage} uri={selectedImage} onRemove={() => setSelectedImage(null)} />}
-            {!canSearch ? (
+            <CaptureActionPanel onPress={() => void openCamera()} onGallery={() => void pickImage()} onBarcode={() => void openCamera('barcode')} />
+            {selectedImage && (
+              <SelectedImageCard
+                key={selectedImage.uri}
+                uri={selectedImage.uri}
+                busy={Boolean(imageAction && imageState.status === 'loading')}
+                onRemove={() => { setSelectedImage(null); setImageAction(null); }}
+                onRun={action => {
+                  if (imageAction === action) retryImage();
+                  setImageAction(action);
+                }}
+              />
+            )}
+            {selectedImage && imageAction && (
+              imageState.status === 'loading' ? <SearchResultsSkeleton />
+                : imageState.status === 'error' ? <QueryError message={imageState.message} onRetry={retryImage} />
+                  : <DrugImageResults candidates={imageState.data.candidates} findings={imageState.data.findings} analyzed={imageAction === 'analyze'} onSelect={selectImageCandidate} />
+            )}
+            {barcode && (
+              barcodeState.status === 'loading' ? <SearchResultsSkeleton />
+                : barcodeState.status === 'error' ? <QueryError message={barcodeState.message} onRetry={retryBarcode} />
+                  : <Suspense fallback={<SearchResultsSkeleton />}>
+                      <SearchResults query={barcode} medicines={[barcodeState.data.medicine]} onSelectMedicine={selectMedicine} />
+                    </Suspense>
+            )}
+            {!barcode && (!canSearch ? (
               <AppText style={styles.searchHint}>약 이름이나 성분명을 두 글자 이상 입력해 주세요.</AppText>
             ) : searchState.status === 'loading' ? (
               <SearchResultsSkeleton />
@@ -194,17 +261,21 @@ export default function SearchScreen({
               <Suspense fallback={<SearchResultsSkeleton />}>
                 <SearchResults query={submittedQuery} medicines={visibleMedicines} onSelectMedicine={selectMedicine} />
               </Suspense>
-            )}
+            ))}
           </>
         )}
       </ScrollView>
-      <LabelCameraModal
-        visible={cameraVisible}
-        onClose={closeCamera}
-        onPickImage={() => void pickImage()}
-        onImageCaptured={setCapturedImage}
-      />
-      {!searchFocused && pageCount > 1 && (
+      {cameraVisible && (
+        <LabelCameraModal
+          visible
+          mode={cameraMode}
+          onClose={closeCamera}
+          onPickImage={() => void pickImage()}
+          onImageCaptured={setCapturedImage}
+          onBarcode={handleBarcode}
+        />
+      )}
+      {!searchFocused && !barcode && pageCount > 1 && (
         <View style={styles.paginationDock}>
           <SearchPagination page={resultPage} pageCount={pageCount} onPageChange={setResultPage} />
         </View>
