@@ -58,3 +58,15 @@ export function addFamilyMedication(wardId: number, input: FamilyMedicationInput
     body: input, accessToken, signal, privateRequest: true,
   });
 }
+
+export type WardProfileChanges = Partial<Pick<FamilyProfile, 'name' | 'height' | 'weight' | 'gender' | 'is_pregnant'>>;
+
+export async function patchFamilyProfile(id: string, body: WardProfileChanges, accessToken: string, signal: AbortSignal) {
+  const result = await requestApi<FamilyProfile>(`/wards/${encodeURIComponent(id)}`, {
+    method: 'PATCH', body, accessToken, signal, privateRequest: true,
+  });
+  if (String(result?.ward_id) !== id || typeof result.name !== 'string') {
+    throw new Error('저장된 가족 정보를 확인하지 못했어요.');
+  }
+  return result;
+}

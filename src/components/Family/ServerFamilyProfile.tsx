@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
+import { Pressable, StyleSheet } from 'react-native';
 import { getFamilyMedications, getFamilyProfile } from '../../api/family';
 import { useProtectedQuery } from '../../hooks/useProtectedQuery';
 import { getFamilyMedicationDoses } from '../../utils/familyMedication';
@@ -19,7 +20,7 @@ export default function ServerFamilyProfile({ id, initialDate }: Props) {
   const [calendarRevision, setCalendarRevision] = useState(0);
   const profileQuery = useCallback((token: string, signal: AbortSignal) => getFamilyProfile(id, token, signal), [id]);
   const medicationQuery = useCallback((token: string, signal: AbortSignal) => getFamilyMedications(id, token, signal), [id]);
-  const profileRequest = useProtectedQuery(profileQuery);
+  const profileRequest = useProtectedQuery(profileQuery, useIsFocused());
   const medicationRequest = useProtectedQuery(medicationQuery);
   const backButton = (
     <RoundBackButton
@@ -65,6 +66,9 @@ export default function ServerFamilyProfile({ id, initialDate }: Props) {
       profileDetails={(
         <>
           <ProfileInfoTable profile={profile} />
+          <Pressable accessibilityRole="button" style={styles.editButton} onPress={() => router.push({ pathname: '/family/edit/[id]', params: { id } })}>
+            <Text style={styles.editLabel}>가족 정보 수정</Text>
+          </Pressable>
           <RecentWardInvitation key={id} wardId={profileRequest.state.data.ward_id} />
           <WardEvidenceCard wardId={id} revision={calendarRevision} />
         </>
@@ -92,3 +96,8 @@ export default function ServerFamilyProfile({ id, initialDate }: Props) {
     />
   );
 }
+
+const styles = StyleSheet.create({
+  editButton: { marginTop: 12, minHeight: 44, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  editLabel: { color: '#344054', fontSize: 15 },
+});
