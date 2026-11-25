@@ -5,10 +5,10 @@ import { getNotifications } from '../../../api/notifications';
 import { useProtectedQuery } from '../../../hooks/useProtectedQuery';
 import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 
-export default function HomeNotificationButton() {
+export default function HomeNotificationButton({ role = 'guardian' }: { role?: 'guardian' | 'dependent' }) {
   const styles = useResponsiveStyles(baseStyles);
   const isFocused = useIsFocused();
-  const { state } = useProtectedQuery(getNotifications, isFocused);
+  const { state } = useProtectedQuery(getNotifications, isFocused, role);
   const hasUnread = state.status === 'ready' && state.data.some(item => item.is_read === false);
 
   return (
@@ -16,7 +16,7 @@ export default function HomeNotificationButton() {
       accessibilityRole="button"
       accessibilityLabel={hasUnread ? '알림 내역, 읽지 않은 알림 있음' : '알림 내역'}
       style={styles.button}
-      onPress={() => router.push('/notifications')}
+      onPress={() => router.push(role === 'dependent' ? '/dependent/notifications' : '/notifications')}
     >
       <Svg width={styles.icon.width} height={styles.icon.height} viewBox="0 0 24 24" fill="none">
         <Path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" stroke="#111111" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />

@@ -7,14 +7,15 @@ import HomeNotificationButton from './HomeNotificationButton';
 
 export default function PageTitle({ dependentName }: { dependentName?: string }) {
   const styles = useResponsiveStyles(baseStyles);
-  const { accountId, displayName } = useAuth();
+  const { accountId, dependentId, displayName } = useAuth();
   return (
     <View style={styles.container}>
       <View style={styles.titleRow}>
         <View style={styles.titleText}>
           <Text style={styles.name} numberOfLines={1}>{dependentName ?? displayName}님</Text>
         </View>
-        {accountId !== null && !dependentName && <HomeNotificationButton key={accountId} />}
+        {dependentId ? <HomeNotificationButton key={`ward-${dependentId}`} role="dependent" />
+          : accountId !== null && <HomeNotificationButton key={accountId} />}
       </View>
     </View>
   );

@@ -33,7 +33,9 @@ export default function BottomTabBar({ dependent = false }: { dependent?: boolea
   return (
     <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       {(dependent ? dependentTabs : tabs).map(({ label, href, Icon }) => {
-        const isActive = dependent ? pathname === href : label === '홈'
+        const isActive = dependent
+          ? pathname === href || (label === '홈' && pathname === '/dependent/notifications')
+          : label === '홈'
           ? pathname === '/' || pathname === '/index' || pathname === '/notifications'
           : (label === '내 정보' && ['/edit-profile', '/change-password', '/delete-account'].includes(pathname)) || (label === '검색' && pathname.startsWith('/medicine/')) || pathname.endsWith(href.toString().split('/').at(-1) ?? '');
         return (

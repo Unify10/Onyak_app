@@ -4,7 +4,7 @@ import type { NotificationEntry } from '../../components/Notifications/Notificat
 import { useProtectedQuery } from '../../hooks/useProtectedQuery';
 import { getLocalDateKey } from '../../utils/medicationSchedule';
 import Text from '../../components/Typography/Text';
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ListSkeleton from '../../components/Skeleton/ListSkeleton';
@@ -14,12 +14,12 @@ import { lazy, Suspense, useCallback, useState } from 'react';
 
 const NotificationCard = lazy(() => import('../../components/Notifications/NotificationCard'));
 
-export default function NotificationsScreen() {
+export default function NotificationsScreen({ role = 'guardian' }: { role?: 'guardian' | 'dependent' }) {
   const styles = useResponsiveStyles(baseStyles);
   const [filter, setFilter] = useState<'all' | 'medication' | 'sos'>('all');
   const [page, setPage] = useState(0);
   const query = useCallback((token: string, signal: AbortSignal) => getNotifications(token, signal, page), [page]);
-  const { state, retry } = useProtectedQuery(query);
+  const { state, retry } = useProtectedQuery(query, useIsFocused(), role);
   const groups = new Map<string, NotificationEntry[]>();
   const notifications = state.status === 'ready' ? state.data : [];
   const today = getLocalDateKey(new Date());
@@ -40,7 +40,7 @@ export default function NotificationsScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace('/')} accessibilityRole="button" accessibilityLabel="홈으로 돌아가기" style={styles.backButton}><Ionicons name="chevron-back" size={22} color="#111111" /></Pressable>
+        <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace(role === 'dependent' ? '/dependent' : '/')} accessibilityRole="button" accessibilityLabel="홈으로 돌아가기" style={styles.backButton}><Ionicons name="chevron-back" size={22} color="#111111" /></Pressable>
         <Text style={styles.title}>알림 내역</Text>
       </View>
       <View style={styles.filters}>
