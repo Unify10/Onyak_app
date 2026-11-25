@@ -5,6 +5,7 @@ import type { FamilySummary } from '../../../api/family';
 import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { colors } from '../../../theme/tokens';
 import Text from '../../Typography/Text';
+import SkeletonBlock from '../../Skeleton/SkeletonBlock';
 
 type Props = { family: FamilySummary };
 
@@ -24,8 +25,23 @@ export default function ServerFamilyItem({ family }: Props) {
   );
 }
 
+export function ServerFamilyItemSkeleton() {
+  const styles = useResponsiveStyles(baseStyles);
+  return (
+    <View accessible accessibilityLabel="가족 목록 불러오는 중" accessibilityState={{ busy: true }} style={styles.row}>
+      <SkeletonBlock style={[styles.avatar, styles.placeholder]} />
+      <View style={styles.nameSlot}><SkeletonBlock style={styles.nameSkeleton} /></View>
+      <SkeletonBlock style={styles.arrowSkeleton} />
+    </View>
+  );
+}
+
 const baseStyles = StyleSheet.create({
   row: { borderWidth: 1, borderColor: colors.border, borderRadius: 15, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#F2F4F7', alignItems: 'center', justifyContent: 'center' },
+  placeholder: { backgroundColor: '#E7E9ED' },
+  nameSlot: { flex: 1 },
+  nameSkeleton: { width: '42%', height: 18 },
+  arrowSkeleton: { width: 18, height: 16 },
   name: { flex: 1, fontSize: 18, lineHeight: 24, color: colors.ink },
 });
