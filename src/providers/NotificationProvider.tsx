@@ -13,11 +13,8 @@ type NotificationContextValue = NotificationPreferences & {
   setMedicationEnabled: (enabled: boolean) => void;
   setSosEnabled: (enabled: boolean) => void;
   setServiceEnabled: (enabled: boolean) => void;
-  hasUnreadNotifications: boolean;
   sosRequests: NotificationEntry[];
   addSosRequest: (name: string) => void;
-  markAllRead: () => void;
-  markNotificationUnread: () => void;
 };
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
@@ -29,14 +26,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     sosEnabled: true,
     serviceEnabled: true,
   });
-  // The prototype starts with sample notifications. A real push event can call markNotificationUnread.
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true);
   const setAllEnabled = useCallback((enabled: boolean) => setPreferences(current => ({ ...current, allEnabled: enabled })), []);
   const setMedicationEnabled = useCallback((enabled: boolean) => setPreferences(current => ({ ...current, medicationEnabled: enabled })), []);
   const setSosEnabled = useCallback((enabled: boolean) => setPreferences(current => ({ ...current, sosEnabled: enabled })), []);
   const setServiceEnabled = useCallback((enabled: boolean) => setPreferences(current => ({ ...current, serviceEnabled: enabled })), []);
-  const markAllRead = useCallback(() => setHasUnreadNotifications(false), []);
-  const markNotificationUnread = useCallback(() => setHasUnreadNotifications(true), []);
 
   const [sosRequests, setSosRequests] = useState<NotificationEntry[]>([]);
   const addSosRequest = useCallback((name: string) => {
@@ -46,8 +39,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       title: 'SOS 긴급 알림',
       body: `${name}님이 SOS 도움을 요청했어요.`,
     }, ...current]);
-    markNotificationUnread();
-  }, [markNotificationUnread]);
+  }, []);
 
   const value = useMemo(() => ({
     ...preferences,
@@ -57,10 +49,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setMedicationEnabled,
     setSosEnabled,
     setServiceEnabled,
-    hasUnreadNotifications,
-    markAllRead,
-    markNotificationUnread,
-  }), [preferences, sosRequests, addSosRequest, hasUnreadNotifications, setAllEnabled, setMedicationEnabled, setSosEnabled, setServiceEnabled, markAllRead, markNotificationUnread]);
+  }), [preferences, sosRequests, addSosRequest, setAllEnabled, setMedicationEnabled, setSosEnabled, setServiceEnabled]);
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 }

@@ -10,8 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ListSkeleton from '../../components/Skeleton/ListSkeleton';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { typography } from '../../theme/tokens';
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
-import { useNotifications } from '../../providers/NotificationProvider';
+import { lazy, Suspense, useCallback, useState } from 'react';
 
 const NotificationCard = lazy(() => import('../../components/Notifications/NotificationCard'));
 
@@ -21,8 +20,6 @@ export default function NotificationsScreen() {
   const [page, setPage] = useState(0);
   const query = useCallback((token: string, signal: AbortSignal) => getNotifications(token, signal, page), [page]);
   const { state, retry } = useProtectedQuery(query);
-  const { markAllRead } = useNotifications();
-  useEffect(() => { markAllRead(); }, [markAllRead]);
   const groups = new Map<string, NotificationEntry[]>();
   const notifications = state.status === 'ready' ? state.data : [];
   const today = getLocalDateKey(new Date());
