@@ -1,33 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { getWardGuardianName, logout, refreshSession, type AccountSession, type AuthSession, type WardSession } from '../api/auth';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { getWardGuardianName, logout, refreshSession, type AuthSession } from '../api/auth';
 import { ApiError } from '../api/client';
 import type { WardInvitation } from '../api/wardAuth';
-import { getAccountProfile, patchAccountBody, type AccountBody, type AccountProfile } from '../api/profile';
-import { readAccountSession, writeAccountSession } from '../utils/accountSessionStorage';
+import { getAccountProfile, patchAccountBody, type AccountBody } from '../api/profile';
+import { readAccountSession, readConfirmedHeight, writeAccountSession, writeConfirmedHeight } from '../utils/accountSessionStorage';
+import { AuthContext, type AuthContextValue } from './AuthContext';
 
-type AuthContextValue = {
-  isAuthenticated: boolean;
-  accountId: number | null;
-  dependentId: string | null;
-  guardianName?: string;
-  wardInvitations: ReadonlyMap<number, WardInvitation>;
-  rememberWardInvitation: (wardId: number, invitation: WardInvitation) => void;
-  signInDependent: (session: WardSession) => void;
-  displayName: string;
-  email: string;
-  contactNumber: string;
-  signIn: (session: AccountSession, keepLogin: boolean) => void;
-  signOut: () => void;
-  loadProfile: (signal: AbortSignal) => Promise<AccountProfile>;
-  updateBody: (body: AccountBody, signal: AbortSignal) => Promise<AccountBody>;
-  withSession: <T>(request: (accessToken: string) => Promise<T>, signal: AbortSignal) => Promise<T>;
-  updateDisplayName: (name: string) => void;
-  updateContactNumber: (number: string) => void;
-  updateEmail: (email: string) => void;
-  updatePassword: (password: string) => void;
-};
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+export { useAuth } from './AuthContext';
 
 export function AuthProvider({ children, loadingFallback = null }: { children: ReactNode; loadingFallback?: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -159,18 +138,32 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
   }, [renewSession]);
 
   const loadProfile = useCallback(async (signal: AbortSignal) => {
+    const generation = sessionGeneration.current;
     const profile = await withSession(token => getAccountProfile(token, signal), signal);
     if (currentSession.current?.user_id !== profile?.user_id) {
       throw new Error('계정 정보를 불러오지 못했어요.');
+    }
+
+    const storedHeight = profile.height === undefined && confirmedBody.current?.height === undefined
+      ? await readConfirmedHeight(profile.user_id).catch(() => undefined)
+      : undefined;
+    if (signal.aborted || generation !== sessionGeneration.current) {
+      throw new Error('요청이 취소됐어요.');
+    }
+
+    const confirmedHeight = confirmedBody.current?.height;
+    const height = profile.height !== undefined ? profile.height : confirmedHeight !== undefined ? confirmedHeight : storedHeight;
+    if (height !== undefined && storedHeight === undefined) {
+      void writeConfirmedHeight(profile.user_id, height).catch(() => {});
     }
     setDisplayName(profile.name);
     setEmail(profile.email);
     setContactNumber(profile.phone ?? '');
     return {
       ...profile,
-      // 조회 응답에서 빠진 필드는 현재 세션에서 서버가 저장한 값으로 채웁니다.
+      // 조회 응답에 빠진 값은 서버가 전에 확인한 값으로 채웁니다.
       birth_date: profile.birth_date === undefined ? confirmedBody.current?.birth_date : profile.birth_date,
-      height: profile.height === undefined ? confirmedBody.current?.height : profile.height,
+      height,
     };
   }, [withSession]);
 
@@ -179,7 +172,12 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
     if (!saved || typeof saved !== 'object') throw new Error('서버에서 저장된 신체정보를 받지 못했어요.');
     confirmedBody.current = saved;
     const session = currentSession.current;
-    if (session && session.role !== 'WARD' && keepSession.current) persist(session);
+    if (session && session.role !== 'WARD') {
+      if (keepSession.current) persist(session);
+      if (saved.height !== undefined) {
+        await writeConfirmedHeight(session.user_id, saved.height).catch(() => {});
+      }
+    }
     return saved;
   }, [persist, withSession]);
 
@@ -220,10 +218,4 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('AuthProvider 안에서 인증 정보를 사용해야 합니다.');
-  return context;
 }

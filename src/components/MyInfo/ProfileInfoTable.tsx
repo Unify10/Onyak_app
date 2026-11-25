@@ -15,7 +15,7 @@ export default function ProfileInfoTable({ profile, showBirthDate = false }: Pro
     ['성별', profile?.gender],
     ['연령', age ? `만 ${Number(age)}세` : '미입력'],
     ...(showBirthDate && (!profile || isValidBirthDate(birthDate, today.getTime())) ? [['생년월일', birthDate]] : []),
-    ['신장', profile?.height ? `${profile.height} cm` : '미입력'],
+    ['신장', profile?.height ? `${profile.height} cm` : profile?.heightUnavailable ? '조회 불가' : '미입력'],
     ['몸무게', profile?.weight ? `${profile.weight} kg` : '미입력'],
     ['임신 여부', profile?.pregnant ? '임신 중' : profile?.pregnancyStatusProvided || profile?.gender === '남성' ? '해당 없음' : '미입력'],
   ];

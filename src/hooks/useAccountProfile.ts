@@ -28,6 +28,7 @@ export function useAccountProfile(enabled: boolean) {
         age: data.age == null ? calculateAge(data.birth_date ?? '') : String(data.age),
         gender: data.gender === 'M' ? '남성' : data.gender === 'F' ? '여성' : '선택 안함',
         height: data.height == null ? '' : String(data.height),
+        heightUnavailable: data.height === undefined,
         weight: data.weight == null ? '' : String(data.weight),
         pregnant: data.is_pregnant === true,
         pregnancyStatusProvided: typeof data.is_pregnant === 'boolean',

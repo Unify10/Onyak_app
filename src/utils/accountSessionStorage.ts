@@ -29,3 +29,24 @@ export async function writeAccountSession(session: AuthSession | null, confirmed
     await SecureStore.deleteItemAsync(SESSION_KEY);
   }
 }
+
+const heightKey = (accountId: number) => `onyak.confirmed-height.${accountId}`;
+
+export async function readConfirmedHeight(accountId: number) {
+  const key = heightKey(accountId);
+  const raw = Platform.OS === 'web' ? window.localStorage.getItem(key) : await SecureStore.getItemAsync(key);
+  const height = Number(raw);
+  return Number.isFinite(height) && height > 0 ? height : undefined;
+}
+
+export async function writeConfirmedHeight(accountId: number, height: number | null) {
+  const key = heightKey(accountId);
+  if (Platform.OS === 'web') {
+    if (height === null) window.localStorage.removeItem(key);
+    else window.localStorage.setItem(key, String(height));
+  } else if (height === null) {
+    await SecureStore.deleteItemAsync(key);
+  } else {
+    await SecureStore.setItemAsync(key, String(height));
+  }
+}

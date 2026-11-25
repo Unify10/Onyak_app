@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useProfile } from '../../providers/ProfileProvider';
 import { useAuth } from '../../providers/AuthProvider';
+import { writeConfirmedHeight } from '../../utils/accountSessionStorage';
 import { useSearchHistory } from '../../providers/SearchHistoryProvider';
 
 export default function DeleteAccountScreen() {
@@ -14,9 +15,16 @@ export default function DeleteAccountScreen() {
   const { clearFamilies } = useFamilies();
   const [checked, setChecked] = useState(false);
   const { resetProfile } = useProfile();
-  const { signOut } = useAuth();
+  const { accountId, signOut } = useAuth();
   const { clearSearches } = useSearchHistory();
-  function reset() { resetProfile(); clearSearches(); clearFamilies(); signOut(); router.replace('/login'); }
+  function reset() {
+    if (accountId !== null) void writeConfirmedHeight(accountId, null).catch(() => {});
+    resetProfile();
+    clearSearches();
+    clearFamilies();
+    signOut();
+    router.replace('/login');
+  }
   return <View style={styles.screen}><Pressable accessibilityRole="button" onPress={() => router.replace('/my-info')} style={styles.header}><Ionicons name="chevron-back" size={22} /><Text style={styles.title}>회원 탈퇴</Text></Pressable><View style={styles.content}><Text style={styles.heading}>회원 탈퇴</Text><Text style={styles.description}>탈퇴하면 이 기기에 저장된 프로필, 가족 정보와 검색 기록이 삭제되고 로그아웃됩니다.</Text><Pressable accessibilityRole="checkbox" accessibilityState={{ checked }} onPress={() => setChecked(current => !current)} style={styles.checkbox}><Ionicons name={checked ? 'checkbox' : 'square-outline'} size={24} /><Text style={styles.label}>위 내용을 확인했습니다.</Text></Pressable><Pressable accessibilityRole="button" disabled={!checked} onPress={reset} style={[styles.button, !checked && styles.disabled]}><Text style={styles.buttonText}>탈퇴하고 로그아웃</Text></Pressable></View></View>;
 }
 const baseStyles = StyleSheet.create({

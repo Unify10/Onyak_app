@@ -4,6 +4,7 @@ export type PersonalInfo = {
   age: string;
   gender: '여성' | '남성' | '선택 안함';
   height: string;
+  heightUnavailable?: boolean;
   weight: string;
   pregnant: boolean;
   pregnancyStatusProvided: boolean;
