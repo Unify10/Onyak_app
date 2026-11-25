@@ -2,16 +2,14 @@ import { useContext, useEffect, useState, type ReactNode } from 'react';
 import { medicines as exampleMedicines } from '../components/Search/medicineData';
 import type { Medicine } from '../components/Search/types';
 import { MedicationContext } from './MedicationContext';
-import { exampleMedicationSchedules, exampleMedicineIds } from '../data/medicationExamples';
 import { createMedicationSchedules, getTodayDoses, type MedicationScheduleInput, type MedicationSchedule } from '../utils/medicationSchedule';
 
 type MedicationProviderProps = {
   children: ReactNode;
-  includeExamples?: boolean;
   familySchedules?: MedicationSchedule[];
 };
 
-export function MedicationProvider({ children, includeExamples = true, familySchedules }: MedicationProviderProps) {
+export function MedicationProvider({ children, familySchedules }: MedicationProviderProps) {
   const parent = useContext(MedicationContext);
   const [remoteMedicines, setRemoteMedicines] = useState<Medicine[]>([]);
   const medicines = parent?.medicines ?? [...exampleMedicines, ...remoteMedicines];
@@ -22,8 +20,8 @@ export function MedicationProvider({ children, includeExamples = true, familySch
       setRemoteMedicines(current => [...current.filter(item => item.id !== medicine.id), medicine]);
     }
   }
-  const [personalMedicineIds, setMedicineIds] = useState<string[]>(includeExamples ? exampleMedicineIds : []);
-  const [personalSchedules, setSchedules] = useState<MedicationSchedule[]>(includeExamples ? exampleMedicationSchedules : []);
+  const [personalMedicineIds, setMedicineIds] = useState<string[]>([]);
+  const [personalSchedules, setSchedules] = useState<MedicationSchedule[]>([]);
   const schedules = familySchedules ?? personalSchedules;
   const medicineIds = familySchedules ? [...new Set(familySchedules.map(schedule => schedule.medicineId))] : personalMedicineIds;
   const [completedDoseIds, setCompletedDoseIds] = useState<string[]>([]);

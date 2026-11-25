@@ -10,7 +10,7 @@ export default function DependentLayout() {
   if (!dependentId) return <Redirect href={isAuthenticated ? '/(tabs)' : '/login'} />;
 
   return (
-    <MedicationProvider key={dependentId} includeExamples={false}>
+    <MedicationProvider key={dependentId}>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top']}>
         <View style={{ flex: 1 }}><Slot /></View>
         <BottomTabBar dependent />

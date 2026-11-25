@@ -15,11 +15,6 @@ import MedicationListSkeleton from '../../components/MedicationList/MedicationLi
 const CurrentMedicationCard = lazy(() => import('../../components/MedicationList/CurrentMedicationCard'));
 const MedicationItem = lazy(() => import('../../components/MedicationList/MedicationListContent/MedicationItem'));
 
-const pastMedications: Medication[] = [
-  { id: '4', name: '비타민D 2000IU', schedule: '지난 복용 기록', startDate: '2026.10.12 종료' },
-  { id: '5', name: '오메가3', schedule: '지난 복용 기록', startDate: '2026.09.30 종료' },
-];
-
 export default function MedicationList({ dependent = false, dependentProfile }: { dependent?: boolean; dependentProfile?: PersonalInfo }) {
   const styles = useResponsiveStyles(baseStyles);
   const { medicineIds, medicines, schedules } = useMedications();
@@ -34,13 +29,12 @@ export default function MedicationList({ dependent = false, dependentProfile }: 
   const cautions = currentMedications.filter(medication => medication.caution);
   const cautionIds = new Set(cautions.map(medication => medication.id));
   const [selectedTab, setSelectedTab] = useState<MedicationTab>('current');
-  const records = dependent ? [] : pastMedications;
-  const medications = selectedTab === 'current' ? currentMedications : records;
+  const medications = selectedTab === 'current' ? currentMedications : [];
 
   return (
     <View style={styles.container}>
       <MedicationListHeader hideAdd={dependent} />
-      <MedicationSummary currentCount={currentMedications.length} cautionCount={cautions.length} recordCount={records.length} />
+      <MedicationSummary currentCount={currentMedications.length} cautionCount={cautions.length} recordCount={0} />
       <MedicationTabs selectedTab={selectedTab} onSelectTab={setSelectedTab} showCard={dependent} />
       <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
         <Suspense fallback={<MedicationListSkeleton showCard={selectedTab === 'card'} />}>
