@@ -1,4 +1,4 @@
-type Options = { method?: 'PATCH'; body?: object; formData?: FormData; signal?: AbortSignal; accessToken?: string; privateRequest?: boolean };
+type Options = { method?: 'PATCH' | 'DELETE'; body?: object; formData?: FormData; signal?: AbortSignal; accessToken?: string; privateRequest?: boolean };
 
 type ApiEnvelope<T> = {
   success: boolean;
@@ -39,6 +39,7 @@ export async function requestApi<T>(path: string, options: Options = {}): Promis
       signal: controller.signal,
       redirect: 'error',
     });
+    if (response.status === 204 && options.method === 'DELETE' && !controller.signal.aborted) return undefined as T;
     const result = await response.json().catch(() => null) as ApiEnvelope<T> | null;
     if (controller.signal.aborted) throw new Error('서버 응답을 기다리는 시간이 초과됐어요.');
     if (!response.ok || !result?.success) {

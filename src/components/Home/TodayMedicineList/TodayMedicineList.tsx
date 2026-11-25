@@ -4,11 +4,14 @@ import { useMedications } from '../../../providers/MedicationContext';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import TodayMedicineItem from './TodayMedicineItem';
 import { compactTodayMedicineListStyles, todayMedicineListStyles } from './todayMedicineListStyles';
+import QueryError from '../../Feedback/QueryError';
+import TodayMedicineListSkeleton from './TodayMedicineListSkeleton';
+import { getMedicationServerClock } from '../../../utils/familyMedication';
 import { useEffect, useState } from 'react';
 
 export default function TodayMedicineList() {
   const styles = useResponsiveStyles(baseStyles, compactTodayMedicineListStyles);
-  const { todayDoses, toggleDose, medicines } = useMedications();
+  const { todayDoses, toggleDose, medicines, ward } = useMedications();
   const [now, setNow] = useState(() => new Date());
   const [doseAwaitingConfirmation, setDoseAwaitingConfirmation] = useState<string | null>(null);
   useEffect(() => { const timer = setInterval(() => setNow(new Date()), 60_000); return () => clearInterval(timer); }, []);
@@ -17,7 +20,7 @@ export default function TodayMedicineList() {
     return medicine ? [{ ...dose, title: medicine.name }] : [];
   });
   const completedCount = doses.filter(dose => dose.completed).length;
-  const currentMinute = now.getHours() * 60 + now.getMinutes();
+  const currentMinute = ward ? getMedicationServerClock(now).minutes : now.getHours() * 60 + now.getMinutes();
   const minuteOf = (time: string) => { const [hour, minute] = time.split(':').map(Number); return hour * 60 + minute; };
   function requestToggle(dose: typeof doses[number]) {
     if (dose.completed) {
@@ -37,6 +40,11 @@ export default function TodayMedicineList() {
   const upcoming = doses.filter(dose => !dose.completed && minuteOf(dose.time) >= currentMinute).sort((a, b) => minuteOf(a.time) - minuteOf(b.time));
   const overdue = doses.filter(dose => !dose.completed && minuteOf(dose.time) < currentMinute).sort((a, b) => minuteOf(a.time) - minuteOf(b.time));
   const completed = doses.filter(dose => dose.completed).sort((a, b) => minuteOf(a.time) - minuteOf(b.time));
+  const completionLabel = ward?.todayRecordLoading ? '완료 횟수 불러오는 중'
+    : ward?.todayRecordError ? '완료 횟수 조회 실패'
+    : `${ward?.todayRecord?.completed ?? completedCount}/${ward?.todayRecord?.scheduled ?? doses.length} 완료`;
+  if (ward?.loading) return <TodayMedicineListSkeleton />;
+  if (ward?.loadError) return <QueryError message={ward.loadError} onRetry={ward.retry} />;
   return(
     <View style={styles.todayMedicineListContainer}>
       <Modal
@@ -72,23 +80,26 @@ export default function TodayMedicineList() {
       </Modal>
       <View style={styles.todayMedicineListHeader}>
         <Text style={styles.todayMedicineListHeaderTitle}>오늘의 복용</Text>
-        <Text style={styles.todayMedicineListHeaderStatus}>{completedCount}/{doses.length} 완료</Text>
+        <Text style={styles.todayMedicineListHeaderStatus}>{completionLabel}</Text>
       </View>
+      {ward && doses.length > 0 && <Text style={styles.wardNote}>완료 목록에는 이 화면에서 기록을 확인한 항목이 표시돼요.</Text>}
+      {ward?.todayRecordError && <QueryError message={ward.todayRecordError} onRetry={ward.retryTodayRecord} />}
+      {ward?.checkError && <Text accessibilityRole="alert" style={styles.wardNote}>{ward.checkError}</Text>}
       <View style={styles.columns}>
         <View style={styles.pane}>
-          <View style={styles.paneHeader}><Text style={styles.paneTitle}>오늘 복용할 약</Text><Text style={styles.paneCount}>{upcoming.length + overdue.length}</Text></View>
+          <View style={styles.paneHeader}><Text style={styles.paneTitle}>{ward ? '오늘 예정된 일정' : '오늘 복용할 약'}</Text><Text style={styles.paneCount}>{upcoming.length + overdue.length}</Text></View>
           <ScrollView style={styles.paneList} contentContainerStyle={styles.paneContent} nestedScrollEnabled directionalLockEnabled showsVerticalScrollIndicator>
-            {overdue.map(dose => <TodayMedicineItem key={dose.doseId} title={dose.title} timeOfDay={dose.timeOfDay} time={dose.time} completed={dose.completed} onToggle={() => requestToggle(dose)} />)}
+            {overdue.map(dose => <TodayMedicineItem key={dose.doseId} title={dose.title} timeOfDay={dose.timeOfDay} time={dose.time} completed={dose.completed} disabled={ward?.checkBusy} onToggle={() => requestToggle(dose)} />)}
             {upcoming.length > 0 && overdue.length > 0 && <Text style={styles.groupTitle}>다음 복용</Text>}
-            {upcoming.map(dose => <TodayMedicineItem key={dose.doseId} title={dose.title} timeOfDay={dose.timeOfDay} time={dose.time} completed={dose.completed} onToggle={() => requestToggle(dose)} />)}
+            {upcoming.map(dose => <TodayMedicineItem key={dose.doseId} title={dose.title} timeOfDay={dose.timeOfDay} time={dose.time} completed={dose.completed} disabled={ward?.checkBusy} onToggle={() => requestToggle(dose)} />)}
             {!upcoming.length && !overdue.length && <Text style={styles.emptyText}>예정된 약이 없습니다.</Text>}
           </ScrollView>
         </View>
         <View style={styles.pane}>
           <View style={styles.paneHeader}><Text style={styles.paneTitle}>오늘 복용한 약</Text><Text style={styles.paneCount}>{completed.length}</Text></View>
           <ScrollView style={styles.paneList} contentContainerStyle={styles.paneContent} nestedScrollEnabled directionalLockEnabled showsVerticalScrollIndicator>
-            {completed.map(dose => <TodayMedicineItem key={dose.doseId} title={dose.title} timeOfDay={dose.timeOfDay} time={dose.time} completed={dose.completed} onToggle={() => toggleDose(dose.doseId)} />)}
-            {!completed.length && <Text style={styles.emptyText}>아직 복용한 약이 없습니다.</Text>}
+            {completed.map(dose => <TodayMedicineItem key={dose.doseId} title={dose.title} timeOfDay={dose.timeOfDay} time={dose.time} completed={dose.completed} disabled={Boolean(ward)} onToggle={() => toggleDose(dose.doseId)} />)}
+            {!completed.length && <Text style={styles.emptyText}>{ward ? '이 화면에서 확인한 완료 항목이 없습니다.' : '아직 복용한 약이 없습니다.'}</Text>}
           </ScrollView>
         </View>
       </View>
@@ -106,6 +117,7 @@ const baseStyles = StyleSheet.create({
   cancelButtonText: { color: '#4B5563', fontSize: 15, fontWeight: '600' },
   confirmButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 18, borderRadius: 10, backgroundColor: '#111111' },
   confirmButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
+  wardNote: { color: '#4B5563', fontSize: 13, lineHeight: 18 },
   groupTitle: { color: '#687386', fontSize: 13, fontWeight: '600', marginTop: 8, marginBottom: 2 },
   emptyText: { color: '#6B7280', fontSize: 14, textAlign: 'center', paddingVertical: 20 },
   ...todayMedicineListStyles,

@@ -37,7 +37,7 @@ export default function CurrentMedicationCard({ name, medicines, schedules, caut
     const daily = active.length > 0 && active.every(schedule => new Set(schedule.daysOfWeek).size === 7);
     const frequency = daily ? `하루 ${active.length}회` : active.length ? '요일별 복용' : '일정 미설정';
     const times = daily
-      ? active.map(schedule => `${schedule.timeOfDay} ${schedule.time}`).join(' · ')
+      ? active.map(schedule => [schedule.timeOfDay, schedule.time].filter(Boolean).join(' ')).join(' · ')
       : getMedicationScheduleLabel(active, medicine.id);
     const scheduleLabel = active.length > 0
       ? times + (active.every(schedule => schedule.isExample) ? ' (예시)' : '')

@@ -2,14 +2,15 @@ import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { Pressable, StyleSheet } from 'react-native';
 import CheckedIcon from '../../../../assets/home/checked.svg';
 
-type Props = { checked: boolean; onToggle: () => void; label: string };
-export default function TodayMedicineCheckbox({ checked, onToggle, label }: Props) {
+type Props = { checked: boolean; disabled?: boolean; onToggle: () => void; label: string };
+export default function TodayMedicineCheckbox({ checked, onToggle, label, disabled }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   return (
     <Pressable
       accessibilityRole="checkbox"
       accessibilityLabel={`${label} 복용 완료`}
-      accessibilityState={{ checked }}
+      accessibilityState={{ checked, disabled }}
+      disabled={disabled}
       hitSlop={6}
       style={[styles.checkboxBase, checked ? styles.checkboxChecked : styles.checkboxUnchecked]}
       onPress={onToggle}

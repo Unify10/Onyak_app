@@ -4,7 +4,7 @@ export type MedicationSchedule = {
   id: string;
   medicineId: string;
   daysOfWeek: number[];
-  timeOfDay: DoseTimeOfDay;
+  timeOfDay?: DoseTimeOfDay;
   time: string;
   startDate?: string;
   endDate?: string;
@@ -73,7 +73,7 @@ export function getMedicationScheduleLabel(schedules: MedicationSchedule[], medi
   const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
   return matching.map(schedule => {
     const days = new Set(schedule.daysOfWeek).size === 7 ? '매일' : schedule.daysOfWeek.map(day => weekdays[day]).join('·');
-    return `${days} · ${schedule.timeOfDay} ${schedule.time}`;
+    return [days, [schedule.timeOfDay, schedule.time].filter(Boolean).join(' ')].join(' · ');
   }).join(' / ');
 }
 

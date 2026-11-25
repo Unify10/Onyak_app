@@ -1,3 +1,4 @@
+import type { DoseTimeOfDay } from '../../../utils/medicationSchedule';
 import Text from '../../Typography/Text';
 import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
 import { StyleSheet, View } from 'react-native';
@@ -7,21 +8,22 @@ interface MedicineData {
   title: string;
   completed: boolean;
   onToggle: () => void;
-  timeOfDay: '아침' | '점심' | '저녁' | '취침 전' | '공복' | '식사와 관계 없이';
+  timeOfDay?: DoseTimeOfDay;
+  disabled?: boolean;
   time: string;
 }
 
-export default function TodayMedicineItem({ title, timeOfDay, time, completed, onToggle }: MedicineData) {
+export default function TodayMedicineItem({ title, timeOfDay, time, completed, onToggle, disabled }: MedicineData) {
   const styles = useResponsiveStyles(baseStyles, compactStyles);
   return (
     <View style={styles.cardContainer}>
       <View>
-        <TodayMedicineCheckbox checked={completed} onToggle={onToggle} label={title} />
+        <TodayMedicineCheckbox checked={completed} disabled={disabled} onToggle={onToggle} label={title} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.todayMedicineItemTitle, completed && styles.completedText]}>{title}</Text>
         <Text style={[styles.todayMedicineItemInfo, completed && styles.completedText]}>
-          {timeOfDay} · {time}
+          {[timeOfDay, time].filter(Boolean).join(' · ')}
         </Text>
       </View>
     </View>

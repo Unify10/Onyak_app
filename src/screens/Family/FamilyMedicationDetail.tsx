@@ -38,7 +38,7 @@ export default function FamilyMedicationDetail() {
         getDoses: selectedDate => getTodayDoses(medicineIds, schedules, selectedDate).map(dose => ({
           id: dose.doseId,
           name: medicines.find(medicine => medicine.id === dose.medicineId)?.name ?? '등록된 약',
-          time: `${dose.timeOfDay} · ${dose.time}`,
+          time: [dose.timeOfDay, dose.time].filter(Boolean).join(' · '),
           caution: cautionIds.has(dose.medicineId),
         })),
       }}

@@ -25,6 +25,10 @@ export async function getFamilyProfile(id: string, accessToken: string, signal: 
 export type FamilyMedication = {
   medication_id: number;
   drug_name: string;
+  drug_id: string;
+  ingredients?: string[];
+  dosage: string;
+  push_enabled: boolean;
   start_date: string;
   end_date: string | null;
   active: boolean;
