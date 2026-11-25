@@ -1,3 +1,5 @@
+import { formatWardWelcome } from '../../utils/wardWelcome';
+import type { WardLoginResult } from '../../hooks/useWardLogin';
 import RoundBackButton from '../../components/Navigation/RoundBackButton';
 import TextInput from '../../components/Typography/TextInput';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
@@ -15,7 +17,7 @@ type Props = {
   onComplete?: () => void;
   onSubmitCode?: (
     code: string,
-  ) => Promise<{ success: boolean; userName?: string }>;
+  ) => Promise<WardLoginResult>;
 };
 
 // 연동 코드는 여섯 자리 숫자입니다.
@@ -39,7 +41,7 @@ export default function LinkedCodeLoginScreen({
   const [codeFocused, setCodeFocused] = useState(false);
   const [code, setCode] = useState('');
   const [status, setStatus] = useState<'input' | 'success' | 'error'>('input');
-  const [userName, setUserName] = useState('');
+  const [guardianName, setGuardianName] = useState<string>();
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -73,10 +75,10 @@ export default function LinkedCodeLoginScreen({
       const result = await onSubmitCode(code);
 
       if (result.success) {
-        setUserName(result.userName ?? '사용자');
+        setGuardianName(result.guardianName);
         setStatus('success');
       } else {
-        setErrorMessage('올바르지 않은 연동 코드입니다.');
+        setErrorMessage(result.message);
         setStatus('error');
       }
     } catch {
@@ -132,7 +134,7 @@ export default function LinkedCodeLoginScreen({
               </View>
             </View>
             <AppText style={[styles.title, desktopWeb && styles.desktopTitle]}>
-              {status === 'success' ? `${userName}님의 가족이\n되신 걸 축하합니다!` : '보호자 계정에서 연동 코드를 확인해주세요.'}
+              {status === 'success' ? formatWardWelcome(guardianName) : '보호자 계정에서 연동 코드를 확인해주세요.'}
             </AppText>
           </View>
 

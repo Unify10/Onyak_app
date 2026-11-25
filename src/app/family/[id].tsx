@@ -9,10 +9,10 @@ const FamilyMedicationDetail = lazy(() => import('../../screens/Family/FamilyMed
 
 export default function FamilyMedicationRoute() {
   const { dependentId, isAuthenticated } = useAuth();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, date } = useLocalSearchParams<{ id: string; date?: string }>();
   if (dependentId) return <Redirect href="/dependent" />;
   if (!isAuthenticated) return <Redirect href="/login" />;
-  if (id && /^\d+$/.test(id)) return <ServerFamilyProfile key={id} id={id} />;
+  if (id && /^\d+$/.test(id)) return <ServerFamilyProfile key={id} id={id} initialDate={date} />;
   return (
     <Suspense fallback={(
       <DetailSkeleton

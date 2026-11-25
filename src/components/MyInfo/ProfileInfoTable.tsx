@@ -4,21 +4,22 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { calculateAge, isValidBirthDate, type PersonalInfo } from '../../utils/personalInfo';
 
-type Props = { profile: PersonalInfo; showBirthDate?: boolean };
+type Props = { profile?: PersonalInfo; showBirthDate?: boolean };
 
 export default function ProfileInfoTable({ profile, showBirthDate = false }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   const [today] = useState(() => new Date());
-  const age = profile.age || calculateAge(profile.birthDate, today);
+  const age = profile?.age || calculateAge(profile?.birthDate ?? '', today);
+  const birthDate = profile?.birthDate ?? '';
   const rows = [
-    ['성별', profile.gender],
+    ['성별', profile?.gender],
     ['연령', age ? `만 ${Number(age)}세` : '미입력'],
-    ...(showBirthDate && isValidBirthDate(profile.birthDate, today.getTime()) ? [['생년월일', profile.birthDate]] : []),
-    ['신장', profile.height ? `${profile.height} cm` : '미입력'],
-    ['몸무게', profile.weight ? `${profile.weight} kg` : '미입력'],
-    ['임신 여부', profile.pregnant ? '임신 중' : profile.pregnancyStatusProvided || profile.gender === '남성' ? '해당 없음' : '미입력'],
+    ...(showBirthDate && (!profile || isValidBirthDate(birthDate, today.getTime())) ? [['생년월일', birthDate]] : []),
+    ['신장', profile?.height ? `${profile.height} cm` : '미입력'],
+    ['몸무게', profile?.weight ? `${profile.weight} kg` : '미입력'],
+    ['임신 여부', profile?.pregnant ? '임신 중' : profile?.pregnancyStatusProvided || profile?.gender === '남성' ? '해당 없음' : '미입력'],
   ];
-  return <View style={styles.table}>{rows.map(([label, value], index) => <View key={label} style={[styles.row, index > 0 && styles.border]}><Text style={styles.label}>{label}</Text><Text style={styles.value}>{value}</Text></View>)}</View>;
+  return <View style={styles.table}>{rows.map(([label, value], index) => <View key={label} style={[styles.row, index > 0 && styles.border]}><Text style={styles.label}>{label}</Text><Text style={styles.value}>{profile ? value : '—'}</Text></View>)}</View>;
 }
 const baseStyles = StyleSheet.create({
   table: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 14, overflow: 'hidden' },

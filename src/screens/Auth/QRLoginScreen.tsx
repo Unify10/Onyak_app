@@ -1,3 +1,5 @@
+import { formatWardWelcome } from '../../utils/wardWelcome';
+import type { WardLoginResult } from '../../hooks/useWardLogin';
 import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useRef, useState } from 'react';
@@ -14,7 +16,7 @@ type Props = {
   onComplete?: () => void;
   onSubmitQr?: (
     qrData: string,
-  ) => Promise<{ success: boolean; userName?: string }>;
+  ) => Promise<WardLoginResult>;
 };
 
 export default function QRLoginScreen({
@@ -29,7 +31,7 @@ export default function QRLoginScreen({
   const [isScanning, setIsScanning] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [scanError, setScanError] = useState('');
-  const [userName, setUserName] = useState('');
+  const [completed, setCompleted] = useState<{ guardianName?: string }>();
   const scanLocked = useRef(false);
 
   async function handleBarcodeScanned(result: BarcodeScanningResult) {
@@ -52,20 +54,31 @@ export default function QRLoginScreen({
       const response = await onSubmitQr(result.data);
 
       if (response.success) {
-        setUserName(response.userName ?? '');
+        setCompleted({ guardianName: response.guardianName });
       } else {
-        setScanError('유효하지 않은 QR 코드입니다. 다시 스캔해주세요.');
-        setIsScanning(true);
-        scanLocked.current = false;
+        setScanError(response.message);
       }
     } catch {
       setScanError('QR 인증 중 문제가 발생했습니다. 다시 스캔해주세요.');
-      setIsScanning(true);
-      scanLocked.current = false;
     } finally {
       setIsLoading(false);
     }
   }
+
+  function restartScan() {
+    setScanError('');
+    scanLocked.current = false;
+    setIsScanning(true);
+  }
+
+  const scanFeedback = scanError ? (
+    <View>
+      <Text accessibilityRole="alert" style={styles.errorText}>{scanError}</Text>
+      <Pressable accessibilityRole="button" style={styles.permissionButton} onPress={restartScan}>
+        <Text style={styles.permissionButtonText}>다시 스캔</Text>
+      </Pressable>
+    </View>
+  ) : null;
 
   // 카메라 권한 정보를 불러오는 중입니다.
   if (!permission) {
@@ -96,7 +109,7 @@ export default function QRLoginScreen({
   }
 
   // 로그인 완료 화면
-  if (userName) {
+  if (completed) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.completeScreen}>
@@ -118,8 +131,7 @@ export default function QRLoginScreen({
           <View style={styles.completeContent}>
             <Text style={styles.partyEmoji}>🎉</Text>
             <Text style={styles.completeTitle}>
-              {userName ? `${userName}님의\n연동 로그인이` : '연동 로그인이'}
-              {'\n'}완료되었습니다.
+              {formatWardWelcome(completed.guardianName)}
             </Text>
           </View>
 
@@ -187,7 +199,7 @@ export default function QRLoginScreen({
                 {permission?.granted && <View pointerEvents="none" style={styles.cornerOverlay}><View style={[styles.corner, styles.topLeft]} /><View style={[styles.corner, styles.topRight]} /><View style={[styles.corner, styles.bottomLeft]} /><View style={[styles.corner, styles.bottomRight]} /></View>}
               </View>
               {isLoading && <View style={styles.loadingMessage}><ActivityIndicator color="#6686A5" /><Text style={styles.loadingText}>QR 코드를 확인하고 있어요.</Text></View>}
-              {scanError !== '' && <Text style={styles.errorText}>{scanError}</Text>}
+              {scanFeedback}
             </View>
           </View>
         </View>
@@ -236,7 +248,7 @@ export default function QRLoginScreen({
           </View>
         )}
 
-        {scanError !== '' && <Text style={styles.errorText}>{scanError}</Text>}
+        {scanFeedback}
       </View>
       )}
     </SafeAreaView>

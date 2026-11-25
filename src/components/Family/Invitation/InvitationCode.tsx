@@ -11,13 +11,13 @@ export default function InvitationCode({ code, secondsLeft, copied, onCopy }: Pr
   const seconds = secondsLeft % 60;
   return (
     <View style={styles.container}>
-      <View style={styles.codeRow}>
+      {secondsLeft > 0 && <View style={styles.codeRow}>
         <Text selectable style={styles.code}>{code}</Text>
         <Pressable onPress={onCopy} disabled={secondsLeft === 0} accessibilityRole="button" accessibilityLabel="연동 코드 복사" style={styles.copy}>
           <Ionicons name={copied ? 'checkmark-outline' : 'clipboard-outline'} size={30} color="#9B9B9B" />
         </Pressable>
-      </View>
-      <Text accessibilityLiveRegion="polite" style={styles.copied}>{copied ? '연동 코드가 복사되었습니다.' : ' '}</Text>
+      </View>}
+      <Text accessibilityLiveRegion="polite" style={styles.copied}>{copied && secondsLeft > 0 ? '연동 코드가 복사되었습니다.' : ' '}</Text>
       <Text style={styles.remaining}>{secondsLeft === 0 ? '연동 코드가 만료되었습니다.' : `남은 시간: ${minutes}분${String(seconds).padStart(2, '0')}초`}</Text>
     </View>
   );

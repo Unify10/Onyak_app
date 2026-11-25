@@ -1,7 +1,30 @@
 import { requestApi } from './client';
 
 export type Tokens = { access_token: string; refresh_token: string };
-export type AccountSession = Tokens & { user_id: number; email: string; name: string };
+type SessionIdentity = Tokens & { user_id: number; name: string };
+export type AccountSession = SessionIdentity & { email: string; role?: 'GUARDIAN' };
+export type WardSession = SessionIdentity & { email?: null; role: 'WARD'; guardian_name?: unknown };
+export type AuthSession = AccountSession | WardSession;
+
+function isSessionIdentity(value: unknown): value is SessionIdentity {
+  if (!value || typeof value !== 'object') return false;
+  const session = value as Partial<SessionIdentity>;
+  return Number.isInteger(session.user_id)
+    && typeof session.name === 'string'
+    && typeof session.access_token === 'string' && Boolean(session.access_token)
+    && typeof session.refresh_token === 'string' && Boolean(session.refresh_token);
+}
+
+export function isWardSession(value: unknown): value is WardSession {
+  if (!isSessionIdentity(value)) return false;
+  const session = value as Partial<WardSession>;
+  return session.role === 'WARD' && session.email == null;
+}
+
+export function getWardGuardianName(session: WardSession) {
+  const name = session.guardian_name;
+  return typeof name === 'string' ? name.trim() || undefined : undefined;
+}
 
 type SignupInput = {
   email: string;
@@ -61,11 +84,7 @@ export function logout(accessToken: string) {
 }
 
 export function isAccountSession(value: unknown): value is AccountSession {
-  if (!value || typeof value !== 'object') return false;
+  if (!isSessionIdentity(value)) return false;
   const session = value as Partial<AccountSession>;
-  return Number.isInteger(session.user_id)
-    && typeof session.name === 'string'
-    && typeof session.email === 'string'
-    && typeof session.access_token === 'string' && Boolean(session.access_token)
-    && typeof session.refresh_token === 'string' && Boolean(session.refresh_token);
+  return typeof session.email === 'string' && (session.role === undefined || session.role === 'GUARDIAN');
 }

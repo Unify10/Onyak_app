@@ -1,28 +1,34 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useState, type ReactNode } from 'react';
 import SignOutDialog from '../../components/Account/SignOutDialog';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import ProfileOverviewSkeleton from '../../components/MyInfo/ProfileOverviewSkeleton';
 import ProfileMenuRow from '../../components/MyInfo/ProfileMenuRow';
-import type { PersonalInfo } from '../../utils/personalInfo';
 import Text from '../../components/Typography/Text';
 import { useAccountProfile } from '../../hooks/useAccountProfile';
+import type { PersonalInfo } from '../../utils/personalInfo';
 import { colors, typography } from '../../theme/tokens';
 
 const ProfileOverview = lazy(() => import('../../components/MyInfo/ProfileOverview'));
 
-type Props = { displayName: string; email: string; onSignOut: () => void; dependentProfile?: PersonalInfo };
-export default function MyInfo({ displayName, email, onSignOut, dependentProfile }: Props) {
+type Props = { displayName: string; onSignOut: () => void } & (
+  | { email: string; dependent?: false; guardianName?: never; dependentProfile?: never; profileFeedback?: never }
+  | { email?: never; dependent: true; guardianName?: string; dependentProfile?: PersonalInfo; profileFeedback?: ReactNode }
+);
+export default function MyInfo({ displayName, email, onSignOut, dependent, guardianName, dependentProfile, profileFeedback }: Props) {
   const styles = useResponsiveStyles(baseStyles);
-  const profileRequest = useAccountProfile(!dependentProfile);
-  const profile = dependentProfile ?? (profileRequest.state.status === 'ready' ? profileRequest.state.profile : null);
+  const profileRequest = useAccountProfile(!dependent);
+  const profile = dependentProfile ?? (profileRequest.state.status === 'ready' ? profileRequest.state.profile : undefined);
+  const subtitle = dependent
+    ? guardianName ? `${guardianName}님의 가족` : '가족 계정'
+    : email || '이메일 계정';
   const [showSignOut, setShowSignOut] = useState(false);
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {profile ? (
+      {dependent || profile ? (
         <Suspense fallback={<ProfileOverviewSkeleton />}>
-          <ProfileOverview name={displayName} email={email} profile={profile} showBirthDate={!dependentProfile} />
+          <ProfileOverview name={displayName} subtitle={subtitle} profile={profile} feedback={profileFeedback} />
         </Suspense>
       ) : profileRequest.state.status === 'error' ? (
         <View style={styles.profileError}>
@@ -32,7 +38,7 @@ export default function MyInfo({ displayName, email, onSignOut, dependentProfile
           </Pressable>
         </View>
       ) : <ProfileOverviewSkeleton />}
-      {!dependentProfile && <>
+      {!dependent && <>
       <View style={styles.menu}>
         <ProfileMenuRow label="가족 계정 관리" icon="people" onPress={() => router.push('/family')} />
         <ProfileMenuRow label="개인정보 변경" icon="person" onPress={() => router.push('/edit-profile')} />
@@ -47,8 +53,8 @@ export default function MyInfo({ displayName, email, onSignOut, dependentProfile
       </View>
       </>}
       <View style={styles.menu}>
-        <ProfileMenuRow label="로그아웃" last={!!dependentProfile} destructive logout onPress={() => setShowSignOut(true)} />
-        {!dependentProfile && <ProfileMenuRow label="계정 및 데이터 삭제" destructive onPress={() => router.push('/delete-account')} last /> }
+        <ProfileMenuRow label="로그아웃" last={!!dependent} destructive logout onPress={() => setShowSignOut(true)} />
+        {!dependent && <ProfileMenuRow label="계정 및 데이터 삭제" destructive onPress={() => router.push('/delete-account')} last /> }
       </View>
       <SignOutDialog visible={showSignOut} onCancel={() => setShowSignOut(false)} onConfirm={() => { setShowSignOut(false); onSignOut(); }} />
     </ScrollView>

@@ -1,16 +1,17 @@
 import Text from '../../Typography/Text';
 import { useResponsiveStyles } from '../../../hooks/useResponsiveStyles';
-import { StyleSheet, View, Image } from 'react-native';
+import { StyleSheet, View, Image, Pressable } from 'react-native';
 
-interface familyAccountData {
-  familyAccountName: string,
-  familyAccountImage?: string
-}
+type Props = {
+  familyAccountName: string;
+  familyAccountImage?: string;
+  onPress: () => void;
+};
 
-export default function HomeFamilyAccountItem({ familyAccountName, familyAccountImage }:familyAccountData) {
+export default function HomeFamilyAccountItem({ familyAccountName, familyAccountImage, onPress }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   return(
-    <View style={styles.homeFamilyAccountProfile}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${familyAccountName} 복용 현황 보기`} style={styles.homeFamilyAccountProfile} onPress={onPress}>
       <View style={styles.homeFamilyAccountImageContainer}>
         {familyAccountImage ? (
                   <Image source={{ uri : familyAccountImage}}
@@ -24,8 +25,8 @@ export default function HomeFamilyAccountItem({ familyAccountName, familyAccount
       <View>
         <Text numberOfLines={2} style={styles.homeFamilyAccountName}>{familyAccountName}</Text>
       </View>
-    </View>
-  )
+    </Pressable>
+  );
 }
 
 const baseStyles = StyleSheet.create({

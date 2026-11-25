@@ -1,3 +1,4 @@
+import { useIsFocused } from 'expo-router';
 import { getFamilyList } from '../../../api/family';
 import { useProtectedQuery } from '../../../hooks/useProtectedQuery';
 import QueryError from '../../Feedback/QueryError';
@@ -12,7 +13,7 @@ import { useFamilies } from '../../../providers/FamilyProvider';
 export default function FamilyList() {
   const styles = useResponsiveStyles(baseStyles);
   const { families, removeFamily } = useFamilies();
-  const { state, retry } = useProtectedQuery(getFamilyList);
+  const { state, retry } = useProtectedQuery(getFamilyList, useIsFocused());
   const remoteFamilies = state.status === 'ready' ? state.data : [];
   return (
     <View style={styles.container}>

@@ -28,14 +28,6 @@ export default function FamilyItem({ family, onDelete }: Props) {
         </Pressable>
         <View style={styles.actions}>
           <Pressable accessibilityRole="button" accessibilityLabel={`${family.details.name} 정보 수정`} onPress={() => router.push(`/family/edit/${family.id}`)} style={styles.iconButton}><Ionicons name="create-outline" size={21} color="#344054" /></Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${family.details.name} 연동 코드 관리 및 재발급`}
-            onPress={() => router.push({ pathname: '/family/invitation/[id]', params: { id: family.id } })}
-            style={styles.iconButton}
-          >
-            <Ionicons name="key-outline" size={21} color="#344054" />
-          </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={`${family.details.name} 계정 삭제`} onPress={() => setConfirmingDelete(true)} style={styles.iconButton}><Ionicons name="trash-outline" size={21} color="#D92D20" /></Pressable>
         </View>
       </View>

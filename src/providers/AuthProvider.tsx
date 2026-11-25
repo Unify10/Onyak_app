@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { logout, refreshSession, type AccountSession } from '../api/auth';
+import { getWardGuardianName, logout, refreshSession, type AccountSession, type AuthSession, type WardSession } from '../api/auth';
 import { ApiError } from '../api/client';
+import type { WardInvitation } from '../api/wardAuth';
 import { getAccountProfile, patchAccountBody, type AccountBody, type AccountProfile } from '../api/profile';
 import { readAccountSession, writeAccountSession } from '../utils/accountSessionStorage';
 
@@ -8,7 +9,10 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   accountId: number | null;
   dependentId: string | null;
-  signInDependent: (id: string) => void;
+  guardianName?: string;
+  wardInvitations: ReadonlyMap<number, WardInvitation>;
+  rememberWardInvitation: (wardId: number, invitation: WardInvitation) => void;
+  signInDependent: (session: WardSession) => void;
   displayName: string;
   email: string;
   contactNumber: string;
@@ -29,30 +33,37 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
   const [ready, setReady] = useState(false);
   const [accountId, setAccountId] = useState<number | null>(null);
   const [dependentId, setDependentId] = useState<string | null>(null);
+  const [guardianName, setGuardianName] = useState<string>();
+  const [wardInvitations, setWardInvitations] = useState(() => new Map<number, WardInvitation>());
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [, setPassword] = useState('');
-  const currentSession = useRef<AccountSession | null>(null);
+  const currentSession = useRef<AuthSession | null>(null);
   const keepSession = useRef(false);
   const confirmedBody = useRef<AccountBody | null>(null);
   const sessionGeneration = useRef(0);
   const pendingWrite = useRef<Promise<void>>(Promise.resolve());
-  const pendingRefresh = useRef<{ session: AccountSession; request: Promise<AccountSession> } | null>(null);
+  const pendingRefresh = useRef<{ session: AuthSession; request: Promise<AuthSession> } | null>(null);
 
-  const persist = useCallback((session: AccountSession | null) => {
-    pendingWrite.current = pendingWrite.current.then(() => writeAccountSession(session)).catch(() => {});
+  const persist = useCallback((session: AuthSession | null) => {
+    const height = confirmedBody.current?.height;
+    pendingWrite.current = pendingWrite.current.then(() => writeAccountSession(session, height)).catch(() => {});
   }, []);
 
   useEffect(() => {
     let active = true;
-    void readAccountSession().then(session => {
-      if (!active || !session) return;
+    void readAccountSession().then(stored => {
+      if (!active || !stored) return;
+      const { session, confirmedHeight } = stored;
+      confirmedBody.current = confirmedHeight === undefined ? null : { height: confirmedHeight };
       currentSession.current = session;
       keepSession.current = true;
       setDisplayName(session.name);
-      setEmail(session.email);
-      setAccountId(session.user_id);
+      setEmail(session.email ?? '');
+      setAccountId(session.role === 'WARD' ? null : session.user_id);
+      setDependentId(session.role === 'WARD' ? String(session.user_id) : null);
+      setGuardianName(session.role === 'WARD' ? getWardGuardianName(session) : undefined);
     }).catch(() => {}).finally(() => {
       if (active) setReady(true);
     });
@@ -67,7 +78,10 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
     sessionGeneration.current += 1;
     keepSession.current = false;
     persist(null);
+    setWardInvitations(new Map());
     setAccountId(null);
+    setDependentId(null);
+    setGuardianName(undefined);
     setDisplayName('');
     setEmail('');
     setContactNumber('');
@@ -77,26 +91,27 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
 
   const signOut = useCallback(() => {
     const session = clearSession();
-    setDependentId(null);
     if (session) void logout(session.access_token).catch(() => {});
   }, [clearSession]);
 
-  function signIn(session: AccountSession, keepLogin: boolean) {
+  function signIn(session: AuthSession, keepLogin: boolean) {
+    setWardInvitations(new Map());
     confirmedBody.current = null;
     sessionGeneration.current += 1;
     currentSession.current = session;
     keepSession.current = keepLogin;
     persist(keepLogin ? session : null);
-    setDependentId(null);
+    setDependentId(session.role === 'WARD' ? String(session.user_id) : null);
+    setGuardianName(session.role === 'WARD' ? getWardGuardianName(session) : undefined);
     setDisplayName(session.name);
-    setEmail(session.email);
+    setEmail(session.email ?? '');
     setContactNumber('');
-    setAccountId(session.user_id);
+    setAccountId(session.role === 'WARD' ? null : session.user_id);
   }
 
-  const renewSession = useCallback((session: AccountSession) => {
+  const renewSession = useCallback((session: AuthSession) => {
     const stored = currentSession.current;
-    if (!stored || stored.user_id !== session.user_id) throw new Error('다시 로그인해 주세요.');
+    if (!stored || stored.user_id !== session.user_id || stored.role !== session.role) throw new Error('다시 로그인해 주세요.');
     if (stored !== session) return Promise.resolve(stored);
     if (pendingRefresh.current?.session === session) return pendingRefresh.current.request;
 
@@ -163,19 +178,33 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
     const saved = await withSession(token => patchAccountBody(body, token, signal), signal);
     if (!saved || typeof saved !== 'object') throw new Error('서버에서 저장된 신체정보를 받지 못했어요.');
     confirmedBody.current = saved;
+    const session = currentSession.current;
+    if (session && session.role !== 'WARD' && keepSession.current) persist(session);
     return saved;
-  }, [withSession]);
+  }, [persist, withSession]);
 
   if (!ready) return <>{loadingFallback}</>;
+
+  function rememberWardInvitation(wardId: number, invitation: WardInvitation) {
+    const session = currentSession.current;
+    if (!session || session.role === 'WARD') return;
+    const now = Date.now();
+    if (invitation.expiresAt <= now) return;
+    setWardInvitations(current => {
+      const active = new Map([...current].filter(([, issued]) => issued.expiresAt > now));
+      active.set(wardId, invitation);
+      return active;
+    });
+  }
 
   const value: AuthContextValue = {
     isAuthenticated: accountId !== null,
     accountId,
     dependentId,
-    signInDependent: id => {
-      clearSession();
-      setDependentId(id);
-    },
+    guardianName,
+    wardInvitations,
+    rememberWardInvitation,
+    signInDependent: session => signIn(session, true),
     displayName,
     email,
     contactNumber,

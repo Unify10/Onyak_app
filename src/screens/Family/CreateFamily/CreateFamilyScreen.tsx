@@ -7,20 +7,17 @@ import * as Clipboard from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg';
 import InvitationCode from '../../../components/Family/Invitation/InvitationCode';
 
-import { createFamilyInvitation, type FamilyInvitation } from '../../../utils/familyInvitation';
+import type { WardInvitation } from '../../../api/wardAuth';
 
 type Props = {
   onBack: () => void;
-  onComplete: (invitation: FamilyInvitation) => void;
-  existingCodes: readonly string[];
-  initialInvitation?: FamilyInvitation;
-  onRenew?: (invitation: FamilyInvitation) => void;
+  onComplete: () => void;
+  invitation: WardInvitation;
 };
 
-export default function CreateFamilyScreen({ onBack, onComplete, existingCodes, initialInvitation, onRenew }: Props) {
+export default function CreateFamilyScreen({ onBack, onComplete, invitation }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   const [now, setNow] = useState(() => Date.now());
-  const [invitation, setInvitation] = useState(() => initialInvitation ?? createFamilyInvitation(existingCodes));
   const [showQr, setShowQr] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
@@ -30,17 +27,6 @@ export default function CreateFamilyScreen({ onBack, onComplete, existingCodes, 
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
-
-  function regenerate() {
-    const currentTime = Date.now();
-    setNow(currentTime);
-    const next = createFamilyInvitation([...existingCodes, invitation.code]);
-    setInvitation(next);
-    onRenew?.(next);
-    setCopied(false);
-    setShowQr(false);
-    setError('');
-  }
 
   async function copyCode() {
     if (Date.now() >= invitation.expiresAt) return;
@@ -58,7 +44,7 @@ export default function CreateFamilyScreen({ onBack, onComplete, existingCodes, 
     <View style={styles.screen}>
       <View style={styles.header}>
         <Pressable onPress={onBack} style={styles.back} accessibilityRole="button" accessibilityLabel="가족 화면으로 돌아가기"><Ionicons name="arrow-back" size={22} color="#000000" /></Pressable>
-        <Text style={styles.title}>{initialInvitation ? '가족 연동 코드' : '피보호자 계정 생성'}</Text>
+        <Text style={styles.title}>가족 연동 코드</Text>
         <View style={styles.headerSpacer} />
       </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -67,20 +53,18 @@ export default function CreateFamilyScreen({ onBack, onComplete, existingCodes, 
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
         </View>
         <View style={styles.actions}>
-          <Text style={styles.instruction}>연동 코드를 피보호자 계정에서 입력해주세요.</Text>
-          {initialInvitation && <Text style={styles.qrLabel}>재발급하면 이전 연동 코드와 QR은 만료돼요.</Text>}
-          <Pressable accessibilityRole="button" style={styles.outlineButton} onPress={regenerate}><Text style={styles.buttonLabel}>연동 코드 재발급</Text></Pressable>
-          <Pressable accessibilityRole="button" accessibilityState={{ expanded: showQr, disabled: secondsLeft === 0 }} disabled={secondsLeft === 0} style={[styles.outlineButton, secondsLeft === 0 && styles.disabled]} onPress={() => setShowQr(current => !current)}><Text style={styles.buttonLabel}>{showQr ? 'QR 닫기' : 'QR 생성'}</Text></Pressable>
+          <Text style={styles.instruction}>연동 코드를 피보호자 기기에서 코드 또는 QR로 연동할 수 있어요. 한 번 사용하면 만료돼요.</Text>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: showQr, disabled: secondsLeft === 0 }} disabled={secondsLeft === 0} style={[styles.outlineButton, secondsLeft === 0 && styles.disabled]} onPress={() => setShowQr(current => !current)}><Text style={styles.buttonLabel}>{showQr ? 'QR 닫기' : 'QR 보기'}</Text></Pressable>
           {showQr && secondsLeft > 0 && (
             <View style={styles.qr} accessibilityLabel="가족 연동 QR 코드">
-              <QRCode value={JSON.stringify({ type: 'onyak-demo-family', code: invitation.code, expiresAt: invitation.expiresAt })} size={180} quietZone={12} />
+              <QRCode value={invitation.qrToken} size={180} quietZone={12} />
               <Text style={styles.qrLabel}>피보호자 기기에서 QR 코드를 스캔해주세요.</Text>
             </View>
           )}
         </View>
       </ScrollView>
       <View style={styles.footer}>
-        <Pressable accessibilityRole="button" style={styles.primaryButton} onPress={() => onComplete(invitation)}><Text style={styles.primaryText}>완료</Text></Pressable>
+        <Pressable accessibilityRole="button" style={styles.primaryButton} onPress={onComplete}><Text style={styles.primaryText}>완료</Text></Pressable>
       </View>
     </View>
   );
@@ -102,7 +86,6 @@ const baseStyles = StyleSheet.create({
   disabled: { opacity: 0.4 },
   qr: { alignItems: 'center', gap: 14, paddingVertical: 12 },
   qrLabel: { fontSize: 13, lineHeight: 20, color: '#6B7280', textAlign: 'center' },
-  demoNote: { fontSize: 12, lineHeight: 18, color: '#8B929D', textAlign: 'center' },
   footer: { width: '100%', maxWidth: 640, alignSelf: 'center', padding: 20, paddingTop: 24 },
   primaryButton: { minHeight: 50, borderRadius: 12, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', padding: 12 },
   primaryText: { color: '#FFFFFF', fontSize: 16, lineHeight: 24 },
