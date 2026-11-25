@@ -46,7 +46,7 @@ export default function MedicationList({ dependent = false, dependentProfile }: 
           {ward?.loading ? <MedicationListSkeleton showCard={selectedTab === 'card'} />
             : ward?.loadError && selectedTab !== 'past' ? <QueryError message={ward.loadError} onRetry={ward.retry} />
             : selectedTab === 'card' ? (
-            <CurrentMedicationCard name={dependentProfile?.name} medicines={registeredMedicines} schedules={schedules} cautionIds={cautionIds} />
+            <CurrentMedicationCard wardId={ward?.id} name={dependentProfile?.name} medicines={registeredMedicines} schedules={schedules} cautionIds={cautionIds} />
           ) : ward && selectedTab === 'past' ? (
             <>
               <MedicationCalendar wardId={ward.id} role="dependent" date={calendarDate} onSelectDate={setCalendarDate} />

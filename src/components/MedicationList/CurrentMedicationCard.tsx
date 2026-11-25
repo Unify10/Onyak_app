@@ -1,4 +1,8 @@
 import MedicationCautionBadge from './MedicationCautionBadge';
+import EvidenceCardSection, { EvidenceCardFeedback } from './EvidenceCardSection';
+import { useWardEvidenceCard } from '../../hooks/useWardEvidenceCard';
+import { getEvidenceCardText } from '../../utils/evidenceCard';
+import { getMedicationServerClock } from '../../utils/familyMedication';
 import { useRef, useState } from 'react';
 import { Platform, Pressable, Share, StyleSheet, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
@@ -15,17 +19,20 @@ import {
   type MedicationSchedule,
 } from '../../utils/medicationSchedule';
 
-type Props = { name?: string; medicines: Medicine[]; schedules: MedicationSchedule[]; cautionIds: ReadonlySet<string> };
+type Props = { wardId?: string; name?: string; medicines: Medicine[]; schedules: MedicationSchedule[]; cautionIds: ReadonlySet<string> };
 
-export default function CurrentMedicationCard({ name, medicines, schedules, cautionIds }: Props) {
+export default function CurrentMedicationCard({ wardId, name, medicines, schedules, cautionIds }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   const cardRef = useRef<View>(null);
   const [feedback, setFeedback] = useState('');
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [exportingImage, setExportingImage] = useState(false);
   const isWeb = Platform.OS === 'web';
-  const title = name ? `${name}님 복용 카드` : '복용 카드';
-  const today = getLocalDateKey(new Date());
+  const evidenceRequest = useWardEvidenceCard(wardId, 'dependent');
+  const evidence = evidenceRequest.state.status === 'ready' ? evidenceRequest.state.data : undefined;
+  const cardName = evidence?.ward_name || name;
+  const title = cardName ? `${cardName}님 복용 카드` : '복용 카드';
+  const today = getLocalDateKey(wardId ? getMedicationServerClock().date : new Date());
   const entries = medicines.flatMap(medicine => {
     const registered = schedules.filter(schedule => schedule.medicineId === medicine.id);
     const active = registered.filter(schedule =>
@@ -63,6 +70,7 @@ export default function CurrentMedicationCard({ name, medicines, schedules, caut
       '복용 주의',
       ...cautionEntries.map(({ medicine }) => medicine.name),
     ].join('\n'),
+    evidence && getEvidenceCardText(evidence),
   ].filter(Boolean).join('\n\n');
 
   async function copyCard() {
@@ -132,12 +140,13 @@ export default function CurrentMedicationCard({ name, medicines, schedules, caut
   return (
     <View style={styles.container}>
       <View style={styles.actions}>
-        <Pressable accessibilityRole="button" onPress={copyCard} style={styles.action}>
+        <Pressable accessibilityRole="button" accessibilityLabel="복사" onPress={copyCard} style={styles.action}>
           <Ionicons name="copy-outline" size={16} color={colors.ink} accessible={false} />
           <Text style={styles.actionLabel}>복사</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={exportingImage ? '이미지 준비 중' : '공유'}
           accessibilityState={{ expanded: showShareOptions, disabled: exportingImage }}
           disabled={exportingImage}
           onPress={() => setShowShareOptions(visible => !visible)}
@@ -161,7 +170,7 @@ export default function CurrentMedicationCard({ name, medicines, schedules, caut
       <View ref={cardRef} collapsable={false} style={styles.card}>
         <View style={styles.header}>
           <Text accessibilityRole="header" style={styles.title}>
-            {name && <Text style={styles.personName}>{name}님 </Text>}복용 카드
+            {cardName && <Text style={styles.personName}>{cardName}님 </Text>}복용 카드
           </Text>
         </View>
         <View style={styles.content}>
@@ -201,8 +210,15 @@ export default function CurrentMedicationCard({ name, medicines, schedules, caut
               ))}
             </View>
           )}
+          {evidence && <EvidenceCardSection card={evidence} />}
         </View>
       </View>
+      {wardId && <EvidenceCardFeedback request={evidenceRequest} />}
+      {evidence && (
+        <Pressable accessibilityRole="button" onPress={evidenceRequest.retry} style={styles.action}>
+          <Text style={styles.actionLabel}>복약 점검 다시 조회</Text>
+        </Pressable>
+      )}
     </View>
   );
 }

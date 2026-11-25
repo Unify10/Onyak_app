@@ -11,6 +11,7 @@ import RecentWardInvitation from './Invitation/RecentWardInvitation';
 import FamilyMedicationOverview from './FamilyMedicationOverview';
 import FamilyMedicationManager from '../MedicationList/FamilyMedicationManager';
 import Text from '../Typography/Text';
+import WardEvidenceCard from './WardEvidenceCard';
 
 type Props = { id: string; initialDate?: string };
 
@@ -65,6 +66,7 @@ export default function ServerFamilyProfile({ id, initialDate }: Props) {
         <>
           <ProfileInfoTable profile={profile} />
           <RecentWardInvitation key={id} wardId={profileRequest.state.data.ward_id} />
+          <WardEvidenceCard wardId={id} revision={calendarRevision} />
         </>
       )}
       wardId={id}
