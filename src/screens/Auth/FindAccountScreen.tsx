@@ -1,107 +1,89 @@
+import type { ComponentProps } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import Text from '../../components/Typography/Text';
 import TextInput from '../../components/Typography/TextInput';
+import { usePasswordReset } from '../../hooks/usePasswordReset';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { useState } from 'react';
-import { Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
-// -----------------------------------------------------------------------------
-// 화면 외부에서 받는 뒤로 가기 동작
-// -----------------------------------------------------------------------------
+type Props = { onPressBack: () => void };
 
-type Props = {
-  onPressBack?: () => void;
+const steps = {
+  email: { title: '가입한 이메일을 입력해 주세요.', action: '인증코드 받기' },
+  code: { title: '이메일로 받은 인증코드를 입력해 주세요.', action: '인증코드 확인' },
+  password: { title: '새 비밀번호를 입력해 주세요.', action: '비밀번호 재설정' },
+  done: { title: '비밀번호를 재설정했어요.', action: '로그인으로 돌아가기' },
 };
-
-// -----------------------------------------------------------------------------
-// 계정 찾기 / 비밀번호 재설정 안내 화면
-// -----------------------------------------------------------------------------
 
 export default function FindAccountScreen({ onPressBack }: Props) {
   const styles = useResponsiveStyles(baseStyles);
-  // 이메일 입력값과 형식 검사
-  const [email, setEmail] = useState('');
+  const form = usePasswordReset();
+  const { title, action } = steps[form.step];
+  const canSubmit = !form.busy && (form.canSubmit || form.step === 'done');
 
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const canSubmit = isEmailValid;
-
-  // 서버 연결 전에는 재설정 안내만 표시합니다.
   function handleSubmit() {
     if (!canSubmit) return;
-
     Keyboard.dismiss();
-
-    // 실제 이메일 발송 기능은 서버 API 연결 후 사용할 수 있습니다.
-    Alert.alert(
-      '비밀번호 찾기',
-      '비밀번호 재설정 안내 기능은 서버 API 연결 후 사용할 수 있습니다.',
-    );
+    if (form.step === 'done') onPressBack();
+    else void form.submit();
   }
 
-  // 화면 렌더링
   return (
     <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={styles.header}>
-          <Pressable
-            style={styles.backButton}
-            onPress={onPressBack}
-            accessibilityRole="button"
-            accessibilityLabel="뒤로 가기"
-          >
+          <Pressable style={styles.backButton} onPress={onPressBack} accessibilityRole="button" accessibilityLabel="뒤로 가기">
             <Text style={styles.backButtonText}>‹</Text>
           </Pressable>
-
           <Text style={styles.headerTitle}>비밀번호 찾기</Text>
-
           <View style={styles.headerSpacer} />
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.title}>
-            비밀번호 재설정 안내를 받을 이메일을 입력해주세요.
-          </Text>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>이메일</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="가입한 이메일을 입력해주세요."
-              placeholderTextColor="#A8A8A8"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="done"
-              onSubmitEditing={handleSubmit}
-            />
-          </View>
-
-          <Text style={styles.helpText}>
-            입력한 이메일로 비밀번호 재설정 안내를 보냅니다.
-          </Text>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+          <Text style={styles.title}>{title}</Text>
+          {form.step === 'email' && (
+            <ResetField label="이메일" value={form.email} onChangeText={form.changeEmail} editable={!form.busy}
+              placeholder="가입한 이메일을 입력해 주세요." keyboardType="email-address" autoComplete="email" onSubmitEditing={handleSubmit} />
+          )}
+          {form.step === 'code' && (
+            <>
+              <Text style={styles.helpText}>{form.email.trim()}</Text>
+              <ResetField label="인증코드" value={form.code} onChangeText={form.changeCode} editable={!form.busy}
+                placeholder="영문·숫자 6자리" autoComplete="one-time-code" autoCapitalize="characters" onSubmitEditing={handleSubmit} />
+              <Pressable style={styles.link} accessibilityRole="button" disabled={form.busy} onPress={() => void form.resend()}>
+                <Text style={styles.linkText}>인증코드 다시 받기</Text>
+              </Pressable>
+              <Pressable style={styles.link} accessibilityRole="button" disabled={form.busy} onPress={form.restart}>
+                <Text style={styles.linkText}>이메일 변경</Text>
+              </Pressable>
+            </>
+          )}
+          {form.step === 'password' && (
+            <>
+              <ResetField label="새 비밀번호" value={form.password} onChangeText={form.changePassword} editable={!form.busy}
+                placeholder="8~64자" secureTextEntry autoComplete="new-password" maxLength={64} />
+              <ResetField label="새 비밀번호 확인" value={form.passwordConfirm} onChangeText={form.changePasswordConfirm}
+                editable={!form.busy} secureTextEntry autoComplete="new-password" maxLength={64} onSubmitEditing={handleSubmit} />
+              {form.passwordConfirm.length > 0 && form.password !== form.passwordConfirm && (
+                <Text style={[styles.message, styles.error]}>새 비밀번호가 일치하지 않아요.</Text>
+              )}
+            </>
+          )}
+          {form.message && (
+            <Text accessibilityLiveRegion="polite" style={[styles.message, form.message.error && styles.error]}>
+              {form.message.text}
+            </Text>
+          )}
         </ScrollView>
 
         <View style={styles.bottomArea}>
           <Pressable
-            style={[
-              styles.submitButton,
-              canSubmit
-                ? styles.submitButtonEnabled
-                : styles.submitButtonDisabled,
-            ]}
+            accessibilityRole="button"
+            accessibilityState={{ busy: form.busy, disabled: !canSubmit }}
+            style={[styles.submitButton, canSubmit ? styles.submitButtonEnabled : styles.submitButtonDisabled]}
             onPress={handleSubmit}
             disabled={!canSubmit}
           >
-            <Text style={styles.submitButtonText}>재설정 안내 받기</Text>
+            <Text style={styles.submitButtonText}>{form.busy ? '처리 중…' : action}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -109,7 +91,23 @@ export default function FindAccountScreen({ onPressBack }: Props) {
   );
 }
 
-// 화면 스타일
+function ResetField({ label, ...props }: ComponentProps<typeof TextInput> & { label: string }) {
+  const styles = useResponsiveStyles(baseStyles);
+  return (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={styles.input}
+        accessibilityLabel={label}
+        placeholderTextColor="#A8A8A8"
+        autoCapitalize="none"
+        autoCorrect={false}
+        {...props}
+      />
+    </View>
+  );
+}
+
 const baseStyles = StyleSheet.create({
   safe: {
     flex: 1,
@@ -215,8 +213,8 @@ const baseStyles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  logoImage: {
-    width: 64,
-    height: 64,
-  },
+  link: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
+  linkText: { color: '#222222', fontSize: 15, textDecorationLine: 'underline' },
+  message: { marginTop: 8, color: '#525252', fontSize: 14, lineHeight: 20 },
+  error: { color: '#B42318' },
 });

@@ -28,6 +28,18 @@ export function verifyEmailCode(email: string, code: string, signal: AbortSignal
   return postAuth<null>('email/verify', { email, code }, signal);
 }
 
+export function sendPasswordResetCode(email: string, signal: AbortSignal) {
+  return postAuth<null>('password/reset/send', { email }, signal);
+}
+
+export function verifyPasswordResetCode(email: string, code: string, signal: AbortSignal) {
+  return postAuth<null>('password/reset/verify', { email, code }, signal);
+}
+
+export function resetPassword(email: string, password: string, passwordConfirm: string, signal: AbortSignal) {
+  return postAuth<null>('password/reset', { email, password, password_confirm: passwordConfirm }, signal);
+}
+
 export function signup(input: SignupInput, signal: AbortSignal) {
   return postAuth<AccountSession>('signup', input, signal);
 }

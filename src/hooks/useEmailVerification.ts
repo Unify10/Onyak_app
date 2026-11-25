@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { sendEmailCode, verifyEmailCode } from '../api/auth';
+import { sendEmailCode, sendPasswordResetCode, verifyEmailCode, verifyPasswordResetCode } from '../api/auth';
 import { ApiError } from '../api/client';
 
 export const EMAIL_CODE_LENGTH = 6;
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function useEmailVerification(email: string) {
+export function useEmailVerification(email: string, purpose: 'signup' | 'password-reset' = 'signup') {
+  const isPasswordReset = purpose === 'password-reset';
   const [code, setCode] = useState('');
   const [sentEmail, setSentEmail] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
@@ -55,16 +56,20 @@ export function useEmailVerification(email: string) {
     setMessage(null);
     try {
       if (operation === 'send') {
-        await sendEmailCode(target, controller.signal);
+        const send = isPasswordReset ? sendPasswordResetCode : sendEmailCode;
+        await send(target, controller.signal);
       } else {
-        await verifyEmailCode(target, code, controller.signal);
+        const verify = isPasswordReset ? verifyPasswordResetCode : verifyEmailCode;
+        await verify(target, code, controller.signal);
       }
       if (controller.signal.aborted) return;
       if (operation === 'send') {
         setSentEmail(target);
         setVerified(false);
         setCode('');
-        setMessage({ text: '이메일로 인증코드를 보냈어요.' });
+        setMessage({ text: isPasswordReset
+          ? '재설정 가능한 계정이면 입력한 이메일로 인증코드가 전송돼요.'
+          : '이메일로 인증코드를 보냈어요.' });
       } else {
         setVerified(true);
         setMessage({ text: '이메일 인증이 완료됐어요.' });
