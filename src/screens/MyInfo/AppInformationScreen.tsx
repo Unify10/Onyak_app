@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import SkeletonBlock from '../../components/Skeleton/SkeletonBlock';
 import Text from '../../components/Typography/Text';
 import { useAppInfo } from '../../hooks/useAppInfo';
+import { useAuth } from '../../providers/AuthProvider';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { typography } from '../../theme/tokens';
 
@@ -25,6 +26,7 @@ const documentFields = {
 
 export default function AppInformationScreen({ type }: { type: string }) {
   const styles = useResponsiveStyles(baseStyles);
+  const { dependentId } = useAuth();
   const { state, retry } = useAppInfo();
   const informationType = Object.hasOwn(titles, type) ? type as InformationType : 'announcements';
   const appInfo = state.status === 'success' ? state.data : null;
@@ -37,7 +39,7 @@ export default function AppInformationScreen({ type }: { type: string }) {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.replace('/my-info')} accessibilityRole="button" accessibilityLabel="내 정보로 돌아가기" style={styles.backButton}>
+        <Pressable onPress={() => router.replace(dependentId ? '/dependent/my-info' : '/my-info')} accessibilityRole="button" accessibilityLabel="내 정보로 돌아가기" style={styles.backButton}>
           <Ionicons name="chevron-back" size={22} color="#111111" />
         </Pressable>
         <Text style={styles.title}>{titles[informationType]}</Text>

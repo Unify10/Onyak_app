@@ -8,7 +8,7 @@ type Props = { label: string; icon?: React.ComponentProps<typeof Ionicons>['name
 export default function ProfileMenuRow({ label, icon, onPress, last = false, logout = false, destructive = false }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   const [focused, setFocused] = useState(false);
-  return <Pressable accessibilityRole="button" onPress={onPress} onFocus={logout ? () => setFocused(true) : undefined} onBlur={logout ? () => setFocused(false) : undefined} style={({ pressed }) => [styles.row, !last && styles.border, logout && styles.logoutBorder, logout && (focused || pressed) && styles.focusedBorder]}>{icon && <Ionicons name={icon} size={21} color="#000000" />}<Text style={[styles.label, destructive && styles.destructiveLabel]}>{label}</Text><Ionicons name={logout ? 'log-out-outline' : 'chevron-forward'} size={20} color="#C4C8CF" /></Pressable>;
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} onFocus={logout ? () => setFocused(true) : undefined} onBlur={logout ? () => setFocused(false) : undefined} style={({ pressed }) => [styles.row, !last && styles.border, logout && styles.logoutBorder, logout && (focused || pressed) && styles.focusedBorder]}>{icon && <Ionicons name={icon} size={21} color="#000000" />}<Text style={[styles.label, destructive && styles.destructiveLabel]}>{label}</Text><Ionicons name={logout ? 'log-out-outline' : 'chevron-forward'} size={20} color="#C4C8CF" /></Pressable>;
 }
 const baseStyles = StyleSheet.create({
   row: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },

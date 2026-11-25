@@ -44,14 +44,14 @@ export default function MyInfo({ displayName, email, onSignOut, dependent, guard
         <ProfileMenuRow label="개인정보 변경" icon="person" onPress={() => router.push('/edit-profile')} />
         <ProfileMenuRow label="신체 정보 변경" icon="fitness-outline" onPress={() => router.push('/edit-profile?tab=body')} last />
       </View>
+      </>}
       <View style={styles.menu}>
-        <ProfileMenuRow label="푸시 알림 설정" icon="notifications-outline" onPress={() => router.push('/notification-settings')} />
+        {!dependent && <ProfileMenuRow label="푸시 알림 설정" icon="notifications-outline" onPress={() => router.push('/notification-settings')} />}
         <ProfileMenuRow label="공지사항" icon="megaphone-outline" onPress={() => router.push('/information/announcements')} />
         <ProfileMenuRow label="이용약관" icon="document-text-outline" onPress={() => router.push('/information/terms')} />
         <ProfileMenuRow label="개인정보 처리방침" icon="shield-checkmark-outline" onPress={() => router.push('/information/privacy')} />
         <ProfileMenuRow label="앱 버전 정보" icon="information-circle-outline" onPress={() => router.push('/information/version')} last />
       </View>
-      </>}
       <View style={styles.menu}>
         <ProfileMenuRow label="로그아웃" last={!!dependent} destructive logout onPress={() => setShowSignOut(true)} />
         {!dependent && <ProfileMenuRow label="계정 및 데이터 삭제" destructive onPress={() => router.push('/delete-account')} last /> }
