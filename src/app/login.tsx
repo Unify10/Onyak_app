@@ -1,6 +1,6 @@
 import { router, Redirect } from 'expo-router';
 import LoginScreen from '../screens/Auth/LoginScreen';
-import { login } from '../api/auth';
+import { login, loginWithGoogle } from '../api/auth';
 import { useAuth } from '../providers/AuthProvider';
 
 export default function LoginRoute() {
@@ -14,6 +14,10 @@ export default function LoginRoute() {
       onPressLinkedCode={() => router.push('/linked-code-login')}
       onPressQRLogin={() => router.push('/qr-login')}
       onPressFindPassword={() => router.push('/find-account')}
+      onGoogleLogin={async (idToken, keepLogin, signal) => {
+        const session = await loginWithGoogle(idToken, signal);
+        if (!signal.aborted) signIn(session, keepLogin);
+      }}
       onLogin={async (email, password, keepLogin, signal) => {
         const session = await login(email, password, signal);
         if (!signal.aborted) signIn(session, keepLogin);

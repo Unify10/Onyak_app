@@ -73,6 +73,12 @@ export async function login(email: string, password: string, signal: AbortSignal
   return session;
 }
 
+export async function loginWithGoogle(idToken: string, signal: AbortSignal) {
+  const session = await postAuth<unknown>('google', { id_token: idToken }, signal);
+  if (!isAccountSession(session)) throw new Error('서버에서 구글 로그인 정보를 받지 못했어요.');
+  return session;
+}
+
 export async function refreshSession(refreshToken: string) {
   const tokens = await postAuth<Tokens>('refresh', { refresh_token: refreshToken });
   if (!tokens?.access_token || !tokens.refresh_token) throw new Error('서버에서 새 로그인 정보를 받지 못했어요.');

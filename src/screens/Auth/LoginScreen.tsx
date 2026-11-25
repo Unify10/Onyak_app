@@ -1,9 +1,10 @@
+import GoogleLoginButton from '../../components/Account/GoogleLoginButton';
 import Text from '../../components/Typography/Text';
 import TextInput from '../../components/Typography/TextInput';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 // ───────────── 불러오기 ─────────────
 import { useEffect, useRef, useState } from 'react';
-import { View, Pressable, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Image, TextInput as NativeTextInput } from 'react-native';
+import { View, Pressable, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image, TextInput as NativeTextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -15,13 +16,9 @@ type Props = {
   onPressLinkedCode?: () => void;
   onPressQRLogin?: () => void;
   onPressFindPassword?: () => void;
+  onGoogleLogin: (idToken: string, keepLogin: boolean, signal: AbortSignal) => Promise<void>;
   onLogin: (email: string, password: string, keepLogin: boolean, signal: AbortSignal) => Promise<void>;
 };
-
-// 아직 연결되지 않은 기능 버튼에서 공통으로 쓰는 안내 알림
-function comingSoon(title: string) {
-  Alert.alert(title, '현재는 화면 연습 단계입니다. 아직 연결되지 않았어요.');
-}
 
 // -----------------------------------------------------------------------------
 // 로그인 화면
@@ -32,6 +29,7 @@ export default function LoginScreen({
   onPressQRLogin,
   onPressFindPassword,
   onLogin: signIn,
+  onGoogleLogin,
 }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   // 입력값과 화면 상태
@@ -63,11 +61,17 @@ export default function LoginScreen({
     setLoginError('');
     if (!emailOk || !passwordOk) return;
 
+    await runLogin(signal => signIn(normalizedEmail, password, keepLogin, signal));
+  }
+
+  async function runLogin(action: (signal: AbortSignal) => Promise<void>) {
+    if (request.current) return;
+    setLoginError('');
     const controller = new AbortController();
     request.current = controller;
     setIsSubmitting(true);
     try {
-      await signIn(normalizedEmail, password, keepLogin, controller.signal);
+      await action(controller.signal);
     } catch (error) {
       if (!controller.signal.aborted) {
         setLoginError(error instanceof Error ? error.message : '로그인에 실패했어요.');
@@ -219,18 +223,11 @@ export default function LoginScreen({
             <Text style={styles.primaryText}>{isSubmitting ? '로그인 중' : '로그인'}</Text>
           </Pressable>
 
-          {/* ───────────── 구글 로그인 ───────────── */}
-          <Pressable
-            style={styles.googleBtn}
-            onPress={() => comingSoon('구글 로그인')}
-          >
-            <Image
-              source={require('../../../assets/google-logo.png')}
-              style={styles.googleLogo}
-              resizeMode="contain"
-            />
-            <Text style={styles.googleText}>구글 계정으로 로그인</Text>
-          </Pressable>
+          <GoogleLoginButton disabled={isSubmitting} onError={setLoginError} onCredential={token => {
+            setEmailError('');
+            setPasswordError('');
+            return runLogin(signal => onGoogleLogin(token, keepLogin, signal));
+          }} />
 
           {/* ───────────── 피보호자 로그인 ───────────── */}
           <View style={styles.dividerRow}>
@@ -307,10 +304,6 @@ const baseStyles = StyleSheet.create({
     marginTop: 20,
     color: '#555555',
     fontSize: 13,
-  },
-  googleLogo: {
-    width: 20,
-    height: 20,
   },
 
   // 입력 폼
@@ -409,20 +402,6 @@ const baseStyles = StyleSheet.create({
   },
 
   // 구글 로그인 버튼
-  googleBtn: {
-    height: 52,
-    marginTop: 12,
-    borderRadius: 8,
-    backgroundColor: '#F0F0F0',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  googleText: {
-    color: '#000000',
-    fontSize: 15,
-  },
 
   // 피보호자 로그인
   dividerRow: {
