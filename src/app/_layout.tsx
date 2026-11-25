@@ -7,7 +7,6 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '../providers/AuthProvider';
 import { SearchHistoryProvider } from '../providers/SearchHistoryProvider';
-import { NotificationProvider } from '../providers/NotificationProvider';
 import DetailSkeleton from '../components/Skeleton/DetailSkeleton';
 
 export default function RootLayout() {
@@ -25,7 +24,6 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider loadingFallback={loading}>
-        <NotificationProvider>
         <SearchHistoryProvider>
           <MedicationProvider>
           <ProfileProvider>
@@ -44,7 +42,6 @@ export default function RootLayout() {
           </ProfileProvider>
           </MedicationProvider>
         </SearchHistoryProvider>
-        </NotificationProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

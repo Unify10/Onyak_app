@@ -1,6 +1,11 @@
 import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { useNotifications } from '../../providers/NotificationProvider';
+import { useState } from 'react';
+import { getNotificationPreferences, patchNotificationPreferences, type NotificationPreferences } from '../../api/profile';
+import QueryError from '../../components/Feedback/QueryError';
+import ListSkeleton from '../../components/Skeleton/ListSkeleton';
+import { useProtectedQuery } from '../../hooks/useProtectedQuery';
+import { useAccountMutation } from '../../hooks/useAccountMutation';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,17 +13,7 @@ import { typography } from '../../theme/tokens';
 
 export default function NotificationSettingsScreen() {
   const styles = useResponsiveStyles(baseStyles);
-  const {
-    allEnabled,
-    setAllEnabled,
-    medicationEnabled,
-    setMedicationEnabled,
-    sosEnabled,
-    setSosEnabled,
-    serviceEnabled,
-    setServiceEnabled,
-  } = useNotifications();
-
+  const { state, retry } = useProtectedQuery(getNotificationPreferences);
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -28,20 +23,45 @@ export default function NotificationSettingsScreen() {
         <Text style={styles.title}>알림 설정</Text>
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.group}>
-          <SettingRow title="전체 푸시 알림" description="온약에서 보내는 푸시 알림을 모두 설정합니다." value={allEnabled} onValueChange={setAllEnabled} />
-        </View>
-        <Text style={styles.sectionTitle}>알림 종류</Text>
-        <View style={styles.group}>
-          <SettingRow title="복약 알림" description="등록한 복용 시간에 맞춰 알려드려요." value={medicationEnabled} onValueChange={setMedicationEnabled} disabled={!allEnabled} />
-          <View style={styles.divider} />
-          <SettingRow title="SOS 알림" description="가족 계정의 긴급 알림을 받아요." value={sosEnabled} onValueChange={setSosEnabled} disabled={!allEnabled} />
-          <View style={styles.divider} />
-          <SettingRow title="공지·서비스 알림" description="공지사항과 서비스 안내를 받아요." value={serviceEnabled} onValueChange={setServiceEnabled} disabled={!allEnabled} />
-        </View>
-        <Text style={styles.note}>현재 화면은 설정 미리보기입니다. 실제 푸시 수신은 알림 서비스 연동 후 사용할 수 있습니다.</Text>
+        {state.status === 'loading' ? <ListSkeleton label="알림 설정 불러오는 중" /> : state.status === 'error'
+          ? <QueryError message={state.message} onRetry={retry} />
+          : <NotificationPreferencesForm initial={state.data} />}
       </ScrollView>
     </View>
+  );
+}
+
+function NotificationPreferencesForm({ initial }: { initial: NotificationPreferences }) {
+  const styles = useResponsiveStyles(baseStyles);
+  const [preferences, setPreferences] = useState(initial);
+  const { busy, error, run } = useAccountMutation('알림 설정을 저장하지 못했어요.');
+  const { medication_push_enabled: medication, sos_push_enabled: sos, marketing_push_enabled: marketing } = preferences;
+
+  async function update(changes: Partial<NotificationPreferences>) {
+    const result = await run((token, signal) => patchNotificationPreferences(changes, token, signal));
+    if (result.ok) setPreferences(result.data);
+  }
+
+  function setAll(enabled: boolean) {
+    void update({ medication_push_enabled: enabled, sos_push_enabled: enabled, marketing_push_enabled: enabled });
+  }
+
+  return (
+    <>
+      <View style={styles.group}>
+        <SettingRow title="전체 푸시 알림" description="아래 세 종류의 알림을 한 번에 켜거나 꺼요." value={medication || sos || marketing} onValueChange={setAll} disabled={busy} />
+      </View>
+      <Text style={styles.sectionTitle}>알림 종류</Text>
+      <View style={styles.group}>
+        <SettingRow title="복약 알림" description="등록한 복용 시간에 맞춰 알려드려요." value={medication} onValueChange={value => void update({ medication_push_enabled: value })} disabled={busy} />
+        <View style={styles.divider} />
+        <SettingRow title="SOS 알림" description="가족 계정의 긴급 알림을 받아요." value={sos} onValueChange={value => void update({ sos_push_enabled: value })} disabled={busy} />
+        <View style={styles.divider} />
+        <SettingRow title="공지·서비스 알림" description="공지사항과 서비스 안내를 받아요." value={marketing} onValueChange={value => void update({ marketing_push_enabled: value })} disabled={busy} />
+      </View>
+      {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+      <Text style={styles.note}>수신 설정은 계정에 저장돼요. 기기 푸시는 서버 발송 기능이 연결되면 받을 수 있어요.</Text>
+    </>
   );
 }
 
@@ -78,5 +98,6 @@ const baseStyles = StyleSheet.create({
   rowDescription: { fontSize: 13, lineHeight: 18, color: '#7B8494' },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: '#E5E7EB' },
   disabled: { opacity: 0.45 },
+  error: { color: '#B42318', fontSize: 14 },
   note: { fontSize: 12, lineHeight: 18, color: '#8B929D', marginTop: 8 },
 });
