@@ -144,7 +144,7 @@ export default function LinkedCodeLoginScreen({
                 <AppText style={styles.label}>연동 코드 입력</AppText>
                 <Pressable style={styles.codeBoxes} onPress={() => inputRef.current?.focus()} accessibilityRole="button" accessibilityLabel="연동 코드 입력">
                   {Array.from({ length: CODE_LENGTH }, (_, index) => <View key={index} style={[styles.codeBox, codeFocused && index === Math.min(code.length, CODE_LENGTH - 1) && styles.codeBoxFocused]}><AppText style={styles.codeDigit}>{code[index] ?? ''}</AppText></View>)}
-                  <TextInput ref={instance => { inputRef.current = instance; }} value={code} onFocus={() => setCodeFocused(true)} onBlur={() => setCodeFocused(false)} onChangeText={handleCodeChange} keyboardType="number-pad" maxLength={CODE_LENGTH} caretHidden style={styles.hiddenInput} accessibilityLabel="6자리 연동 코드" />
+                  <TextInput ref={instance => { inputRef.current = instance; }} value={code} onFocus={() => setCodeFocused(true)} onBlur={() => setCodeFocused(false)} onChangeText={handleCodeChange} onSubmitEditing={() => void handleLogin()} returnKeyType="go" keyboardType="number-pad" maxLength={CODE_LENGTH} caretHidden style={styles.hiddenInput} accessibilityLabel="6자리 연동 코드" />
                 </Pressable>
                 {status === 'error' && <AppText style={styles.message}>{errorMessage}</AppText>}
               </View>

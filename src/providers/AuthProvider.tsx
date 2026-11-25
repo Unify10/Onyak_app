@@ -164,18 +164,21 @@ export function AuthProvider({ children, loadingFallback = null }: { children: R
       // 조회 응답에 빠진 값은 서버가 전에 확인한 값으로 채웁니다.
       birth_date: profile.birth_date === undefined ? confirmedBody.current?.birth_date : profile.birth_date,
       height,
+      weight: profile.weight === undefined ? confirmedBody.current?.weight : profile.weight,
+      gender: profile.gender === undefined ? confirmedBody.current?.gender : profile.gender,
+      is_pregnant: profile.is_pregnant === undefined ? confirmedBody.current?.is_pregnant : profile.is_pregnant,
     };
   }, [withSession]);
 
   const updateBody = useCallback(async (body: AccountBody, signal: AbortSignal) => {
     const saved = await withSession(token => patchAccountBody(body, token, signal), signal);
     if (!saved || typeof saved !== 'object') throw new Error('서버에서 저장된 신체정보를 받지 못했어요.');
-    confirmedBody.current = saved;
+    confirmedBody.current = { ...confirmedBody.current, ...body, ...saved };
     const session = currentSession.current;
     if (session && session.role !== 'WARD') {
       if (keepSession.current) persist(session);
-      if (saved.height !== undefined) {
-        await writeConfirmedHeight(session.user_id, saved.height).catch(() => {});
+      if (confirmedBody.current.height !== undefined) {
+        await writeConfirmedHeight(session.user_id, confirmedBody.current.height).catch(() => {});
       }
     }
     return saved;

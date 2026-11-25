@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 import { useWardCalendar } from '../../hooks/useWardCalendar';
 import { getMedicationServerClock } from '../../utils/familyMedication';
@@ -26,9 +26,19 @@ export default function MedicationCalendar({ wardId, role, date, onSelectDate, r
   revision?: number;
 }) {
   const styles = useResponsiveStyles(baseStyles);
-  const { state, retry } = useWardCalendar(wardId, date, role, revision);
-  const year = date.getFullYear();
-  const month = date.getMonth();
+  const selectedDateKey = getLocalDateKey(date);
+  const [monthState, setMonthState] = useState(() => ({
+    selectedDateKey,
+    visibleMonth: new Date(date.getFullYear(), date.getMonth(), 1),
+  }));
+  const visibleMonth = monthState.selectedDateKey === selectedDateKey
+    ? monthState.visibleMonth
+    : new Date(date.getFullYear(), date.getMonth(), 1);
+  const { state, retry } = useWardCalendar(wardId, visibleMonth, role, revision);
+  const year = visibleMonth.getFullYear();
+  const month = visibleMonth.getMonth();
+  const [yearPickerVisible, setYearPickerVisible] = useState(false);
+  const [yearInput, setYearInput] = useState(String(year));
   const first = new Date(year, month, 1).getDay();
   const length = new Date(year, month + 1, 0).getDate();
   const days = state.status === 'ready' ? state.data : [];
@@ -37,9 +47,14 @@ export default function MedicationCalendar({ wardId, role, date, onSelectDate, r
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" accessibilityLabel="이전 달" onPress={() => onSelectDate(new Date(year, month - 1, 1))} style={styles.arrow}><Ionicons name="chevron-back" size={20} color="#344054" /></Pressable>
-        <Text accessibilityRole="header" style={styles.heading}>{year}년 {month + 1}월</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="다음 달" onPress={() => onSelectDate(new Date(year, month + 1, 1))} style={styles.arrow}><Ionicons name="chevron-forward" size={20} color="#344054" /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="이전 달" onPress={() => setMonthState({ selectedDateKey, visibleMonth: new Date(year, month - 1, 1) })} style={styles.arrow}><Ionicons name="chevron-back" size={20} color="#344054" /></Pressable>
+        <View style={styles.headingGroup}>
+          <Pressable accessibilityRole="button" accessibilityLabel={`연도 선택, 현재 ${year}년`} onPress={() => { setYearInput(String(year)); setYearPickerVisible(true); }}>
+            <Text accessibilityRole="header" style={styles.heading}>{year}년</Text>
+          </Pressable>
+          <Text accessibilityRole="header" style={styles.heading}>{month + 1}월</Text>
+        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel="다음 달" onPress={() => setMonthState({ selectedDateKey, visibleMonth: new Date(year, month + 1, 1) })} style={styles.arrow}><Ionicons name="chevron-forward" size={20} color="#344054" /></Pressable>
       </View>
       <View style={styles.grid}>
         {weekdays.map((day, index) => <Text key={day} style={[styles.weekday, index === 0 && styles.sunday, index === 6 && styles.saturday]}>{day}</Text>)}
@@ -47,7 +62,7 @@ export default function MedicationCalendar({ wardId, role, date, onSelectDate, r
         {Array.from({ length }, (_, index) => {
           const day = index + 1;
           const value = new Date(year, month, day);
-          const active = day === date.getDate();
+          const active = year === date.getFullYear() && month === date.getMonth() && day === date.getDate();
           const record = days.find(item => item.date === getLocalDateKey(value));
           const status = record && (record.scheduled > 0 || record.completed > 0) ? `${record.completed}/${record.scheduled}` : '';
           return (
@@ -63,9 +78,40 @@ export default function MedicationCalendar({ wardId, role, date, onSelectDate, r
       </View>
       {wardId && state.status === 'loading' && <View accessible accessibilityLabel="복약 달력 불러오는 중" accessibilityState={{ busy: true }}><SkeletonBlock style={styles.skeleton} /></View>}
       {wardId && state.status === 'error' && <QueryError message={state.message} onRetry={retry} />}
-      {wardId && state.status === 'ready' && (
+      {wardId && state.status === 'ready' && date.getFullYear() === year && date.getMonth() === month && (
         <Text style={styles.summary}>{month + 1}월 {date.getDate()}일 · 완료 {selected?.completed ?? 0}회 / 일정 {selected?.scheduled ?? 0}회</Text>
       )}
+      <Modal transparent visible={yearPickerVisible} animationType="fade" onRequestClose={() => setYearPickerVisible(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.yearDialog}>
+            <Text style={styles.dialogTitle}>이동할 연도</Text>
+            <TextInput
+              accessibilityLabel="이동할 연도"
+              value={yearInput}
+              onChangeText={value => setYearInput(value.replace(/\D/g, '').slice(0, 4))}
+              keyboardType="number-pad"
+              returnKeyType="done"
+              maxLength={4}
+              style={styles.yearInput}
+              autoFocus
+            />
+            <View style={styles.dialogActions}>
+              <Pressable accessibilityRole="button" onPress={() => setYearPickerVisible(false)} style={styles.cancelButton}>
+                <Text style={styles.cancelText}>취소</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: Number(yearInput) < 1900 || Number(yearInput) > 2100 || yearInput.length !== 4 }}
+                disabled={Number(yearInput) < 1900 || Number(yearInput) > 2100 || yearInput.length !== 4}
+                onPress={() => { setMonthState({ selectedDateKey, visibleMonth: new Date(Number(yearInput), month, 1) }); setYearPickerVisible(false); }}
+                style={[styles.applyButton, (Number(yearInput) < 1900 || Number(yearInput) > 2100 || yearInput.length !== 4) && styles.disabledButton]}
+              >
+                <Text style={styles.applyText}>이동</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -74,6 +120,7 @@ const baseStyles = StyleSheet.create({
   card: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 16, padding: 14 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   arrow: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  headingGroup: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   heading: { fontSize: 18, color: '#111111' },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   weekday: { width: '14.2857%', height: 30, textAlign: 'center', fontSize: 14, color: '#475467' },
@@ -86,4 +133,14 @@ const baseStyles = StyleSheet.create({
   selectedText: { color: '#FFFFFF' },
   summary: { color: '#475467', fontSize: 14, marginTop: 12 },
   skeleton: { width: 150, height: 16, marginTop: 12 },
+  modalBackdrop: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: 'rgba(16, 24, 40, 0.4)' },
+  yearDialog: { width: '100%', maxWidth: 360, borderRadius: 18, padding: 22, backgroundColor: '#FFFFFF', gap: 18 },
+  dialogTitle: { fontSize: 18, lineHeight: 26, fontWeight: '600', color: '#111111', textAlign: 'center' },
+  yearInput: { height: 52, borderWidth: 1, borderColor: '#D0D5DD', borderRadius: 12, paddingHorizontal: 16, fontSize: 20, textAlign: 'center', color: '#111111' },
+  dialogActions: { flexDirection: 'row', gap: 10 },
+  cancelButton: { flex: 1, height: 48, borderRadius: 12, borderWidth: 1, borderColor: '#D0D5DD', justifyContent: 'center', alignItems: 'center' },
+  cancelText: { color: '#344054', fontSize: 15 },
+  applyButton: { flex: 1, height: 48, borderRadius: 12, backgroundColor: '#111111', justifyContent: 'center', alignItems: 'center' },
+  disabledButton: { opacity: 0.4 },
+  applyText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
 });

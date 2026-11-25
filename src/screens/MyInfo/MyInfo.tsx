@@ -42,7 +42,7 @@ export default function MyInfo({ displayName, email, onSignOut, dependent, guard
       <View style={styles.menu}>
         <ProfileMenuRow label="가족 계정 관리" icon="people" onPress={() => router.push('/family')} />
         <ProfileMenuRow label="개인정보 변경" icon="person" onPress={() => router.push('/edit-profile')} />
-        <ProfileMenuRow label="신체정보 변경" icon="fitness-outline" onPress={() => router.push('/edit-profile?tab=body')} last />
+        <ProfileMenuRow label="신체 정보 변경" icon="fitness-outline" onPress={() => router.push('/edit-profile?tab=body')} last />
       </View>
       <View style={styles.menu}>
         <ProfileMenuRow label="푸시 알림 설정" icon="notifications-outline" onPress={() => router.push('/notification-settings')} />

@@ -1,8 +1,8 @@
 import Text from '../../components/Typography/Text';
 import TextInput from '../../components/Typography/TextInput';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { useEffect, useRef, useState } from 'react';
-import { Animated, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState, type Ref } from 'react';
+import { Animated, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, TextInput as NativeTextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { signup } from '../../api/auth';
@@ -27,6 +27,9 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signupError, setSignupError] = useState('');
   const signupRequest = useRef<AbortController | null>(null);
+  const passwordConfirmInput = useRef<NativeTextInput>(null);
+  const phoneInput = useRef<NativeTextInput>(null);
+  const [focusTarget, setFocusTarget] = useState<{ field: 'passwordConfirm' | 'phone'; revision: number } | null>(null);
 
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -66,6 +69,10 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
   }, [step, stepTransition]);
 
   useEffect(() => () => signupRequest.current?.abort(), []);
+  useEffect(() => {
+    if (focusTarget?.field === 'passwordConfirm') passwordConfirmInput.current?.focus();
+    if (focusTarget?.field === 'phone') phoneInput.current?.focus();
+  }, [focusTarget]);
   const hasMinPasswordLength =
   password.length >= 8 && password.length <= 64 &&
   /[A-Za-z]/.test(password) &&
@@ -177,6 +184,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
     placeholder,
     keyboardType = 'default',
     maxLength,
+    inputRef,
+    onSubmitEditing,
   }: {
     label: string;
     value: string;
@@ -184,11 +193,14 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
     placeholder: string;
     keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'numeric' | 'decimal-pad';
     maxLength?: number;
+    inputRef?: Ref<NativeTextInput>;
+    onSubmitEditing?: () => void;
   }) {
     return (
       <View style={styles.field}>
         <Text style={styles.label}>{label}</Text>
         <TextInput
+          ref={inputRef}
           style={styles.input}
           value={value}
           onChangeText={onChangeText}
@@ -198,6 +210,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
           autoCapitalize="none"
           autoCorrect={false}
           maxLength={maxLength}
+          returnKeyType="go"
+          onSubmitEditing={onSubmitEditing ?? (() => void goToNextStep())}
         />
       </View>
     );
@@ -212,6 +226,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
     onToggleVisible,
     selection,
     onSelectionChange,
+    onSubmitEditing,
+    inputRef,
     helperMessage,
     helperIsSuccess = false,
   }: {
@@ -223,6 +239,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
     onToggleVisible: () => void;
     selection: TextSelection;
     onSelectionChange: (selection: TextSelection) => void;
+    onSubmitEditing?: () => void;
+    inputRef?: Ref<NativeTextInput>;
     helperMessage?: string;
     helperIsSuccess?: boolean;
   }) {
@@ -232,6 +250,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
 
         <View style={styles.passwordInputRow}>
           <TextInput
+            ref={inputRef}
             style={[styles.input, styles.passwordInput]}
             value={value}
             onChangeText={onChangeText}
@@ -244,6 +263,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
             secureTextEntry={!visible}
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="go"
+            onSubmitEditing={onSubmitEditing}
           />
 
           <Pressable
@@ -303,6 +324,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                returnKeyType="go"
+                onSubmitEditing={() => void verification.submit('send')}
               />
               <Pressable
                 style={styles.verifyButton}
@@ -331,6 +354,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
                   autoCapitalize="characters"
                   autoCorrect={false}
                   autoComplete="one-time-code"
+                  returnKeyType="go"
+                  onSubmitEditing={() => void verification.submit('verify')}
                 />
 
                 {/* 인증 완료 상태에서도 버튼 배경은 계속 흰색입니다. */}
@@ -356,6 +381,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
               setShowPassword((current) => !current),
             selection: passwordSelection,
             onSelectionChange: setPasswordSelection,
+            onSubmitEditing: () => setFocusTarget(current => ({ field: 'passwordConfirm', revision: (current?.revision ?? 0) + 1 })),
             helperMessage:
               password.length > 0 && !hasMinPasswordLength
                 ? '비밀번호는 영문, 숫자, 특수문자를 포함해 8~64자로 입력해 주세요.'
@@ -372,6 +398,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
               setShowPasswordConfirm((current) => !current),
             selection: passwordConfirmSelection,
             onSelectionChange: setPasswordConfirmSelection,
+            inputRef: passwordConfirmInput,
+            onSubmitEditing: () => void goToNextStep(),
             helperMessage: passwordConfirm
               ? hasPasswordMatch
                 ? '비밀번호가 일치합니다.'
@@ -393,6 +421,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
             value: name,
             onChangeText: setName,
             placeholder: '예시) 홍길동',
+            onSubmitEditing: () => setFocusTarget(current => ({ field: 'phone', revision: (current?.revision ?? 0) + 1 })),
           })}
 
           {renderField({
@@ -402,6 +431,7 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
             placeholder: '전화번호를 입력해주세요.',
             keyboardType: 'phone-pad',
             maxLength: 13,
+            inputRef: phoneInput,
           })}
         </>
       );
@@ -427,6 +457,8 @@ export default function SignupScreen({ onPressBack, onComplete }: Props) {
               placeholderTextColor="#A8A8A8"
               keyboardType="number-pad"
               maxLength={10}
+              returnKeyType="go"
+              onSubmitEditing={() => void goToNextStep()}
             />
             {birthDateError ? <Text style={[styles.helperText, styles.errorText]}>{birthDateError}</Text> : null}
           </View>

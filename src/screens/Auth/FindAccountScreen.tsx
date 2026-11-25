@@ -60,7 +60,7 @@ export default function FindAccountScreen({ onPressBack }: Props) {
           {form.step === 'password' && (
             <>
               <ResetField label="새 비밀번호" value={form.password} onChangeText={form.changePassword} editable={!form.busy}
-                placeholder="8~64자" secureTextEntry autoComplete="new-password" maxLength={64} />
+                placeholder="8~64자" secureTextEntry autoComplete="new-password" maxLength={64} onSubmitEditing={handleSubmit} />
               <ResetField label="새 비밀번호 확인" value={form.passwordConfirm} onChangeText={form.changePasswordConfirm}
                 editable={!form.busy} secureTextEntry autoComplete="new-password" maxLength={64} onSubmitEditing={handleSubmit} />
               {form.passwordConfirm.length > 0 && form.password !== form.passwordConfirm && (

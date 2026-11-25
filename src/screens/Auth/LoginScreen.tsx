@@ -3,7 +3,7 @@ import TextInput from '../../components/Typography/TextInput';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
 // ───────────── 불러오기 ─────────────
 import { useEffect, useRef, useState } from 'react';
-import { View, Pressable, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
+import { View, Pressable, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Image, TextInput as NativeTextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -48,6 +48,7 @@ export default function LoginScreen({
   const [loginError, setLoginError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const request = useRef<AbortController | null>(null);
+  const passwordInput = useRef<NativeTextInput>(null);
 
   useEffect(() => () => request.current?.abort(), []);
 
@@ -127,6 +128,8 @@ export default function LoginScreen({
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              returnKeyType="next"
+              onSubmitEditing={() => passwordInput.current?.focus()}
             />
           </View>
 
@@ -140,6 +143,7 @@ export default function LoginScreen({
             ]}
           >
             <TextInput
+              ref={passwordInput}
               style={styles.input}
               value={password}
               onFocus={() => setFocusedField('password')}
@@ -154,6 +158,8 @@ export default function LoginScreen({
               secureTextEntry={!showPassword}
               autoCapitalize="none"
               autoCorrect={false}
+              returnKeyType="go"
+              onSubmitEditing={() => void onLogin()}
             />
 
             {/* 눈 아이콘을 눌러 비밀번호 표시 여부를 바꿉니다. */}
