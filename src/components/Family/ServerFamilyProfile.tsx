@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { router } from 'expo-router';
 import { getFamilyMedications, getFamilyProfile } from '../../api/family';
-import { useAuth } from '../../providers/AuthProvider';
 import { useProtectedQuery } from '../../hooks/useProtectedQuery';
 import { getFamilyMedicationDoses } from '../../utils/familyMedication';
 import { toFamilyPersonalInfo } from '../../utils/familyProfile';
@@ -16,7 +15,6 @@ import Text from '../Typography/Text';
 type Props = { id: string; initialDate?: string };
 
 export default function ServerFamilyProfile({ id, initialDate }: Props) {
-  const { wardInvitations } = useAuth();
   const [calendarRevision, setCalendarRevision] = useState(0);
   const profileQuery = useCallback((token: string, signal: AbortSignal) => getFamilyProfile(id, token, signal), [id]);
   const medicationQuery = useCallback((token: string, signal: AbortSignal) => getFamilyMedications(id, token, signal), [id]);
@@ -48,7 +46,6 @@ export default function ServerFamilyProfile({ id, initialDate }: Props) {
   }
 
   const profile = toFamilyPersonalInfo(profileRequest.state.data);
-  const invitation = wardInvitations.get(profileRequest.state.data.ward_id);
 
   const medications = medicationRequest.state;
   const activeMedicationNames = medications.status === 'ready'
@@ -67,7 +64,7 @@ export default function ServerFamilyProfile({ id, initialDate }: Props) {
       profileDetails={(
         <>
           <ProfileInfoTable profile={profile} />
-          {invitation && <RecentWardInvitation key={invitation.expiresAt} invitation={invitation} />}
+          <RecentWardInvitation key={id} wardId={profileRequest.state.data.ward_id} />
         </>
       )}
       wardId={id}

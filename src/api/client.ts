@@ -1,4 +1,4 @@
-type Options = { method?: 'PATCH' | 'DELETE'; body?: object; formData?: FormData; signal?: AbortSignal; accessToken?: string; privateRequest?: boolean };
+type Options = { method?: 'POST' | 'PATCH' | 'DELETE'; body?: object; formData?: FormData; signal?: AbortSignal; accessToken?: string; privateRequest?: boolean; timeoutMs?: number };
 
 type ApiEnvelope<T> = {
   success: boolean;
@@ -26,7 +26,7 @@ export async function requestApi<T>(path: string, options: Options = {}): Promis
   const abortRequest = () => controller.abort();
   if (options.signal?.aborted) abortRequest();
   options.signal?.addEventListener('abort', abortRequest, { once: true });
-  const timeout = setTimeout(abortRequest, options.formData ? 35_000 : 12_000);
+  const timeout = setTimeout(abortRequest, options.timeoutMs ?? (options.formData ? 35_000 : 12_000));
   const headers = new Headers({ Accept: 'application/json' });
   if (options.body) headers.set('Content-Type', 'application/json');
   if (options.accessToken) headers.set('Authorization', `Bearer ${options.accessToken}`);
