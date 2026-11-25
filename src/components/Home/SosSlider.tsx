@@ -2,29 +2,27 @@ import { useRef, useState, type ComponentProps } from 'react';
 import { PanResponder, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Text from '../Typography/Text';
-import { useNotifications } from '../../providers/NotificationProvider';
+import { useSosRequest } from '../../hooks/useSosRequest';
 
 const thumbSize = 48;
 const inset = 4;
 const webGestureStyle = { touchAction: 'pan-y', top: inset } as const;
 
-export default function SosSlider({ name }: { name: string }) {
-  const { addSosRequest } = useNotifications();
+export default function SosSlider() {
+  const { sending, sent, error, send } = useSosRequest();
   const [width, setWidth] = useState(0);
   const [offset, setOffset] = useState(0);
   const [armed, setArmed] = useState(false);
-  const [sent, setSent] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const webDrag = useRef<{ pointerId: number; startX: number; moved: boolean } | null>(null);
   const travel = Math.max(0, width - thumbSize - inset * 2);
-  const canSlide = armed && !sent;
+  const canSlide = armed && !sent && !sending;
 
-  function send() {
+  function submit() {
     if (!canSlide) return;
-    addSosRequest(name);
-    setSent(true);
     setArmed(false);
     setConfirm(false);
+    void send();
   }
 
   function togglePreparation() {
@@ -39,7 +37,7 @@ export default function SosSlider({ name }: { name: string }) {
     onPanResponderMove: (_, { dx }) => setOffset(Math.min(travel, Math.max(0, dx))),
     onPanResponderRelease: (_, { dx }) => {
       setOffset(0);
-      if (travel > 0 && dx >= travel * 0.95) send();
+      if (travel > 0 && dx >= travel * 0.95) submit();
     },
     onPanResponderTerminate: () => setOffset(0),
   });
@@ -66,7 +64,7 @@ export default function SosSlider({ name }: { name: string }) {
       webDrag.current = null;
       setOffset(0);
       const dx = event.nativeEvent.clientX - drag.startX;
-      if (dx >= travel * 0.95 && travel > 0) send();
+      if (dx >= travel * 0.95 && travel > 0) submit();
       else if (!drag.moved && Math.abs(dx) <= 6) setConfirm(true);
     },
     onPointerCancel: () => {
@@ -77,7 +75,7 @@ export default function SosSlider({ name }: { name: string }) {
 
   return (
     <View style={styles.section}>
-      {!sent && (
+      {!sent && !sending && (
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ expanded: armed }}
@@ -88,8 +86,8 @@ export default function SosSlider({ name }: { name: string }) {
         </Pressable>
       )}
       <View style={[styles.track, !canSlide && !sent && styles.lockedTrack]} onLayout={event => setWidth(event.nativeEvent.layout.width)}>
-        <Text accessibilityLiveRegion="polite" style={[styles.label, !canSlide && !sent && styles.lockedLabel]}>
-          {sent ? 'SOS 요청이 기록됐어요' : armed ? '밀어서 SOS 요청' : '먼저 SOS 요청 준비를 눌러주세요'}
+        <Text accessibilityLiveRegion="polite" style={[styles.label, styles.trackLabel, !canSlide && !sent && styles.lockedLabel]}>
+          {sent ? '보호자 알림에 SOS 요청을 보냈어요' : sending ? 'SOS 요청 보내는 중…' : armed ? '밀어서 SOS 요청' : '먼저 SOS 요청 준비를 눌러주세요'}
         </Text>
         <View
           {...(canSlide ? (Platform.OS === 'web' ? webHandlers : responder.panHandlers) : {})}
@@ -110,12 +108,12 @@ export default function SosSlider({ name }: { name: string }) {
       </View>
       {confirm && canSlide && (
         <View style={styles.confirm}>
-          <Text>SOS 요청을 기록할까요?</Text>
+          <Text>보호자에게 SOS 요청을 보낼까요?</Text>
           <Pressable accessibilityRole="button" onPress={() => setConfirm(false)}><Text>취소</Text></Pressable>
-          <Pressable accessibilityRole="button" onPress={send}><Text style={styles.label}>요청</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={submit}><Text style={styles.label}>요청</Text></Pressable>
         </View>
       )}
-      <Text style={styles.note}>테스트용 · 이 기기의 앱 알림에 기록돼요.</Text>
+      {error && <Text accessibilityRole="alert" style={styles.error}>SOS 요청 결과를 확인하지 못했어요. {error}</Text>}
     </View>
   );
 }
@@ -124,12 +122,13 @@ const styles = StyleSheet.create({
   section: { width: '100%', gap: 8 },
   prepareButton: { minHeight: 44, borderWidth: 1, borderColor: '#D6A09C', borderRadius: 12, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
   track: { height: 56, borderRadius: 28, backgroundColor: '#FDE8E7', alignItems: 'center', justifyContent: 'center' },
-  lockedTrack: { backgroundColor: '#F2F4F7', paddingLeft: thumbSize + inset * 3, paddingRight: 10 },
+  lockedTrack: { backgroundColor: '#F2F4F7' },
+  trackLabel: { textAlign: 'center', paddingHorizontal: 55, fontSize: 14 },
   lockedLabel: { color: '#4B5563', fontSize: 14, textAlign: 'center' },
   lockedThumb: { backgroundColor: '#6B7280' },
   label: { color: '#A61B15', fontSize: 16, fontWeight: '600' },
   handle: { position: 'absolute', top: inset },
   thumb: { width: thumbSize, height: thumbSize, borderRadius: thumbSize / 2, backgroundColor: '#B42318', alignItems: 'center', justifyContent: 'center' },
-  note: { color: '#6B7280', fontSize: 13, textAlign: 'center' },
+  error: { color: '#B42318', fontSize: 14, lineHeight: 20 },
   confirm: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', flexWrap: 'wrap', gap: 10, padding: 12 },
 });

@@ -17,3 +17,7 @@ export function getNotifications(accessToken: string, signal: AbortSignal, page 
     privateRequest: true,
   });
 }
+
+export function sendSosRequest(accessToken: string, signal: AbortSignal) {
+  return requestApi<null>('/sos', { body: {}, accessToken, signal, privateRequest: true });
+}

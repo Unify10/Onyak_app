@@ -30,7 +30,7 @@ export default function Home({ dependentName }: { dependentName?: string }) {
       <Suspense fallback={<ListSkeleton title="복용 중인 약·영양제" label="복용 중인 약과 영양제 불러오는 중" layout="cards" />}>
         <ActiveMedicineList readOnly={!!dependentName} />
       </Suspense>
-      {dependentName && <SosSlider name={dependentName} />}
+      {dependentName && <SosSlider />}
       {!dependentName && (
         <Suspense fallback={<ListSkeleton title="가족 계정" label="가족 계정 불러오는 중" layout="avatars" />}>
           <HomeFamilyAccountList />
