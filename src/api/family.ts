@@ -41,3 +41,16 @@ export async function getFamilyMedications(id: string, accessToken: string, sign
   }
   return items;
 }
+
+export type FamilyMedicationInput = {
+  item_seq: string;
+  dosage: string;
+  start_date: string;
+  schedule_times: string[];
+};
+
+export function addFamilyMedication(wardId: number, input: FamilyMedicationInput, accessToken: string, signal: AbortSignal) {
+  return requestApi<FamilyMedication>(`/wards/${wardId}/medications`, {
+    body: input, accessToken, signal, privateRequest: true,
+  });
+}

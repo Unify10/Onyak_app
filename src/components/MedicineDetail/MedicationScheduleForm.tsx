@@ -14,11 +14,12 @@ import {
   type MedicationScheduleInput,
 } from '../../utils/medicationSchedule';
 
-type Props = {
-  initialSchedules: MedicationSchedule[];
-  onSave: (schedule: MedicationScheduleInput) => void;
-  onCancel: () => void;
-};
+export type FamilyScheduleInput = { startDate: string; dosage: string; times: string[] };
+
+type Props = { onCancel: () => void } & (
+  | { mode?: 'local'; initialSchedules: MedicationSchedule[]; onSave: (schedule: MedicationScheduleInput) => void }
+  | { mode: 'family'; busy: boolean; saveError?: string; onSave: (schedule: FamilyScheduleInput) => void }
+);
 
 const timeOfDayOptions: DoseTimeOfDay[] = ['아침', '점심', '저녁', '취침 전'];
 const defaultTimes: Record<DoseTimeOfDay, string> = {
@@ -40,15 +41,18 @@ function getInitialDuration(schedules: MedicationSchedule[]) {
   return String(Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1);
 }
 
-export default function MedicationScheduleForm({ initialSchedules, onSave, onCancel }: Props) {
+export default function MedicationScheduleForm(props: Props) {
+  const initialSchedules = props.mode === 'family' ? [] : props.initialSchedules;
+  const busy = props.mode === 'family' && props.busy;
+  const [dosage, setDosage] = useState('');
   const [startDate, setStartDate] = useState(initialSchedules[0]?.startDate ?? getLocalDateKey(new Date()));
   const [durationDays, setDurationDays] = useState(() => getInitialDuration(initialSchedules));
   const [selectedTimes, setSelectedTimes] = useState<DoseTimeOfDay[]>(() =>
-    initialSchedules.length ? [...new Set(initialSchedules.map(item => item.timeOfDay))] : ['아침'],
+    initialSchedules.length ? [...new Set(initialSchedules.flatMap(item => item.timeOfDay ? [item.timeOfDay] : []))] : ['아침'],
   );
   const [times, setTimes] = useState<Record<DoseTimeOfDay, string>>(() => ({
     ...defaultTimes,
-    ...Object.fromEntries(initialSchedules.map(item => [item.timeOfDay, item.time])),
+    ...Object.fromEntries(initialSchedules.flatMap(item => item.timeOfDay ? [[item.timeOfDay, item.time]] : [])),
   }));
   const [error, setError] = useState('');
   const parsedDuration = Number(durationDays);
@@ -64,11 +68,16 @@ export default function MedicationScheduleForm({ initialSchedules, onSave, onCan
   }
 
   function save() {
+    if (busy) return;
     if (!isStartDateValid) {
       setError('복용 시작일을 YYYY-MM-DD 형식으로 입력해 주세요.');
       return;
     }
-    if (!isDurationValid) {
+    if (props.mode === 'family' && !dosage.trim()) {
+      setError('처방이나 약품 안내에 적힌 복용량을 입력해 주세요.');
+      return;
+    }
+    if (props.mode !== 'family' && !isDurationValid) {
       setError('복용 기간은 1일에서 365일 사이로 입력해 주세요.');
       return;
     }
@@ -81,7 +90,17 @@ export default function MedicationScheduleForm({ initialSchedules, onSave, onCan
       setError('시간을 24시간제 HH:MM 형식으로 입력해 주세요.');
       return;
     }
-    onSave({ startDate, durationDays: parsedDuration, doses });
+    if (props.mode === 'family') {
+      const scheduleTimes = doses.map(dose => dose.time);
+      if (new Set(scheduleTimes).size !== scheduleTimes.length) {
+        setError('같은 복용 시각이 두 번 입력됐어요.');
+        return;
+      }
+      setError('');
+      props.onSave({ startDate, dosage: dosage.trim(), times: scheduleTimes });
+    } else {
+      props.onSave({ startDate, durationDays: parsedDuration, doses });
+    }
   }
 
   return (
@@ -90,20 +109,37 @@ export default function MedicationScheduleForm({ initialSchedules, onSave, onCan
       <Text style={styles.label}>복용 시작일</Text>
       <BirthDateField label="복용 시작일" value={startDate} onChange={value => { setStartDate(value); setError(''); }} />
 
-      <Text style={styles.label}>복용 기간</Text>
-      <View style={styles.durationRow}>
-        <TextInput
-          accessibilityLabel="복용 기간 일수"
-          value={durationDays}
-          onChangeText={value => { setDurationDays(value.replace(/\D/g, '').slice(0, 3)); setError(''); }}
-          placeholder="7"
-          keyboardType="number-pad"
-          maxLength={3}
-          style={[styles.input, styles.durationInput]}
-        />
-        <Text style={styles.daysUnit}>일</Text>
-        {endDate && <Text style={styles.endDate}>종료일 {formatDateKey(endDate)}</Text>}
-      </View>
+      {props.mode === 'family' ? (
+        <>
+          <Text style={styles.label}>1회 복용량</Text>
+          <TextInput
+            accessibilityLabel="1회 복용량"
+            value={dosage}
+            onChangeText={value => { setDosage(value); setError(''); }}
+            placeholder="처방이나 약품 안내에 적힌 복용량"
+            maxLength={100}
+            editable={!busy}
+            style={styles.input}
+          />
+        </>
+      ) : (
+        <>
+          <Text style={styles.label}>복용 기간</Text>
+          <View style={styles.durationRow}>
+            <TextInput
+              accessibilityLabel="복용 기간 일수"
+              value={durationDays}
+              onChangeText={value => { setDurationDays(value.replace(/\D/g, '').slice(0, 3)); setError(''); }}
+              placeholder="7"
+              keyboardType="number-pad"
+              maxLength={3}
+              style={[styles.input, styles.durationInput]}
+            />
+            <Text style={styles.daysUnit}>일</Text>
+            {endDate && <Text style={styles.endDate}>종료일 {formatDateKey(endDate)}</Text>}
+          </View>
+        </>
+      )}
 
       <Text style={styles.label}>복용 시간대</Text>
       <View style={styles.options}>
@@ -114,6 +150,7 @@ export default function MedicationScheduleForm({ initialSchedules, onSave, onCan
               key={option}
               accessibilityRole="button"
               accessibilityState={{ selected }}
+              disabled={busy}
               onPress={() => toggleTimeOfDay(option)}
               style={[styles.option, selected && styles.optionSelected]}
             >
@@ -130,12 +167,14 @@ export default function MedicationScheduleForm({ initialSchedules, onSave, onCan
         </View>
       ))}
 
-      {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+      {(error || (props.mode === 'family' && props.saveError)) && (
+        <Text accessibilityRole="alert" style={styles.error}>{error || (props.mode === 'family' && props.saveError)}</Text>
+      )}
 
-      <Pressable accessibilityRole="button" onPress={save} style={styles.saveButton}>
-        <Text style={styles.saveButtonText}>일정 저장</Text>
+      <Pressable accessibilityRole="button" accessibilityState={{ busy, disabled: busy }} disabled={busy} onPress={save} style={styles.saveButton}>
+        <Text style={styles.saveButtonText}>{busy ? '저장 중…' : props.mode === 'family' ? '가족 계정에 약 추가' : '일정 저장'}</Text>
       </Pressable>
-      <Pressable accessibilityRole="button" onPress={onCancel} style={styles.cancelButton}>
+      <Pressable accessibilityRole="button" disabled={busy} onPress={props.onCancel} style={styles.cancelButton}>
         <Text style={styles.cancelButtonText}>취소</Text>
       </Pressable>
     </View>
@@ -154,13 +193,13 @@ const styles = StyleSheet.create({
   options: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   option: { minHeight: 40, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: '#D9DEE5', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' },
   optionSelected: { borderColor: '#111111', backgroundColor: '#111111' },
-  optionText: { fontSize: 14, color: '#596273' },
+  optionText: { fontSize: 14, fontWeight: '400', color: '#596273' },
   optionTextSelected: { color: '#FFFFFF' },
   timeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, gap: 12 },
   timeLabel: { color: '#303642', fontSize: 15 },
   error: { color: '#C0392B', fontSize: 13, lineHeight: 19, marginTop: 8 },
   saveButton: { minHeight: 50, borderRadius: 12, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', marginTop: 18 },
-  saveButtonText: { color: '#FFFFFF', fontSize: 16 },
+  saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '400' },
   cancelButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
-  cancelButtonText: { color: '#667085', fontSize: 15 },
+  cancelButtonText: { color: '#667085', fontSize: 15, fontWeight: '400' },
 });

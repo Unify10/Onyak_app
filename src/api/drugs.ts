@@ -153,7 +153,7 @@ function readDrugCandidates(result: unknown): DrugCandidate[] {
   return [...found.values()];
 }
 
-function readDrugFindings(result: unknown): DrugFinding[] | undefined {
+export function readDrugFindings(result: unknown): DrugFinding[] | undefined {
   const record = asRecord(result);
   const dur = asRecord(record?.dur);
   const analysis = asRecord(record?.analysis);

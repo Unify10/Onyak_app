@@ -1,14 +1,18 @@
 import type { DrugInformation } from '../../api/drugs';
 import Text from '../Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DrugDurSection from './DrugDurSection';
 
-export default function MedicineInfoAccordion({ information }: { information?: DrugInformation }) {
+type Props = { information?: DrugInformation; drugId?: string };
+type Section = { title: string; description?: string | null; content?: ReactNode };
+
+export default function MedicineInfoAccordion({ information, drugId }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   const [expanded, setExpanded] = useState<string | null>('약의 효능');
-  const sections = [
+  const sections: Section[] = [
     { title: '약의 효능', description: information?.efficacy },
     { title: '복용 방법', description: information?.usage },
     { title: '주의사항', description: information?.caution },
@@ -16,6 +20,7 @@ export default function MedicineInfoAccordion({ information }: { information?: D
       title: '의약품 분류',
       description: [information.classification, ...(information.classificationEvidence ?? [])].join('\n'),
     }] : []),
+    ...(drugId ? [{ title: 'DUR 금기·주의 조회', content: <DrugDurSection drugId={drugId} /> }] : []),
   ];
   return (
     <View style={styles.container}>
@@ -32,7 +37,13 @@ export default function MedicineInfoAccordion({ information }: { information?: D
               <Text style={styles.title}>{section.title}</Text>
               <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color="#C8CDD5" />
             </Pressable>
-            {isExpanded && <View style={styles.description}><Text style={styles.descriptionText}>{section.description?.trim() || '등록된 정보가 없어요.'}</Text></View>}
+            {isExpanded && (
+              <View style={styles.description}>
+                {section.content ?? (
+                  <Text style={styles.descriptionText}>{section.description?.trim() || '등록된 정보가 없어요.'}</Text>
+                )}
+              </View>
+            )}
           </View>
         );
       })}
@@ -44,7 +55,7 @@ const baseStyles = StyleSheet.create({
   container: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 14, overflow: 'hidden' },
   border: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB' },
   row: { minHeight: 52, paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { color: '#111111', fontSize: 18, lineHeight: 26 },
+  title: { color: '#111111', fontSize: 18, lineHeight: 26, fontWeight: '400' },
   description: { minHeight: 178, backgroundColor: '#F5F6F8', paddingHorizontal: 26, paddingVertical: 28 },
   descriptionText: { fontSize: 16, lineHeight: 26, color: '#111111' },
 });
