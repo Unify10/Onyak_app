@@ -118,6 +118,7 @@ export default function MedicationScheduleForm(props: Props) {
             value={dosage}
             onChangeText={value => { setDosage(value); setError(''); }}
             placeholder="처방이나 약품 안내에 적힌 복용량"
+            placeholderTextColor="#9CA3AF"
             maxLength={100}
             editable={!busy}
             style={styles.input}
