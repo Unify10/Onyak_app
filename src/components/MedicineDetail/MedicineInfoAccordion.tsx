@@ -5,17 +5,19 @@ import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DrugDurSection from './DrugDurSection';
+import DrugIngredientList from './DrugIngredientList';
 
-type Props = { information?: DrugInformation; drugId?: string };
+type Props = { information?: DrugInformation; drugId?: string; ingredient?: string };
 type Section = { title: string; description?: string | null; content?: ReactNode };
 
-export default function MedicineInfoAccordion({ information, drugId }: Props) {
+export default function MedicineInfoAccordion({ information, drugId, ingredient }: Props) {
   const styles = useResponsiveStyles(baseStyles);
   const [expanded, setExpanded] = useState<string | null>('약의 효능');
   const sections: Section[] = [
     { title: '약의 효능', description: information?.efficacy },
     { title: '복용 방법', description: information?.usage },
     { title: '주의사항', description: information?.caution },
+    ...(ingredient?.trim() ? [{ title: '주성분', content: <DrugIngredientList value={ingredient} /> }] : []),
     ...(information?.classification ? [{
       title: '의약품 분류',
       description: [information.classification, ...(information.classificationEvidence ?? [])].join('\n'),

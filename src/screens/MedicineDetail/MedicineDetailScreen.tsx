@@ -108,7 +108,7 @@ export default function MedicineDetailScreen({ medicine, information }: { medici
           <View style={styles.image}><Text style={styles.imageText}>약 이미지</Text></View>
           <Text style={styles.name}>{medicine.name}</Text>
         </View>
-        <MedicineInfoAccordion information={information} drugId={drugId} />
+        <MedicineInfoAccordion information={information} drugId={drugId} ingredient={medicine.ingredient} />
         {!savingFor && (
           <Pressable accessibilityRole="button" style={styles.button} onPress={() => setSavingFor('self')}>
             <Text style={styles.buttonText}>{isRegistered ? '복용 일정 수정' : '복용 목록에 추가'}</Text>

@@ -23,8 +23,12 @@ export default function SearchResults({ query, medicines, onSelectMedicine }: Pr
             <AppText style={styles.placeholderText}>약 이미지</AppText>
           </View>
           <View style={styles.info}>
-            <AppText style={styles.name}>{medicine.name}</AppText>
-            {(medicine.ingredient || medicine.kind) && <AppText style={styles.detail}>{[medicine.ingredient, medicine.kind].filter(Boolean).join(' · ')}</AppText>}
+            <AppText style={styles.name} numberOfLines={2} ellipsizeMode="tail">{medicine.name}</AppText>
+            {(medicine.ingredient || medicine.kind) && (
+              <AppText style={styles.detail} numberOfLines={2} ellipsizeMode="tail">
+                {[medicine.ingredient, medicine.kind].filter(Boolean).join(' · ')}
+              </AppText>
+            )}
           </View>
           <Ionicons name="chevron-forward" size={22} color="#C5CBD3" />
         </Pressable>
@@ -51,11 +55,11 @@ const baseStyles = StyleSheet.create({
   imagePlaceholder: { borderRadius: 13, backgroundColor: '#E7E9ED', alignItems: 'center', justifyContent: 'center', marginRight: 13, gap: 3 },
   placeholderText: { color: '#FFFFFF', fontSize: 12 },
   info: { flex: 1, minWidth: 0, paddingVertical: 7 },
-  name: { color: '#171C26', fontSize: 19, fontWeight: '600' },
+  name: { color: '#171C26', fontSize: 19, fontWeight: '600', lineHeight: 24 },
   detail: { color: '#7E8795', fontSize: 16, lineHeight: 21, marginTop: 4 },
   empty: { minHeight: 150, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E8EAED', borderRadius: 16, padding: 20 },
   emptyTitle: { color: '#171C26', fontSize: 18, fontWeight: '600', textAlign: 'center', marginTop: 10 },
   emptyDescription: { color: '#7E8795', fontSize: 16, textAlign: 'center', lineHeight: 23, marginTop: 6 },
 });
 
-const compactStyles = StyleSheet.create({ card: { minHeight: 88, padding: 10 }, imagePlaceholder: { marginRight: 10 }, info: { paddingVertical: 2 }, name: { fontSize: 17 }, detail: { fontSize: 14, lineHeight: 20 } });
+const compactStyles = StyleSheet.create({ card: { minHeight: 88, padding: 10 }, imagePlaceholder: { marginRight: 10 }, info: { paddingVertical: 2 }, name: { fontSize: 17, lineHeight: 22 }, detail: { fontSize: 14, lineHeight: 20 } });
