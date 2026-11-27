@@ -19,7 +19,7 @@ export default function DeleteAccountScreen() {
   const [checked, setChecked] = useState(false);
   const { resetProfile } = useProfile();
   const { accountId, clearLocalSession } = useAuth();
-  const { clearSearches } = useSearchHistory();
+  const { clearHistory } = useSearchHistory();
   const { clearPersonalMedications } = useMedications();
   const { busy, error, run } = useAccountMutation('회원 탈퇴를 완료하지 못했어요.');
   const disabled = !checked || busy || accountId === null;
@@ -30,7 +30,7 @@ export default function DeleteAccountScreen() {
     if (!result.ok) return;
     void writeConfirmedHeight(accountId, null).catch(() => {});
     resetProfile();
-    clearSearches();
+    clearHistory();
     clearFamilies();
     clearPersonalMedications?.();
     clearLocalSession();

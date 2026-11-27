@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Medicine } from '../components/Search/types';
 import type { MedicationSchedule } from './medicationSchedule';
 
@@ -23,18 +22,4 @@ export const emptyCheckedDoses: string[] = [];
 
 export function readCheckedDoses(value: unknown) {
   return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : emptyCheckedDoses;
-}
-
-let pendingWrite = Promise.resolve();
-
-export async function readMedicationStorage(key: string): Promise<unknown> {
-  await pendingWrite;
-  const value = await AsyncStorage.getItem(key);
-  return value ? JSON.parse(value) : undefined;
-}
-
-export function writeMedicationStorage(key: string, value?: unknown) {
-  const save = () => value === undefined ? AsyncStorage.removeItem(key) : AsyncStorage.setItem(key, JSON.stringify(value));
-  pendingWrite = pendingWrite.then(save).catch(() => {});
-  return pendingWrite;
 }

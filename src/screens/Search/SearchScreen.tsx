@@ -31,6 +31,7 @@ type Props = {
   initialQuery?: string | null;
   onInitialQueryHandled?: () => void;
   recentSearches: SearchHistoryEntry[];
+  recentlyViewed: Medicine[];
   onSaveSearch: (entry: SearchHistoryEntry) => void;
   onDeleteSearch: (query: string) => void;
   onClearSearches: () => void;
@@ -38,6 +39,7 @@ type Props = {
 
 export default function SearchScreen({
   recentSearches,
+  recentlyViewed,
   pendingCaptureAction,
   captureRequestId,
   onCaptureActionHandled,
@@ -96,9 +98,13 @@ export default function SearchScreen({
     if (!value.trim()) setSubmittedQuery('');
   }
 
+  function openMedicine(medicine: Medicine) {
+    router.push({ pathname: '/medicine/[id]', params: { id: medicine.id } });
+  }
+
   function selectMedicine(medicine: Medicine) {
     saveSearch(submittedQuery || medicine.name, medicine.category);
-    router.push({ pathname: '/medicine/[id]', params: { id: medicine.id } });
+    openMedicine(medicine);
   }
 
   const openCamera = useCallback(async (mode: 'label' | 'barcode' = 'label') => {
@@ -252,7 +258,11 @@ export default function SearchScreen({
                     </Suspense>
             )}
             {!barcode && (!canSearch ? (
-              <AppText style={styles.searchHint}>약 이름이나 성분명을 두 글자 이상 입력해 주세요.</AppText>
+              recentlyViewed.length > 0 ? (
+                <Suspense fallback={<SearchResultsSkeleton />}>
+                  <SearchResults query="" medicines={recentlyViewed} onSelectMedicine={openMedicine} />
+                </Suspense>
+              ) : <AppText style={styles.searchHint}>약 이름이나 성분명을 두 글자 이상 입력해 주세요.</AppText>
             ) : searchState.status === 'loading' ? (
               <SearchResultsSkeleton />
             ) : searchState.status === 'error' ? (

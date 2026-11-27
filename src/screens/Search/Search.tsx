@@ -1,4 +1,4 @@
-import type { CaptureAction } from '../../components/Search/types';
+import type { CaptureAction, Medicine } from '../../components/Search/types';
 import SearchScreen, { type SearchHistoryEntry } from './SearchScreen';
 
 type Props = {
@@ -6,6 +6,7 @@ type Props = {
   captureRequestId?: string;
   onCaptureActionHandled: () => void;
   recentSearches: SearchHistoryEntry[];
+  recentlyViewed: Medicine[];
   onSaveSearch: (entry: SearchHistoryEntry) => void;
   onDeleteSearch: (query: string) => void;
   onClearSearches: () => void;
@@ -18,6 +19,7 @@ export default function Search({
   captureRequestId,
   onCaptureActionHandled,
   recentSearches,
+  recentlyViewed,
   onSaveSearch,
   onDeleteSearch,
   onClearSearches,
@@ -25,6 +27,7 @@ export default function Search({
   return (
     <SearchScreen
       recentSearches={recentSearches}
+      recentlyViewed={recentlyViewed}
       pendingCaptureAction={captureAction ?? null}
       captureRequestId={captureRequestId}
       onCaptureActionHandled={onCaptureActionHandled}

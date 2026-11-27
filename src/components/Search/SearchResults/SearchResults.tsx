@@ -15,7 +15,7 @@ export default function SearchResults({ query, medicines, onSelectMedicine }: Pr
   const styles = useResponsiveStyles(baseStyles, compactStyles);
   return (
     <View>
-      <View style={styles.heading}><AppText style={styles.sectionTitle}>{query ? '검색 결과' : '이전 검색결과'}</AppText></View>
+      <View style={styles.heading}><AppText style={styles.sectionTitle}>{query ? '검색 결과' : '최근 본 약'}</AppText></View>
       {medicines.length ? medicines.map(medicine => (
         <Pressable key={medicine.id} style={styles.card} onPress={() => onSelectMedicine(medicine)} accessibilityRole="button">
           <View style={[styles.imagePlaceholder, medicineImageLayout]} accessibilityRole="image" accessibilityLabel={`${medicine.name} 이미지 영역`}>

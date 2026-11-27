@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState, type ReactNode } from 'react';
 import { medicines as exampleMedicines } from '../components/Search/medicineData';
 import type { Medicine } from '../components/Search/types';
-import { useStoredMedicationData } from '../hooks/useStoredMedicationData';
+import { useStoredAccountData } from '../hooks/useStoredAccountData';
 import { emptyCabinet, readCabinet } from '../utils/medicationStorage';
 import { createMedicationSchedules, getTodayDoses, type MedicationScheduleInput, type MedicationSchedule } from '../utils/medicationSchedule';
 import { useAuth } from './AuthProvider';
@@ -15,7 +15,7 @@ type MedicationProviderProps = {
 export function MedicationProvider({ children, familySchedules }: MedicationProviderProps) {
   const parent = useContext(MedicationContext);
   const { accountId } = useAuth();
-  const { data, update, clear } = useStoredMedicationData(
+  const { data, update, clear } = useStoredAccountData(
     !parent && !familySchedules && accountId !== null ? `onyak.personal-medications.${accountId}` : null,
     emptyCabinet, readCabinet,
   );

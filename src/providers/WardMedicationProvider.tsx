@@ -4,7 +4,7 @@ import { checkFamilyMedication } from '../api/medications';
 import type { Medicine } from '../components/Search/types';
 import { useMedicationMutation } from '../hooks/useMedicationMutation';
 import { useProtectedQuery } from '../hooks/useProtectedQuery';
-import { useStoredMedicationData } from '../hooks/useStoredMedicationData';
+import { useStoredAccountData } from '../hooks/useStoredAccountData';
 import { emptyCheckedDoses, readCheckedDoses } from '../utils/medicationStorage';
 import { useWardCalendar } from '../hooks/useWardCalendar';
 import { getMedicationServerClock } from '../utils/familyMedication';
@@ -16,7 +16,7 @@ const everyDay = [0, 1, 2, 3, 4, 5, 6];
 
 export default function WardMedicationProvider({ wardId, children }: { wardId: string; children: ReactNode }) {
   const [clock, setClock] = useState(getMedicationServerClock);
-  const { data: checked, update: updateChecked } = useStoredMedicationData(`onyak.ward-checked.${wardId}`, emptyCheckedDoses, readCheckedDoses);
+  const { data: checked, update: updateChecked } = useStoredAccountData(`onyak.ward-checked.${wardId}`, emptyCheckedDoses, readCheckedDoses);
   const query = useCallback((token: string, signal: AbortSignal) => getFamilyMedications(wardId, token, signal), [wardId]);
   const { state, retry } = useProtectedQuery(query, true, 'dependent');
   const calendar = useWardCalendar(wardId, clock.date, 'dependent', clock.date.getTime());

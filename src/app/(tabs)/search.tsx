@@ -6,6 +6,6 @@ import { useSearchHistory } from '../../providers/SearchHistoryProvider';
 export default function SearchRoute() {
   const { capture, requestId } = useLocalSearchParams<{ capture?: string; requestId?: string }>();
   const handleCaptureAction = useCallback(() => router.setParams({ capture: undefined, requestId: undefined }), []);
-  const { recentSearches, saveSearch, deleteSearch, clearSearches } = useSearchHistory();
-  return <Search captureAction={capture === 'label' ? 'label' : null} captureRequestId={requestId} onCaptureActionHandled={handleCaptureAction} recentSearches={recentSearches} onSaveSearch={saveSearch} onDeleteSearch={deleteSearch} onClearSearches={clearSearches} />;
+  const { recentSearches, recentlyViewed, saveSearch, deleteSearch, clearSearches } = useSearchHistory();
+  return <Search captureAction={capture === 'label' ? 'label' : null} captureRequestId={requestId} onCaptureActionHandled={handleCaptureAction} recentSearches={recentSearches} recentlyViewed={recentlyViewed} onSaveSearch={saveSearch} onDeleteSearch={deleteSearch} onClearSearches={clearSearches} />;
 }

@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react';
-import { readMedicationStorage, writeMedicationStorage } from '../utils/medicationStorage';
+import { useCallback, useEffect, useState } from 'react';
+import { readStoredAccountData, writeStoredAccountData } from '../utils/accountDataStorage';
 
 type Update<T> = (data: T) => T;
 type Snapshot<T> = { key: string | null; data: T; loaded: boolean; updates: Update<T>[]; dirty: boolean };
 
-export function useStoredMedicationData<T>(key: string | null, initial: T, parse: (value: unknown) => T) {
+export function useStoredAccountData<T>(key: string | null, initial: T, parse: (value: unknown) => T) {
   const [snapshot, setSnapshot] = useState<Snapshot<T>>({ key, data: initial, loaded: !key, updates: [], dirty: false });
   const current = snapshot.key === key ? snapshot : { key, data: initial, loaded: !key, updates: [], dirty: false };
 
   useEffect(() => {
     if (!key) return;
     let active = true;
-    void readMedicationStorage(key).then(parse).catch(() => initial).then(stored => {
+    void readStoredAccountData(key).then(parse).catch(() => initial).then(stored => {
       if (!active) return;
       setSnapshot(snapshot => {
         if (snapshot.key === key && snapshot.loaded) return snapshot;
@@ -24,11 +24,11 @@ export function useStoredMedicationData<T>(key: string | null, initial: T, parse
 
   useEffect(() => {
     if (key && snapshot.key === key && snapshot.loaded && snapshot.dirty) {
-      void writeMedicationStorage(key, snapshot.data);
+      void writeStoredAccountData(key, snapshot.data);
     }
   }, [key, snapshot]);
 
-  function update(apply: Update<T>) {
+  const update = useCallback((apply: Update<T>) => {
     setSnapshot(snapshot => {
       const previous = snapshot.key === key ? snapshot : { key, data: initial, loaded: !key, updates: [], dirty: false };
       return {
@@ -38,12 +38,12 @@ export function useStoredMedicationData<T>(key: string | null, initial: T, parse
         dirty: true,
       };
     });
-  }
+  }, [initial, key]);
 
-  function clear() {
-    if (key) void writeMedicationStorage(key);
+  const clear = useCallback(() => {
+    if (key) void writeStoredAccountData(key);
     setSnapshot({ key, data: initial, loaded: true, updates: [], dirty: false });
-  }
+  }, [initial, key]);
 
   return { data: current.data, update, clear };
 }

@@ -4,8 +4,8 @@ import ConfirmationDialog from '../../components/Dialogs/ConfirmationDialog';
 import RoundBackButton from '../../components/Navigation/RoundBackButton';
 import Text from '../../components/Typography/Text';
 import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import FamilyDrugPrecheck from '../../components/MedicineDetail/FamilyDrugPrecheck';
 import FamilyMedicationRegistration from '../../components/MedicineDetail/FamilyMedicationRegistration';
@@ -15,10 +15,13 @@ import type { Medicine } from '../../components/Search/types';
 import { useAuth } from '../../providers/AuthProvider';
 import { useMedications } from '../../providers/MedicationContext';
 import { useFamilies } from '../../providers/FamilyProvider';
+import { useSearchHistory } from '../../providers/SearchHistoryProvider';
 import type { MedicationScheduleInput } from '../../utils/medicationSchedule';
 
 export default function MedicineDetailScreen({ medicine, information }: { medicine: Medicine; information?: DrugInformation }) {
   const styles = useResponsiveStyles(baseStyles);
+  const { saveViewedMedicine } = useSearchHistory();
+  useFocusEffect(useCallback(() => { saveViewedMedicine(medicine); }, [medicine, saveViewedMedicine]));
   const { medicineIds, schedules, toggleMedicine, saveMedicationSchedule, rememberMedicine } = useMedications();
   const isRegistered = medicineIds.includes(medicine.id);
   const { families, saveFamilyMedication } = useFamilies();
