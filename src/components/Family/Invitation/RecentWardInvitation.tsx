@@ -60,7 +60,7 @@ export default function RecentWardInvitation({ wardId }: Props) {
 }
 
 const styles = StyleSheet.create({
-  actions: { marginTop: 12, gap: 8 },
+  actions: { gap: 8 },
   button: { minHeight: 44, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   label: { color: '#344054', fontSize: 15 },
   reissueButton: { backgroundColor: '#111111', borderColor: '#111111' },
